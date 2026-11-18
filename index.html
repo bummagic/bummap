@@ -155,7 +155,7 @@ footer{font-size:13px;color:var(--sub)}
 <section class="main">
 <div class="fig" id="fig">
 <div id="ml" aria-label="배경지도·건물"></div>
-<svg id="svg" role="img" aria-label="전국 읍면동 경계 위에 규제지역, 철도, 고속도로를 표시한 지도"><defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--ink)" stroke-width="1.2" opacity=".45"/></pattern></defs><g id="vp"></g></svg>
+<svg id="svg" role="img" aria-label="전국 읍면동 경계 위에 규제지역, 철도, 고속도로를 표시한 지도"><defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--ink)" stroke-width="1.2" opacity=".45"/></pattern></defs><rect width="100%" height="100%" style="fill:#000;opacity:0;mix-blend-mode:multiply;pointer-events:none" aria-hidden="true"></rect><g id="vp"></g></svg>
 <div class="tools">
 <input type="search" id="q" list="names" placeholder="동탄1동, 경부고속도로, 전주대학교" aria-label="지역·노선 검색">
 <datalist id="names"></datalist>
@@ -424,7 +424,7 @@ at.textContent=S.attr+' · 건물: 국토교통부 GIS건물통합정보'}
 // 일반지도 = 용도색을 채운 면/불투명 3D, 위성 = 용도색 테두리+옅은 면/반투명 3D
 function sty(){if(!ML)return;const sat=baseMode===2,show=!!baseMode&&bOn;
 ML.setPaintProperty('b2','fill-opacity',sat?.18:.85);ML.setPaintProperty('b2','fill-outline-color',sat?'rgba(0,0,0,0)':(isDark?'#0d1c24':'#ffffff'));
-ML.setPaintProperty('b3','fill-extrusion-opacity',sat?.6:.9);ML.setPaintProperty('sel','line-color',sat?'#ffd43b':'#13242e');
+ML.setPaintProperty('b3','fill-extrusion-opacity',sat?.82:.9);ML.setPaintProperty('sel','line-color',sat?'#ffd43b':'#13242e');
 ML.setLayoutProperty('b2','visibility',show&&!mode3?'visible':'none');ML.setLayoutProperty('b2l','visibility',show&&!mode3&&sat?'visible':'none');
 ML.setLayoutProperty('b3','visibility',show&&mode3?'visible':'none');ML.setLayoutProperty('sel','visibility',show?'visible':'none');bLoad()}
 const bCache=new Map(),bBund=new Map();
@@ -435,8 +435,10 @@ return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.
 async function bLoad(){if(!ML||!bIdx)return;const z=ML.getZoom();fig.classList.toggle('bz',!!baseMode&&bOn&&z>=14);if(!baseMode||!bOn){bst.style.visibility='hidden';return}bst.style.visibility='visible';
 if(z<14){ML.getSource('b').setData(EMPTY);bst.textContent='건물은 동 단위(축척 약 200m)로 확대하면 나타납니다';return}
 const b=ML.getBounds(),Z=bIdx.z,[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y1]=tileOf(b.getEast(),b.getSouth(),Z);
-const want=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+'_'+y;if(bIdx.t[k])want.push(k)}
-if(want.length>12){bst.textContent='범위가 넓어 건물을 다 그릴 수 없습니다. 조금 더 확대해 주세요';return}
+// 기울인 3D에서는 화면 범위가 지평선까지 넓어지므로, 화면 중심에서 가까운 타일 16개만 그린다
+const cc=ML.getCenter(),[cx0,cy0]=tileOf(cc.lng,cc.lat,Z),cand=[];
+for(let x=Math.max(x0,cx0-4);x<=Math.min(x1,cx0+4);x++)for(let y=Math.max(y0,cy0-4);y<=Math.min(y1,cy0+4);y++){const k=x+'_'+y;if(bIdx.t[k])cand.push([(x-cx0)**2+(y-cy0)**2,k])}
+cand.sort((p,q)=>p[0]-q[0]);const want=cand.slice(0,16).map(c=>c[1]);
 if(!want.length){ML.getSource('b').setData(EMPTY);bst.textContent='이 지역은 건물 자료 범위 밖입니다 (경기도는 준비 중)';return}
 bst.textContent='건물 불러오는 중…';
 await Promise.all(want.filter(k=>!bCache.has(k)).map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}));

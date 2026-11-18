@@ -68,6 +68,7 @@
 ## K. 새 엔진 지도 ml.html (MapLibre 전환, 진행 중)
 - `ml.tpl.html` → gen.py가 index.html과 같은 자리표시자를 채워 `ml.html`을 만든다. 글자는 Hangul만 브라우저 글꼴로 그리고, 숫자·영문은 `fonts/Noto Sans Regular|Medium/{범위}.pbf`(protomaps/basemaps-assets, OFL)를 쓴다.
 - 1단계(2026-11-19): 기본 틀·배경(단색/일반/위성)·건물 2D·3D·규제지역·외국인 토허·지형·강·경계·이름표·동 검색. 2단계: 철도·도로·고속도로·학교·학원. 3단계: 인구·상권·노선 목록·통합 검색 → 끝나면 ml.html을 index.html로 바꾼다.
+- 정비사업 자료(다음 작업): ① 서울 = 서울열린데이터광장 OA-22712 '서울시 도시계획사업 현황(서울플랜+) 공간정보'(로그인 불필요, datafile.seoul.go.kr 출처 탭에서 `POST /bigfile/iot/inf/nio_download.do` body `infId=OA-22712&seq=5&infSeq=1`, SHP EPSG:5174 Bessel 중부원점, 2,776구역, SCLAS_CL 사업유형·PROPEL_CD 추진단계 코드표 xlsx 동봉) ② 전국 = 브이월드 dsId=30335 '(연속주제)_도시및주거환경정비/정비구역' 시도별 SHP(로그인 필요) + 공공데이터포털 15160169 '전국 도시정비사업 통합 데이터' CSV(로그인 불필요, 1,567건: 구역명·추진단계·유형·시행자·공급세대, 좌표 없음 → 구역명으로 경계와 연결). 브라우저에서 받은 파일을 작업 공간으로 옮기려면 PC 다운로드 폴더 연결이 필요하다.
 - 기존 지도의 확대 배율 k는 `zk(k)=Z0+log2(k)`(Z0=전국 맞춤 줌)로 환산해 표시 기준을 맞춘다.
 
 ## D. 빌드·검증·게시

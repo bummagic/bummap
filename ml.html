@@ -106,6 +106,13 @@ footer{font-size:13px;color:var(--sub)}
 <label><input type="checkbox" id="L_wa" checked><span class="sw" style="background:#a9d3e6;border:1px solid #7fb6d0"></span><span>강·호수·저수지<small>위성 배경에서는 숨김</small></span></label>
 <h3 style="margin-top:14px">이름 표시</h3>
 <label><input type="checkbox" id="L_dong" checked><span class="sw" style="display:grid;place-items:center;font-size:11px;border:1px solid var(--edge);color:var(--sub)">동</span><span>동(읍·면) 이름<small>켜면 크게 확대했을 때 동 이름 표시</small></span></label>
+<h3 style="margin-top:14px">철도·역세권</h3>
+<label><input type="checkbox" id="L_rl" checked><span class="sw" style="height:0;margin-top:9px;border-top:3px solid #0052A4"></span><span>철도 노선<small>전철·GTX(노선색), KTX(빨강), 일반철도(회색) · 공사 중 긴 점선, 계획 짧은 점선 · 누르면 현황</small></span></label>
+<label><input type="checkbox" id="L_st" checked><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#fff;border:2px solid #13242e"></span><span>역<small>확대하면 표시 · 누르면 지나는 노선</small></span></label>
+<label style="align-items:center"><span class="sw" style="border:2px solid #2563eb;border-radius:50%;width:16px;height:16px;margin:0 6px"></span><span>역세권 <select id="ysm" aria-label="역세권 반경" style="font:inherit;font-size:13px;margin-left:4px"><option value="0">끔</option><option value="1" selected>500m</option><option value="2">500m + 1km</option></select><small>역 중심에서 직선거리 · 걸어서 약 7분(500m)·15분(1km)</small></span></label>
+<h3 style="margin-top:14px">건물 색</h3>
+<label style="align-items:center"><span>건물 색 기준 <select id="bcm" aria-label="건물 색 기준" style="font:inherit;font-size:13px;margin-left:4px"><option value="use">용도별</option><option value="age">연식별 (사용승인 연도)</option><option value="old">30년 넘은 아파트만 강조</option></select></span></label>
+<div id="blg" class="muted" style="font-size:12.5px;margin:-2px 0 6px"></div>
 </div>
 <details class="muted" style="font-size:13px"><summary style="cursor:pointer">배경지도 설정 (브이월드 인증키)</summary>
 <p style="margin:6px 0 0">브이월드 인증키를 넣으면 일반지도·위성을 브이월드(국토교통부)로 봅니다. 키는 이 브라우저에만 저장됩니다. 키가 없거나 막히면 OpenStreetMap·Esri 위성으로 대신 보여줍니다.</p>
@@ -199,7 +206,7 @@ const Z0=map.getZoom(),zk=k=>Z0+Math.log2(k);  // 기존 지도의 확대 배율
 {const c=document.createElement('canvas');c.width=c.height=12;const x=c.getContext('2d');x.strokeStyle=P.hatch;x.lineWidth=1.4;x.beginPath();for(let i=-12;i<=24;i+=6){x.moveTo(i,12);x.lineTo(i+12,0)}x.stroke();map.on('load',()=>map.addImage('hatch',x.getImageData(0,0,12,12),{pixelRatio:2}))}
 
 const ready=new Promise(r=>map.on('load',r));
-Promise.all([fetch('data/sub.json').then(r=>r.json()),fetch('data/terrain.json').then(r=>r.json()).catch(()=>({})),fetch('data/water.json').then(r=>r.json()).catch(()=>({r:[],w:[]})),ready]).then(([t,terr,wat])=>{
+Promise.all([fetch('data/sub.json').then(r=>r.json()),fetch('data/terrain.json').then(r=>r.json()).catch(()=>({})),fetch('data/water.json').then(r=>r.json()).catch(()=>({r:[],w:[]})),fetch('data/rail.json').then(r=>r.json()).catch(()=>[]),fetch('data/stations.json').then(r=>r.json()).catch(()=>[]),ready]).then(([t,terr,wat,rail,sts])=>{
 const obj=t.objects.skorea_submunicipalities_geo,fs=topojson.feature(t,obj).features;
 const byCode=new Map();fs.forEach((f,i)=>{const c=f.properties.code,z=cat(c);f.id=i;f.properties.z=z;f.properties.fx=foreign(c)&&z!=='A'&&z!=='B'?1:0;byCode.set(c,f)});
 const m5=f=>f.properties.code.slice(0,5),isk=k=>x=>cat(x.properties.code)===k,wset=x=>W5.includes(m5(x))||BJ.includes(x.properties.code);
@@ -240,6 +247,20 @@ L({id:'pline',type:'line',source:'pmesh',paint:{'line-color':P.ink,'line-opacity
 L({id:'zA',type:'line',source:'zA',layout:{'line-join':'round'},paint:{'line-color':P.zA,'line-width':2.4}});
 L({id:'zB',type:'line',source:'zB',layout:{'line-join':'round'},paint:{'line-color':P.zB,'line-width':2.4}});
 L({id:'zW',type:'line',source:'zW',paint:{'line-color':P.zW,'line-width':2,'line-dasharray':[2.5,1.5]}});
+// 철도·역·역세권
+const RC={ktx:'#b3261e',rail:dark?'#b9c7cd':'#3d4f58'},STS={open:'운행 중',construction:'공사 중',planned:'계획'};
+S('rail',FC(rail.map((r,i)=>({type:'Feature',properties:{i,n:r.n,k:r.k,s:r.s,c:r.k==='m'?r.c:RC[r.k]},geometry:{type:'MultiLineString',coordinates:r.l}}))));
+S('st',FC(sts.map((d,i)=>pt([d[1],d[2]],{i,n:d[0],t:d[3]}))));
+const ring=(c,m)=>{const R=[],k=m/111320,kx=k/Math.cos(c[1]*Math.PI/180);for(let a=0;a<=48;a++){const t=a/48*2*Math.PI;R.push([c[0]+kx*Math.cos(t),c[1]+k*Math.sin(t)])}return R};
+S('ys',FC(sts.flatMap(d=>[500,1000].map(m=>({type:'Feature',properties:{m},geometry:{type:'Polygon',coordinates:[ring([d[1],d[2]],m)]}})))));
+L({id:'ysf',type:'fill',source:'ys',filter:['==',['get','m'],500],layout:{visibility:'none'},paint:{'fill-color':'#2563eb','fill-opacity':.07}});
+L({id:'ysl',type:'line',source:'ys',layout:{visibility:'none'},paint:{'line-color':'#2563eb','line-opacity':['match',['get','m'],500,.75,.45],'line-width':['match',['get','m'],500,1.4,1],'line-dasharray':[3,2]}});
+const rw=['interpolate',['linear'],['zoom'],zk(1),1.4,zk(8),2.4,zk(60),4];
+L({id:'rlc',type:'line',source:'rail',filter:['==',['get','s'],'open'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':P.land,'line-opacity':.85,'line-width':['+',rw,2.2]}});
+L({id:'rlo',type:'line',source:'rail',filter:['==',['get','s'],'open'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','c'],'line-width':rw}});
+L({id:'rlx',type:'line',source:'rail',filter:['==',['get','s'],'construction'],paint:{'line-color':['get','c'],'line-width':rw,'line-dasharray':[3,2]}});
+L({id:'rlp',type:'line',source:'rail',filter:['==',['get','s'],'planned'],layout:{'line-cap':'round'},paint:{'line-color':['get','c'],'line-width':rw,'line-dasharray':[.3,2.2],'line-opacity':.85}});
+L({id:'rlh',type:'line',source:'rail',paint:{'line-color':'#000','line-opacity':0,'line-width':12}});
 // 건물
 const BCATS=[[1,'아파트·공동주택','#c8452f'],[2,'단독주택','#e8a07a'],[3,'근린생활·판매·숙박','#c2127a'],[4,'업무','#3b5bdb'],[5,'교육·노유자','#2e9d5b'],[6,'문화·종교·의료·운동','#8e44ad'],[7,'공장·창고 등','#8a8f73'],[8,'기타 용도','#7a8a93'],[0,'용도 정보 없음','#b9bcb5']];
 const col=['match',['get','c'],...BCATS.flatMap(c=>[c[0],c[2]]),'#b9bcb5'];
@@ -248,6 +269,8 @@ L({id:'b2l',type:'line',source:'b',layout:{visibility:'none'},paint:{'line-color
 L({id:'b3',type:'fill-extrusion',source:'b',layout:{visibility:'none'},paint:{'fill-extrusion-color':col,'fill-extrusion-height':['/',['get','h'],10],'fill-extrusion-opacity':.9,'fill-extrusion-vertical-gradient':true}});
 L({id:'sel',type:'line',source:'sel',paint:{'line-color':P.ink,'line-width':3}});
 L({id:'hit',type:'fill',source:'dong',paint:{'fill-opacity':0}});
+L({id:'stc',type:'circle',source:'st',filter:['any',['==',['get','t'],'ktx'],['>=',['zoom'],zk(5)]],paint:{'circle-color':'#fff','circle-stroke-color':['match',['get','t'],'ktx',RC.ktx,'#13242e'],'circle-stroke-width':['match',['get','t'],'ktx',1.8,1],'circle-radius':['interpolate',['linear'],['zoom'],zk(1),2.2,zk(12),3,zk(60),5]}});
+L({id:'stn',type:'symbol',source:'st',minzoom:zk(20),layout:{'text-field':['get','n'],'text-size':11,'text-font':['Noto Sans Medium'],'text-anchor':'left','text-offset':[.7,0],'text-optional':true},paint:{'text-color':P.ink,'text-halo-color':P.land,'text-halo-width':1.6}});
 // 이름표 (글자 크기는 화면 기준 고정, 겹치면 자동으로 빼고 그림)
 const lab=(id,src,size,font,minz,maxz,extra={})=>L({id,type:'symbol',source:src,minzoom:minz,maxzoom:maxz,...extra.f?{filter:extra.f}:{},layout:{'text-field':['get','n'],'text-size':size,'text-font':[font],'text-padding':2,'text-max-width':8},paint:{'text-color':extra.c||P.ink,'text-halo-color':P.land,'text-halo-width':1.6}});
 [[1,2],[2,4],[3,5],[4,9],[5,18]].forEach(([k,kk])=>lab('lw'+k,'lwat',11,'Noto Sans Regular',zk(kk),24,{f:['==',['get','k'],k],c:P.wl}));
@@ -265,30 +288,41 @@ const setSel=g=>map.getSource('sel').setData(g?{type:'Feature',properties:{},geo
 function selectDong(f){const c=f.properties.code,o=DESC[cat(c)](c);setSel(f.geometry);
 info.innerHTML=`<h3>${f.properties.name}</h3><div class="muted">${muniName(c)}</div><span class="tag" style="background:${o.col}">${o.t}</span><dl>${o.r.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}<dt>외국인 토허</dt><dd>${foreign(c)?'대상 (~2027.8.25)':'대상 아님'}</dd></dl>`}
 const BUSE={1:'공동주택',2:'단독주택',3:'근린생활·판매·숙박',4:'업무시설',5:'교육연구·노유자',6:'문화·종교·의료·운동',7:'공장·창고·위험물 등',8:'기타',0:'정보 없음'},BCOL=Object.fromEntries(BCATS.map(c=>[c[0],c[2]]));
-const bDL=p=>`<div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${BUSE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd><dt>출처</dt><dd>국토교통부 GIS건물통합정보 (2026-11-09 기준)</dd></dl>`;
+const bDL=p=>`<div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${BUSE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년 ('+(2026-p.y)+'년 경과)':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd><dt>출처</dt><dd>국토교통부 GIS건물통합정보 (2026-11-09 기준)</dd></dl>`;
 map.on('click',e=>{const bf=bOn?map.queryRenderedFeatures(e.point,{layers:mode3?['b3']:['b2']})[0]:null;
 if(bf){const p=bf.properties;setSel(bf.geometry);info.innerHTML=`<h3>${p.n||BUSE[p.c]}</h3><span class="tag" style="background:${BCOL[p.c]}">${BUSE[p.c]}</span>${bDL(p)}`;return}
+const sf=onId('L_st')&&map.queryRenderedFeatures([[e.point.x-6,e.point.y-6],[e.point.x+6,e.point.y+6]],{layers:['stc']})[0];
+if(sf){const d=sts[sf.properties.i];setSel(null);info.innerHTML=`<h3>${d[0]}역</h3><div class="muted">${d[3]==='ktx'?'고속철도역':'전철·도시철도역'}</div><p class="muted" style="margin:10px 0 4px">지나는 노선</p><div>${(d[4]||[]).map(i=>rail[i]).filter(Boolean).map(r=>`<span class="tag" style="background:${r.k==='m'?r.c:RC[r.k]};margin:2px 4px 2px 0">${r.n}</span>`).join('')||'정보 없음'}</div>`;return}
+const rf=onId('L_rl')&&map.queryRenderedFeatures(e.point,{layers:['rlh']})[0];
+if(rf){const r=rail[rf.properties.i];setSel({type:'MultiLineString',coordinates:r.l});info.innerHTML=`<h3>${r.n}</h3><div class="muted">${{m:'전철·도시철도',ktx:'고속철도',rail:'일반철도'}[r.k]}</div><span class="tag" style="background:${r.s==='open'?'#4a5a62':r.s==='construction'?'var(--zA)':'var(--zW)'}">${STS[r.s]}</span><dl><dt>현황</dt><dd>${r.i||''}</dd><dt>선형</dt><dd>${r.ap?'역과 역을 이은 개략선(실제 선형 아님)':'OpenStreetMap 선형'}</dd>${r.src&&r.src.startsWith('http')?`<dt>근거</dt><dd><a href="${r.src}">관련 보도</a></dd>`:''}</dl>`;return}
 const f=map.queryRenderedFeatures(e.point,{layers:['hit']})[0];if(f){const g=byCode.get(f.properties.code);if(g)selectDong(g)}});
-map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit']}).length?'pointer':''});
+map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','stc','rlh'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
 
 // ── 검색·이동
 const fit=(g,maxZoom=13.5)=>{const b=bbox(g);map.fitBounds(b,{padding:{top:90,bottom:40,left:40,right:40},maxZoom,duration:700})};
 const idx=new Map();
 fs.forEach(f=>idx.set(`${f.properties.name} (${muniName(f.properties.code)})`,{f}));
 muniGeo.forEach((g,m)=>idx.set(muniName(m+'00').trim(),{g}));
-idx.set('경기 화성시 동탄구',{g:dtG});idx.set('경기 화성시 병점구',{g:bjG});
+sts.forEach(d=>idx.set(d[0]+'역',{s:d}));rail.forEach(r=>idx.set(r.n+' (철도)',{r}));idx.set('경기 화성시 동탄구',{g:dtG});idx.set('경기 화성시 병점구',{g:bjG});
 $('names').innerHTML=[...idx.keys()].map(n=>`<option value="${n}">`).join('');
 const q=$('q');
 const go=()=>{const v=q.value.trim();if(!v)return;const hit=idx.get(v)||[...idx.entries()].find(([n])=>n.includes(v))?.[1];if(!hit)return;
-if(hit.f){fit(hit.f.geometry);selectDong(hit.f)}else{fit(hit.g,12);setSel(hit.g);info.innerHTML=`<h3>${v}</h3><p class="muted">동을 누르면 규제 내용이 나옵니다.</p>`}};
+if(hit.s){map.flyTo({center:[hit.s[1],hit.s[2]],zoom:Math.max(map.getZoom(),15),duration:700})}else if(hit.r){fit({type:'MultiLineString',coordinates:hit.r.l},12)}else if(hit.f){fit(hit.f.geometry);selectDong(hit.f)}else{fit(hit.g,12);setSel(hit.g);info.innerHTML=`<h3>${v}</h3><p class="muted">동을 누르면 규제 내용이 나옵니다.</p>`}};
 q.addEventListener('change',go);q.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
 
 // ── 켜고 끄기
 const vis=(id,on)=>map.getLayer(id)&&map.setLayoutProperty(id,'visibility',on?'visible':'none');
 const tog=(id,fn)=>$(id).addEventListener('change',e=>fn(e.target.checked));
 const terrOn=()=>onId('L_tr')&&baseMode!==2,watOn=()=>onId('L_wa')&&baseMode!==2;
-window._applyVis=()=>{const z=onId('L_zone');['zfill','zA','zB','zW'].forEach(i=>vis(i,z));vis('fz',onId('L_fz'));vis('terr',terrOn());['wb','rv','lw1','lw2','lw3','lw4','lw5'].forEach(i=>vis(i,watOn()));vis('ldong',onId('L_dong'));vis('land',!baseMode)};
-['L_zone','L_fz','L_tr','L_wa','L_dong'].forEach(id=>tog(id,()=>_applyVis()));
+window._applyVis=()=>{const z=onId('L_zone');['zfill','zA','zB','zW'].forEach(i=>vis(i,z));vis('fz',onId('L_fz'));vis('terr',terrOn());['wb','rv','lw1','lw2','lw3','lw4','lw5'].forEach(i=>vis(i,watOn()));vis('ldong',onId('L_dong'));vis('land',!baseMode);['rlc','rlo','rlx','rlp','rlh'].forEach(i=>vis(i,onId('L_rl')));['stc','stn'].forEach(i=>vis(i,onId('L_st')));const ym=+$('ysm').value;vis('ysf',ym>0);vis('ysl',ym>0);map.getLayer('ysl')&&map.setFilter('ysl',ym===2?null:['==',['get','m'],500])};
+['L_zone','L_fz','L_tr','L_wa','L_dong','L_rl','L_st'].forEach(id=>tog(id,()=>_applyVis()));$('ysm').addEventListener('change',()=>_applyVis());
+// 건물 색: 용도별 / 연식별 / 30년 넘은 아파트(사용승인 1996년 이전) 강조
+const AGE=[['~1985 (40년↑)','#7f1d1d'],['1986~95','#dc2626'],['1996~2005','#f97316'],['2006~15','#eab308'],['2016~','#2563eb'],['정보 없음','#b9bcb5']];
+const bcol=m=>m==='age'?['step',['get','y'],'#b9bcb5',1,'#7f1d1d',1986,'#dc2626',1996,'#f97316',2006,'#eab308',2016,'#2563eb']:m==='old'?['case',['all',['==',['get','c'],1],['>',['get','y'],0],['<=',['get','y'],1996]],'#dc2626',dark?'#3a4a52':'#d6d3cc']:col;
+const sw=(c,t)=>`<span style="display:inline-block;width:10px;height:10px;background:${c};border-radius:2px;margin:0 3px 0 8px"></span>${t}`;
+const bcSet=()=>{const m=$('bcm').value,c=bcol(m);['b2','b2l'].forEach(l=>map.setPaintProperty(l,l==='b2'?'fill-color':'line-color',c));map.setPaintProperty('b3','fill-extrusion-color',c);
+$('blg').innerHTML=m==='age'?AGE.map(a=>sw(a[1],a[0])).join(''):m==='old'?sw('#dc2626','사용승인 1996년 이전 공동주택(재건축 연한 30년 경과)')+'<br><small>안전진단·정비계획 여부는 따로 확인 필요</small>':BCATS.slice(0,5).map(c=>sw(c[2],c[1])).join('')+' 등';};
+$('bcm').addEventListener('change',bcSet);bcSet();
 _applyVis();
 document.querySelectorAll('#jump button').forEach(b=>b.disabled=false);
 {const m=location.hash.match(/^#(-?[\d.]+),(-?[\d.]+)(?:,([\d.]+))?$/);if(m)map.jumpTo({center:[+m[2],+m[1]],zoom:m[3]?+m[3]:zk(40)})}

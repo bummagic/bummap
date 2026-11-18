@@ -59,8 +59,8 @@ else{
    cam.setView({destination:C.Cartesian3.fromDegrees(c.lon,c.lat,c.h),orientation:{heading:c.head*RD,pitch:c.pitch*RD,roll:0}})};
   let okSent=false;const chk=setInterval(()=>{if(!(window.ws3d&&ws3d.viewer&&ws3d.common&&document.querySelector('#vmap canvas')))return;clearInterval(chk);
    place();let k=0;const t=setInterval(()=>{try{if(ws3d.viewer.camera._currentFlight||k<3)place()}catch(e){}if(++k>=8){clearInterval(t);if(!okSent){okSent=true;tell('ok')}}},120)},150);
-  // 30초 안에 3D 화면(캔버스)이 생기지 않으면 실패로 본다
-  setTimeout(()=>{clearInterval(chk);if(!okSent)msg('<p>브이월드 3D 화면이 나타나지 않았습니다. 키의 활용 API(WebGL 3D 지도)와 서비스 URL을 확인해 주세요.</p>','3D 화면이 나타나지 않았습니다(키 권한·서비스 URL 확인)')},30000);
+  // 45초 안에 3D 화면(캔버스)이 생기지 않으면 실패로 본다
+  setTimeout(()=>{clearInterval(chk);if(!okSent)msg('<p>브이월드 3D 화면이 나타나지 않았습니다. 키의 활용 API(WebGL 3D 지도)와 서비스 URL을 확인해 주세요.</p>','3D 화면이 나타나지 않았습니다(키 권한·서비스 URL 확인)')},45000);
 }
 }
 </script>

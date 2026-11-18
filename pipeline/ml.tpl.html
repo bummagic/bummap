@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>전국 규제지역 지도 (MapLibre 시험판)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lib/maplibre-gl.css">
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#fbfbf2,#0d1c24);--sea:light-dark(#cfe8f0,#10303d);--land:light-dark(#fbfbf6,#16262e);
+--ink:light-dark(#13242e,#e6eef0);--sub:light-dark(#4a5a62,#a9bcc2);--line:light-dark(#dcdcd2,#26404b);
+--zA:light-dark(#c8452f,#ec6a52);--zB:light-dark(#c2127a,#ef4aa0);--zW:light-dark(#a8551b,#e09a55);
+--fA:light-dark(#f8ddd4,#3e2620);--fB:light-dark(#f7d6ea,#3d1f31);
+--panel:light-dark(#ffffff,#132a34);--edge:light-dark(#d9dbcf,#29434f)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans KR",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(22px,3.5vw,48px) max(4vw,16px)}
+h1{font-size:clamp(28px,4vw,42px);line-height:1.1;margin:0 0 6px;font-weight:700;text-wrap:balance}
+h2{font-size:22px;margin:0 0 12px;font-weight:700}
+h3{font-size:15px;margin:0 0 8px;font-weight:700}
+.lead{color:var(--sub);margin:0;max-width:72ch}
+.kpis{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:16px}
+.kpi b{display:block;font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--sub)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge)}
+.fig{position:relative;height:clamp(520px,84vh,980px);background:var(--sea);overflow:hidden}
+#map{position:absolute;inset:0}
+#v3f{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#0d1c24}.fig.vw3 #v3f{display:block}.fig.vw3 .zoom,.fig.vw3 .jump,.fig.vw3 #q{display:none}
+.seg{display:inline-flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin-left:0}.seg button:last-child{border-radius:0 8px 8px 0}
+button.on{outline:2px solid var(--zB);outline-offset:-2px;font-weight:700}button:disabled{opacity:.45;cursor:default}
+#bst,#attr{position:absolute;font-size:12px;color:var(--sub);background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:2px 8px;pointer-events:none;z-index:2}#bst{left:12px;bottom:40px}#attr{right:64px;bottom:12px}#attr:empty,#bst:empty{display:none}
+.tools{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;pointer-events:none;z-index:2}
+.tools>*{pointer-events:auto}
+input[type=search]{font:16px "Noto Sans KR",sans-serif;height:44px;padding:0 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);width:min(280px,100%)}
+button{font:14px "Noto Sans KR",sans-serif;height:40px;min-width:44px;padding:0 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--zB);outline-offset:2px}
+.jump{display:flex;gap:6px;flex-wrap:wrap}
+.zoom{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.zoom button{height:44px}
+.side{background:var(--panel);border-left:1px solid var(--edge);padding:18px 20px;display:flex;flex-direction:column;gap:16px;overflow:auto;max-height:clamp(520px,84vh,980px)}
+.beta{font-size:13px;line-height:1.5;color:var(--sub);border:1px solid var(--edge);border-radius:8px;padding:8px 10px}.beta b{color:var(--ink)}
+.lay label{display:flex;gap:10px;align-items:flex-start;margin:0 0 9px;font-size:14px;line-height:1.35;cursor:pointer}
+.lay input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:var(--zA)}
+.lay small{color:var(--sub);display:block;font-size:12.5px}
+.sw{flex:none;width:28px;height:16px;border-radius:3px;margin-top:1px}
+#info{border-top:1px solid var(--edge);padding-top:14px}
+#info h3{margin:0 0 2px;font-size:20px}
+#info .tag{display:inline-block;font-size:13px;padding:2px 8px;border-radius:999px;color:#fff;margin:6px 0 10px}
+#info dl{margin:0;font-size:14px;display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:6px 10px}
+#info dt{color:var(--sub)}#info dd{margin:0}
+.muted{color:var(--sub);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--edge);vertical-align:top}
+th{font-size:13px;color:var(--sub);font-weight:500}
+td.n{white-space:nowrap}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:28px}
+ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
+a{color:var(--zB)}
+footer{font-size:13px;color:var(--sub)}
+.maplibregl-ctrl-scale{background:var(--panel)!important;color:var(--ink)!important;border-color:var(--sub)!important}
+@media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.side{border-left:0;border-top:1px solid var(--edge);max-height:none}}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--sub)}.stack td:empty{display:none}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header class="band">
+<h1>전국 규제지역 지도 <small style="font-size:.45em;color:var(--sub);font-weight:500">새 엔진 시험판</small></h1>
+<p class="lead">2026년 11월 17일 기준 부동산 규제지역(조정대상지역·투기과열지구·토지거래허가구역)에 전국 철도(KTX·일반철도·전철·도시철도)와 고속도로를 겹쳤습니다. 공사 중이거나 계획된 노선은 점선으로 구분했습니다. 동 이름이나 노선 이름으로 검색하고, 지역이나 선을 누르면 자세한 내용이 나옵니다.</p>
+<div class="kpis">
+<div class="kpi"><b>40곳</b><span>3중 규제 시군구 (서울 25 · 경기 15)</span></div>
+<div class="kpi"><b>0곳</b><span>지방 규제지역</span></div>
+<div class="kpi"><b>__NRAIL__개</b><span>철도 노선 (공사·계획 포함)</span></div>
+<div class="kpi"><b>__NHWY__개</b><span>고속도로 노선</span></div>
+</div>
+</header>
+
+<section class="main">
+<div class="fig" id="fig">
+<div id="map" aria-label="전국 읍면동 경계 위에 규제지역·지형·강을 표시한 지도"></div>
+<iframe id="v3f" title="브이월드 실사 3D" allow="fullscreen"></iframe>
+<div class="tools">
+<input type="search" id="q" list="names" placeholder="동탄1동, 수원시 영통구" aria-label="지역 검색">
+<datalist id="names"></datalist>
+<div class="jump" id="jump"></div>
+<span class="seg" role="group" aria-label="배경지도"><button id="bm0" class="on">단색</button><button id="bm1">일반지도</button><button id="bm2">위성</button></span>
+<button id="bbtn" class="on" title="동 단위로 확대하면 건물이 보입니다">🏢 건물 켜짐</button>
+<span class="seg" role="group" aria-label="건물 보기"><button id="v2" class="on">2D</button><button id="v3">3D</button></span>
+<button id="vrot" style="display:none">↻ 45°</button>
+</div>
+<div class="zoom"><button id="zi" aria-label="확대">+</button><button id="zo" aria-label="축소">−</button><button id="zr" aria-label="전국 보기">⟲</button></div>
+<div id="bst"></div><div id="attr"></div>
+</div>
+<aside class="side">
+<div class="beta"><b>새 지도(시험판) · 1단계</b><br>확대·이동을 부드럽게 하려고 지도 엔진을 MapLibre로 옮기는 중입니다. 지금은 규제지역·지형·강·경계·건물만 옮겼습니다. 철도·도로·학교·학원·인구·상권은 <a href="index.html">기존 지도</a>에서 보세요.</div>
+<div class="lay">
+<h3>규제지역</h3>
+<label><input type="checkbox" id="L_zone" checked><span class="sw" style="background:var(--fA);border:2.4px solid var(--zA)"></span><span>3중 규제 · 10·15 대책<small>서울 25개구, 경기 12곳 · 토허 ~2026.12.31</small></span></label>
+<label><input type="checkbox" checked disabled><span class="sw" style="background:var(--fB);border:2.4px solid var(--zB)"></span><span>3중 규제 · 2026.7.1 신규<small>화성 동탄구, 용인 기흥구, 구리시 · 토허 ~2027.12.31</small></span></label>
+<label><input type="checkbox" checked disabled><span class="sw" style="border:2px dashed var(--zW)"></span><span>비규제 · 추가 지정 거론<small>수원 권선, 안양 만안, 군포, 부천 원미, 화성 병점구</small></span></label>
+<label><input type="checkbox" id="L_fz"><span class="sw" style="background:repeating-linear-gradient(45deg,transparent 0 3px,var(--sub) 3px 4px);border:1px solid var(--sub)"></span><span>외국인 토지거래허가구역<small>외국인 등만 대상 · ~2027.8.25</small></span></label>
+<h3 style="margin-top:14px">지형</h3>
+<label><input type="checkbox" id="L_tr" checked><span class="sw" style="background:linear-gradient(90deg,#e2eed6,#b8d5a6)"></span><span>산지<small>해발 200m·450m·800m 이상을 단계별 초록으로 · 위성 배경에서는 숨김</small></span></label>
+<label><input type="checkbox" id="L_wa" checked><span class="sw" style="background:#a9d3e6;border:1px solid #7fb6d0"></span><span>강·호수·저수지<small>위성 배경에서는 숨김</small></span></label>
+<h3 style="margin-top:14px">이름 표시</h3>
+<label><input type="checkbox" id="L_dong" checked><span class="sw" style="display:grid;place-items:center;font-size:11px;border:1px solid var(--edge);color:var(--sub)">동</span><span>동(읍·면) 이름<small>켜면 크게 확대했을 때 동 이름 표시</small></span></label>
+</div>
+<details class="muted" style="font-size:13px"><summary style="cursor:pointer">배경지도 설정 (브이월드 인증키)</summary>
+<p style="margin:6px 0 0">브이월드 인증키를 넣으면 일반지도·위성을 브이월드(국토교통부)로 봅니다. 키는 이 브라우저에만 저장됩니다. 키가 없거나 막히면 OpenStreetMap·Esri 위성으로 대신 보여줍니다.</p>
+<div style="display:flex;gap:6px;margin-top:6px"><input id="vk" type="password" placeholder="브이월드 인증키" autocomplete="off" style="flex:1;min-width:0;height:36px;font:14px system-ui;padding:0 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink)"><button id="vks" style="height:36px">저장</button></div>
+<p id="vkm" style="margin:4px 0 0"></p></details>
+<div id="info"><p class="muted">지도에서 동을 누르거나 검색하세요.</p></div>
+</aside>
+</section>
+
+<section class="band">
+<h2>규제지역 지정 현황</h2>
+<table class="stack">
+<thead><tr><th>구분</th><th>지역</th><th>조정·투기과열</th><th>토지거래허가</th></tr></thead>
+<tbody>
+<tr><td>서울</td><td>강남·서초·송파·용산</td><td class="n">10·15 이전부터</td><td>~2026.12.31</td></tr>
+<tr><td>서울</td><td>나머지 21개 자치구</td><td class="n">2025.10.16~</td><td>2025.10.20~2026.12.31</td></tr>
+<tr><td>경기 12곳</td><td>과천, 광명, 성남(분당·수정·중원), 수원(영통·장안·팔달), 안양 동안, 용인 수지, 의왕, 하남</td><td class="n">2025.10.16~</td><td>2025.10.20~2026.12.31</td></tr>
+<tr><td>경기 신규 3곳</td><td>화성 동탄구, 용인 기흥구, 구리시</td><td class="n">2026.7.1~</td><td>2026.7.5~2027.12.31</td></tr>
+<tr><td>지방</td><td>지정 지역 없음</td><td class="n">—</td><td>—</td></tr>
+</tbody></table>
+<p class="muted">토지거래허가 대상은 아파트와, 아파트가 1개 동 이상 포함된 단지 안의 연립·다세대주택입니다. 연말 만료분 연장 여부는 12월 중 결정 예정입니다.</p>
+</section>
+
+<section class="band" style="padding-top:0">
+<div class="cols">
+<div>
+<h2>지정되면 달라지는 것</h2>
+<ul>
+<li>주택 매수 전에 구청 허가가 필요하고, 허가일로부터 4개월 안에 입주해 2년 동안 실거주해야 합니다(갭투자 불가).</li>
+<li>무주택자(처분조건부 1주택자 포함)의 LTV 상한이 70%에서 40%로 낮아집니다.</li>
+<li>수도권 주담대 한도: 시가 15억 원 이하 6억, 15억~25억 4억, 25억 초과 2억 원입니다.</li>
+<li>취득세는 2주택자 8%, 3주택자 12%로 중과되고, 수도권 분양권은 3년 동안 전매가 제한됩니다.</li>
+</ul>
+</div>
+<div>
+<h2>지도에 표시하지 않은 것</h2>
+<ul>
+<li>서울시 지정 재건축·재개발 구역 토허구역, 2026년 11월 신규 지정된 서울 전역 지목 ‘도로’ 토지, 경기 개발사업지 토허구역(필지 단위)입니다. 필지별로는 <a href="https://www.eum.go.kr">토지이음</a>에서 지번으로 조회하세요.</li>
+<li>위례선(트램), 고양은평선, 서부선, 위례신사선은 선형 데이터를 확보하지 못해 빠졌습니다.</li>
+<li>지방의 공사 중 철도는 광주 2호선, 대전 2호선, 대구산업선, 양산선만 표시했습니다.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<footer class="band" style="padding-top:0">
+<p>경계: 통계청 2013년 행정경계(southkorea-maps). 화성시 동탄구(동탄1~9동)는 2013년 경계의 동탄1·2·3동과 동탄면으로, 병점구는 진안·병점1·병점2·반월·화산동으로 표시해 실제 경계와 조금 다를 수 있습니다. 배경지도: 브이월드(국토교통부) 또는 OpenStreetMap·Esri 위성. 지도 엔진: MapLibre GL JS 4.7.1, 글꼴 Noto Sans(OFL).</p>
+<p>철도: 운행 노선·GTX·동북선·지방 공사 노선은 kr-rail-map(OpenStreetMap 기반, __RAILDATE__ 갱신), 그 밖의 수도권 공사·계획 노선은 OpenStreetMap(2026.7.15 기준)입니다. GTX-D·E·F·G·H는 역을 이은 개략선이라 실제 선형과 다릅니다. 고속도로: OpenStreetMap highway=motorway(__HWYDATE__ 기준), 25~120m 단위로 단순화. 도로: 국토교통부 <a href="https://www.its.go.kr/nodelink/nodelinkRef">ITS 전국 표준노드링크</a>(__ROADDATE__ 기준) 중 고속국도·도시고속도로, 한 방향 4차로 이상(왕복 8차선 이상) 구간, 그리고 '주요도로 전체'에서는 일반국도·특별광역시도·국가지원지방도·지방도의 한 방향 2차로 이상 구간. 차로 수는 링크별 값이라 구간마다 다를 수 있고, 약 15m 단위로 단순화. 지형(산지 음영): <a href="https://registry.opendata.aws/terrain-tiles/">AWS Terrain Tiles</a> 표고를 200·450·800m 3단계로만 나눈 개략 표현. 강·호수·저수지: OpenStreetMap(waterway=river 선형, natural=water·landuse=reservoir 면 중 0.1㎢(10ha) 이상, 이름이 있는 곳은 1ha 이상). 학교: 초·중·고는 공공데이터포털 <a href="https://www.data.go.kr/data/15021148/standard.do">전국초중등학교위치표준데이터</a>(한국교육시설안전원, __EDUDATE__ 기준, 서울·인천·경기·대전·세종·충북·충남·전북 운영 학교), 대학은 OpenStreetMap(amenity=university·college, 원격·사이버대학과 부속시설 제외). 인구밀도: 공공데이터포털 <a href="https://www.data.go.kr/data/15141768/fileData.do">국가데이터처 SGIS 격자 통계 및 경계</a>(2024년 인구·가구, 1km 격자, 비밀보호용 잡음 포함). 유동인구: 서울 열린데이터광장 <a href="https://data.seoul.go.kr/dataList/OA-14991/S/1/datasetView.do">행정동 단위 서울 생활인구(내국인)</a>(__SEOULYM__), 행정동 경계는 <a href="https://github.com/vuski/admdongkor">vuski/admdongkor</a>(2026.10.1). 경기·충청·전북 유동인구는 행정동 단위로 쓸 수 있는 공개 자료를 아직 확보하지 못했습니다. 상권: 점포 밀집도는 공공데이터포털 <a href="https://www.data.go.kr/data/15083033/fileData.do">소상공인시장진흥공단 상가(상권)정보</a>(__SHOPDATE__ 기준)를 약 250m 칸으로 센 것, 상권 이름표는 생활업종 점포가 많은 이웃 칸을 묶어 가장 많은 행정동 이름을 붙인 것입니다. 상권 경계는 서울 열린데이터광장 <a href="https://data.seoul.go.kr/dataList/OA-15560/S/1/datasetView.do">서울시 상권분석서비스(영역-상권)</a>와 공공데이터포털 <a href="https://www.data.go.kr/data/15090955/fileData.do">소상공인시장진흥공단 주요상권현황</a>(2024-01-01 기준, 서울 밖). 학원: 공공데이터포털 <a href="https://www.data.go.kr/data/15083033/fileData.do">소상공인시장진흥공단 상가(상권)정보</a>(__HAGDATE__ 기준) 중 교육 업종의 학원만 골라 표시. 국세청·카드사 자료 기반이라 교육청 등록 학원 목록과 다를 수 있습니다. 학원가 이름은 입시·교과·외국어 학원이 많은 이웃 칸을 묶어 가장 많은 행정동 이름을 붙인 것입니다. © OpenStreetMap contributors, ODbL.</p>
+<p>출처: <a href="https://mobile.newsis.com/view/NISX20251015_0003363935">뉴시스(10·15 대책)</a> · <a href="https://m.seoul.co.kr/news/2025/10/16/20251016001004">서울신문</a> · <a href="https://imnews.imbc.com/news/2026/econo/article/6833827_36932.html">MBC(동탄·기흥·구리)</a> · <a href="https://www.fnnews.com/news/202508231349341303">파이낸셜뉴스(화성 4개 구)</a> · <a href="https://biz.heraldcorp.com/article/10928147">헤럴드경제</a> · <a href="https://www.mediapen.com/news/view/1136176">미디어펜</a> · <a href="https://www.newspim.com/news/view/20261113001166">뉴스핌</a> · <a href="https://www.korea.kr/news/customizedNewsView.do?newsId=148970419">정책브리핑(외국인 토허)</a> · <a href="https://www.economicpost.co.kr/181427">이코노믹포스트</a> · <a href="https://www.kyeonggi.com/article/20251015580444">경기일보</a> · 철도: <a href="https://biz.sbs.co.kr/amp/article/20000275878">SBS Biz(신안산선)</a> · <a href="https://kbthink.com/realestate/basics/blog/260805.html">KB(월판선)</a> · <a href="https://www.kyeongin.com/article/1769309">경인일보(인동선)</a> · <a href="https://www.hankyung.com/article/202506105435i">한국경제(7·9호선)</a> · <a href="https://www.kukinews.com/article/view/kuk202601080154">쿠키뉴스(도봉산옥정선)</a> · <a href="https://news.bizwatch.co.kr/article/real_estate/2025/03/26/0033">비즈워치(옥정포천선)</a> · <a href="https://v.daum.net/v/8QcQCBZvN9">세계일보(신분당선 호매실)</a> · <a href="https://www.segye.com/newsView/20260417515082">세계일보(대장홍대선)</a> · <a href="https://www.kukinews.com/article/view/kuk202512230122">쿠키뉴스(송파하남선)</a> · <a href="https://www.dailian.co.kr/news/view/1526769/">데일리안(강동하남남양주선)</a> · <a href="https://news.mtn.co.kr/news-detail/2025061022392194618">MTN(신분당선 용산~신사)</a> · <a href="https://github.com/plazalabs/kr-rail-map">kr-rail-map</a> · <a href="https://www.openstreetmap.org">OpenStreetMap</a></p>
+</footer>
+
+<script src="lib/maplibre-gl-csp.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+{
+const MUNI=__MUNI__;
+const SIDO={'11':'서울','21':'부산','22':'대구','23':'인천','24':'광주','25':'대전','26':'울산','29':'세종','31':'경기','32':'강원','33':'충북','34':'충남','35':'전북','36':'전남','37':'경북','38':'경남','39':'제주'};
+const A12=['31110','31060','31021','31022','31023','31011','31013','31014','31042','31193','31170','31180'];
+const B5=['31120','31192'],DT=['3124060','3124061','3124062','3124044'];
+const W5=['31012','31041','31160','31051'],BJ=['3124052','3124053','3124054','3124055','3124057'];
+const FX=['31030','31080','31210','31260','31280','31350','31370','31380','23310','23320'];
+const OLD4=['11230','11220','11240','11030'];
+const cat=c=>{const m=c.slice(0,5);if(m.startsWith('11')||A12.includes(m))return'A';if(B5.includes(m)||DT.includes(c))return'B';if(W5.includes(m)||BJ.includes(c))return'W';return'N'};
+const foreign=c=>/^(11|23|31)/.test(c)&&!FX.includes(c.slice(0,5));
+const muniName=c=>{const m=c.slice(0,5),n=MUNI[m]||'';let s=n.replace(/^(\S+?시)(\S+구)$/,'$1 $2');if(m==='31240'){s+=DT.includes(c)?' 동탄구':BJ.includes(c)?' 병점구':['3124012','3124031','3124033','3124043','3124056'].includes(c)?' 효행구':' 만세구'}return (SIDO[m.slice(0,2)]||'')+' '+s};
+const shortMuni=m=>{const n=MUNI[m]||'';const r=n.match(/^\S+?시(\S+구)$/);return r?r[1]:n};
+const fig=document.getElementById('fig'),info=document.getElementById('info'),bst=document.getElementById('bst'),attrEl=document.getElementById('attr');
+const $=id=>document.getElementById(id),onId=id=>$(id).checked;
+const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+const P=dark?{sea:'#10303d',land:'#16262e',line:'#26404b',ink:'#e6eef0',sub:'#a9bcc2',zA:'#ec6a52',zB:'#ef4aa0',zW:'#e09a55',fA:'#5a3128',fB:'#57283f',tr:['#1f3a2c','#25453a','#2c5244'],wb:'#1d4d63',wbs:'#2b6680',rv:'#2f7192',wl:'#8fc8e0',hatch:'rgba(169,188,194,.6)'}
+:{sea:'#cfe8f0',land:'#fbfbf6',line:'#dcdcd2',ink:'#13242e',sub:'#4a5a62',zA:'#c8452f',zB:'#c2127a',zW:'#a8551b',fA:'#f3c9bb',fB:'#f2c0de',tr:['#e2eed6','#cfe3c0','#b8d5a6'],wb:'#a9d3e6',wbs:'#7fb6d0',rv:'#86bfd8',wl:'#2f7192',hatch:'rgba(74,90,98,.5)'};
+const KR=[[124.6,33.1],[131.0,38.65]];
+const EMPTY={type:'FeatureCollection',features:[]};
+const FC=f=>({type:'FeatureCollection',features:f});
+// 면적 가중 중심(가장 큰 폴리곤 기준) — 이름표 위치
+function ringArea(r){let a=0;for(let i=0,j=r.length-1;i<r.length;j=i++)a+=(r[j][0]*r[i][1]-r[i][0]*r[j][1]);return a/2}
+function centroid(geom){const polys=geom.type==='Polygon'?[geom.coordinates]:geom.type==='MultiPolygon'?geom.coordinates:[];let best=null,ba=0;polys.forEach(p=>{const a=Math.abs(ringArea(p[0]));if(a>ba){ba=a;best=p[0]}});if(!best)return null;
+let x=0,y=0,a=0;for(let i=0,j=best.length-1;i<best.length;j=i++){const f=best[j][0]*best[i][1]-best[i][0]*best[j][1];x+=(best[j][0]+best[i][0])*f;y+=(best[j][1]+best[i][1])*f;a+=f}return a?[x/(3*a),y/(3*a)]:best[0]}
+function bbox(geom){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;const w=c=>{if(typeof c[0]==='number'){if(c[0]<x0)x0=c[0];if(c[0]>x1)x1=c[0];if(c[1]<y0)y0=c[1];if(c[1]>y1)y1=c[1]}else c.forEach(w)};w(geom.coordinates);return [[x0,y0],[x1,y1]]}
+const pt=(c,p)=>({type:'Feature',properties:p,geometry:{type:'Point',coordinates:c}});
+
+maplibregl.setWorkerUrl('lib/maplibre-gl-csp-worker.js');
+const map=new maplibregl.Map({container:'map',bounds:KR,fitBoundsOptions:{padding:{top:70,bottom:20,left:20,right:20}},maxPitch:70,attributionControl:false,fadeDuration:0,dragRotate:false,pitchWithRotate:false,
+localIdeographFontFamily:"'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',sans-serif",
+style:{version:8,glyphs:'fonts/{fontstack}/{range}.pbf',sources:{},layers:[{id:'bg',type:'background',paint:{'background-color':P.sea}}]}});
+map.touchZoomRotate.disableRotation();map.keyboard.disableRotation&&map.keyboard.disableRotation();
+map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
+const Z0=map.getZoom(),zk=k=>Z0+Math.log2(k);  // 기존 지도의 확대 배율 k를 MapLibre 줌으로 환산
+
+// 빗금 무늬(외국인 토허)
+{const c=document.createElement('canvas');c.width=c.height=12;const x=c.getContext('2d');x.strokeStyle=P.hatch;x.lineWidth=1.4;x.beginPath();for(let i=-12;i<=24;i+=6){x.moveTo(i,12);x.lineTo(i+12,0)}x.stroke();map.on('load',()=>map.addImage('hatch',x.getImageData(0,0,12,12),{pixelRatio:2}))}
+
+const ready=new Promise(r=>map.on('load',r));
+Promise.all([fetch('data/sub.json').then(r=>r.json()),fetch('data/terrain.json').then(r=>r.json()).catch(()=>({})),fetch('data/water.json').then(r=>r.json()).catch(()=>({r:[],w:[]})),ready]).then(([t,terr,wat])=>{
+const obj=t.objects.skorea_submunicipalities_geo,fs=topojson.feature(t,obj).features;
+const byCode=new Map();fs.forEach((f,i)=>{const c=f.properties.code,z=cat(c);f.id=i;f.properties.z=z;f.properties.fx=foreign(c)&&z!=='A'&&z!=='B'?1:0;byCode.set(c,f)});
+const m5=f=>f.properties.code.slice(0,5),isk=k=>x=>cat(x.properties.code)===k,wset=x=>W5.includes(m5(x))||BJ.includes(x.properties.code);
+const mesh=(fn)=>({type:'Feature',properties:{},geometry:topojson.mesh(t,obj,fn)});
+const zoneLine=k=>{const s=isk(k);return mesh((a,b)=>s(a)!==s(b)||(a===b&&s(a)))};
+// 이름표 점
+const groups=new Map();obj.geometries.forEach(g=>{const m=g.properties.code.slice(0,5);if(!groups.has(m))groups.set(m,[]);groups.get(m).push(g)});
+const mergeOf=gs=>topojson.merge(t,gs);
+const dtG=mergeOf(obj.geometries.filter(x=>DT.includes(x.properties.code))),bjG=mergeOf(obj.geometries.filter(x=>BJ.includes(x.properties.code))),hwG=mergeOf(obj.geometries.filter(x=>x.properties.code.startsWith('31240')&&!DT.includes(x.properties.code)&&!BJ.includes(x.properties.code)));
+const muniPts=[],muniGeo=new Map();
+groups.forEach((gs,m)=>{if(m==='31240')return;const g=mergeOf(gs);muniGeo.set(m,g);const c=centroid(g);if(c)muniPts.push(pt(c,{n:shortMuni(m)}))});
+[[dtG,'동탄구'],[bjG,'병점구'],[hwG,'화성시']].forEach(([g,n])=>{const c=centroid(g);if(c)muniPts.push(pt(c,{n}))});
+const sidoPts=[];{const sg=new Map();obj.geometries.forEach(g=>{const s=g.properties.code.slice(0,2);if(/^37430/.test(g.properties.code))return;if(!sg.has(s))sg.set(s,[]);sg.get(s).push(g)});sg.forEach((gs,s)=>{const c=centroid(mergeOf(gs));if(c)sidoPts.push(pt(c,{n:SIDO[s]}))})}
+const dongPts=fs.map(f=>{const c=centroid(f.geometry);return c&&pt(c,{n:f.properties.name})}).filter(Boolean);
+// 물 이름표: 큰 강(k1·2)은 가장 긴 줄기의 가운데, 호수·저수지는 이름 있는 것 중 같은 이름이 가까이 겹치면 하나만
+const wlab=[];(wat.r||[]).filter(r=>r.k<=2).forEach(r=>{const L=r.l.reduce((a,b)=>b.length>a.length?b:a,[]);if(L.length)wlab.push(pt(L[Math.floor(L.length/2)],{n:r.n,k:r.k}))});
+{const kept=[];(wat.w||[]).filter(w=>w.n&&w.t!=='v').sort((a,b)=>b.a-a.a).forEach(w=>{const c=centroid({type:'MultiPolygon',coordinates:w.p});if(!c)return;if(kept.some(o=>o.n===w.n&&Math.hypot(o.c[0]-c[0],o.c[1]-c[1])<0.17))return;kept.push({n:w.n,c});wlab.push(pt(c,{n:w.n,k:w.a>=5?3:w.a>=1?4:5}))})}
+
+const S=(id,data)=>map.addSource(id,{type:'geojson',data,tolerance:0.3});
+S('dong',FC(fs));
+S('terr',FC([1,2,3].filter(l=>terr[l]).map(l=>({type:'Feature',properties:{lv:l},geometry:{type:'MultiPolygon',coordinates:terr[l]}}))));
+S('wb',FC((wat.w||[]).map(w=>({type:'Feature',properties:{n:w.n||'',t:w.t},geometry:{type:'MultiPolygon',coordinates:w.p}}))));
+S('rv',FC((wat.r||[]).map(r=>({type:'Feature',properties:{n:r.n,k:r.k},geometry:{type:'MultiLineString',coordinates:r.l}}))));
+S('dmesh',mesh((a,b)=>a!==b));S('mmesh',mesh((a,b)=>a!==b&&m5(a)!==m5(b)));S('pmesh',mesh((a,b)=>a!==b&&a.properties.code.slice(0,2)!==b.properties.code.slice(0,2)));
+S('zA',zoneLine('A'));S('zB',zoneLine('B'));S('zW',mesh((a,b)=>wset(a)!==wset(b)||(a===b&&wset(a))));
+S('sel',EMPTY);S('b',EMPTY);
+S('lsido',FC(sidoPts));S('lmuni',FC(muniPts));S('ldong',FC(dongPts));S('lwat',FC(wlab));
+const L=o=>map.addLayer(o);
+L({id:'land',type:'fill',source:'dong',paint:{'fill-color':P.land}});
+L({id:'terr',type:'fill',source:'terr',paint:{'fill-color':['match',['get','lv'],1,P.tr[0],2,P.tr[1],P.tr[2]],'fill-antialias':false}});
+L({id:'zfill',type:'fill',source:'dong',filter:['in',['get','z'],['literal',['A','B']]],paint:{'fill-color':['match',['get','z'],'A',P.fA,P.fB],'fill-opacity':.72}});
+L({id:'fz',type:'fill',source:'dong',filter:['==',['get','fx'],1],layout:{visibility:'none'},paint:{'fill-pattern':'hatch'}});
+L({id:'wb',type:'fill',source:'wb',paint:{'fill-color':P.wb,'fill-outline-color':P.wbs}});
+L({id:'rv',type:'line',source:'rv',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':P.rv,'line-width':['interpolate',['linear'],['zoom'],Z0,['match',['get','k'],1,2.4,2,1.6,1],zk(9),['match',['get','k'],1,7.2,2,4.8,3],zk(200),['match',['get','k'],1,9,2,6,4]]}});
+L({id:'dline',type:'line',source:'dmesh',paint:{'line-color':P.line,'line-width':['interpolate',['linear'],['zoom'],zk(1),.35,zk(30),1]}});
+L({id:'mline',type:'line',source:'mmesh',paint:{'line-color':P.sub,'line-opacity':.55,'line-width':.8}});
+L({id:'pline',type:'line',source:'pmesh',paint:{'line-color':P.ink,'line-opacity':.6,'line-width':1.3}});
+L({id:'zA',type:'line',source:'zA',layout:{'line-join':'round'},paint:{'line-color':P.zA,'line-width':2.4}});
+L({id:'zB',type:'line',source:'zB',layout:{'line-join':'round'},paint:{'line-color':P.zB,'line-width':2.4}});
+L({id:'zW',type:'line',source:'zW',paint:{'line-color':P.zW,'line-width':2,'line-dasharray':[2.5,1.5]}});
+// 건물
+const BCATS=[[1,'아파트·공동주택','#c8452f'],[2,'단독주택','#e8a07a'],[3,'근린생활·판매·숙박','#c2127a'],[4,'업무','#3b5bdb'],[5,'교육·노유자','#2e9d5b'],[6,'문화·종교·의료·운동','#8e44ad'],[7,'공장·창고 등','#8a8f73'],[8,'기타 용도','#7a8a93'],[0,'용도 정보 없음','#b9bcb5']];
+const col=['match',['get','c'],...BCATS.flatMap(c=>[c[0],c[2]]),'#b9bcb5'];
+L({id:'b2',type:'fill',source:'b',paint:{'fill-color':col}});
+L({id:'b2l',type:'line',source:'b',layout:{visibility:'none'},paint:{'line-color':col,'line-width':['interpolate',['linear'],['zoom'],14,1,18,2.5]}});
+L({id:'b3',type:'fill-extrusion',source:'b',layout:{visibility:'none'},paint:{'fill-extrusion-color':col,'fill-extrusion-height':['/',['get','h'],10],'fill-extrusion-opacity':.9,'fill-extrusion-vertical-gradient':true}});
+L({id:'sel',type:'line',source:'sel',paint:{'line-color':P.ink,'line-width':3}});
+L({id:'hit',type:'fill',source:'dong',paint:{'fill-opacity':0}});
+// 이름표 (글자 크기는 화면 기준 고정, 겹치면 자동으로 빼고 그림)
+const lab=(id,src,size,font,minz,maxz,extra={})=>L({id,type:'symbol',source:src,minzoom:minz,maxzoom:maxz,...extra.f?{filter:extra.f}:{},layout:{'text-field':['get','n'],'text-size':size,'text-font':[font],'text-padding':2,'text-max-width':8},paint:{'text-color':extra.c||P.ink,'text-halo-color':P.land,'text-halo-width':1.6}});
+[[1,2],[2,4],[3,5],[4,9],[5,18]].forEach(([k,kk])=>lab('lw'+k,'lwat',11,'Noto Sans Regular',zk(kk),24,{f:['==',['get','k'],k],c:P.wl}));
+lab('ldong','ldong',11,'Noto Sans Regular',zk(16),24);
+lab('lmuni','lmuni',12,'Noto Sans Medium',zk(2.2),zk(16));
+lab('lsido','lsido',15,'Noto Sans Medium',0,zk(2.2),{c:P.sub});
+
+// ── 클릭·선택
+const DESC={
+A:c=>({t:'3중 규제',col:'var(--zA)',r:[['조정·투기과열',OLD4.includes(c.slice(0,5))?'10·15 대책 이전부터 지정, 유지':'2025.10.16 지정'],['토지거래허가',OLD4.includes(c.slice(0,5))?'2026.12.31까지':'2025.10.20 ~ 2026.12.31'],['허가 대상','아파트, 아파트 포함 단지 내 연립·다세대'],['실거주','허가 후 4개월 내 입주, 2년'],['LTV','무주택·처분조건부 40%'],['향후','12월 중 연장 여부 결정 예정']]}),
+B:c=>({t:'3중 규제 (2026.7 신규)',col:'var(--zB)',r:[['조정·투기과열','2026.7.1 지정'],['토지거래허가','2026.7.5 ~ 2027.12.31'],['허가 대상','아파트'],['실거주','허가 후 4개월 내 입주, 2년'],['LTV','무주택·처분조건부 40%']]}),
+W:c=>({t:'비규제 · 추가 지정 거론',col:'var(--zW)',r:[['현재','규제지역 아님'],['배경','최근 3개월 집값 상승률이 투기과열지구 정량요건 초과'],['정부 입장','당장 추가 지정 계획 없음(2026.11.6 보도), 지정 소문 부인']]}),
+N:c=>({t:'비규제',col:'#6b7a80',r:[['현재','조정·투기과열·토허(아파트) 해당 없음']]})};
+const setSel=g=>map.getSource('sel').setData(g?{type:'Feature',properties:{},geometry:g}:EMPTY);
+function selectDong(f){const c=f.properties.code,o=DESC[cat(c)](c);setSel(f.geometry);
+info.innerHTML=`<h3>${f.properties.name}</h3><div class="muted">${muniName(c)}</div><span class="tag" style="background:${o.col}">${o.t}</span><dl>${o.r.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}<dt>외국인 토허</dt><dd>${foreign(c)?'대상 (~2027.8.25)':'대상 아님'}</dd></dl>`}
+const BUSE={1:'공동주택',2:'단독주택',3:'근린생활·판매·숙박',4:'업무시설',5:'교육연구·노유자',6:'문화·종교·의료·운동',7:'공장·창고·위험물 등',8:'기타',0:'정보 없음'},BCOL=Object.fromEntries(BCATS.map(c=>[c[0],c[2]]));
+const bDL=p=>`<div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${BUSE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd><dt>출처</dt><dd>국토교통부 GIS건물통합정보 (__BLDDATE__ 기준)</dd></dl>`;
+map.on('click',e=>{const bf=bOn?map.queryRenderedFeatures(e.point,{layers:mode3?['b3']:['b2']})[0]:null;
+if(bf){const p=bf.properties;setSel(bf.geometry);info.innerHTML=`<h3>${p.n||BUSE[p.c]}</h3><span class="tag" style="background:${BCOL[p.c]}">${BUSE[p.c]}</span>${bDL(p)}`;return}
+const f=map.queryRenderedFeatures(e.point,{layers:['hit']})[0];if(f){const g=byCode.get(f.properties.code);if(g)selectDong(g)}});
+map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit']}).length?'pointer':''});
+
+// ── 검색·이동
+const fit=(g,maxZoom=13.5)=>{const b=bbox(g);map.fitBounds(b,{padding:{top:90,bottom:40,left:40,right:40},maxZoom,duration:700})};
+const idx=new Map();
+fs.forEach(f=>idx.set(`${f.properties.name} (${muniName(f.properties.code)})`,{f}));
+muniGeo.forEach((g,m)=>idx.set(muniName(m+'00').trim(),{g}));
+idx.set('경기 화성시 동탄구',{g:dtG});idx.set('경기 화성시 병점구',{g:bjG});
+$('names').innerHTML=[...idx.keys()].map(n=>`<option value="${n}">`).join('');
+const q=$('q');
+const go=()=>{const v=q.value.trim();if(!v)return;const hit=idx.get(v)||[...idx.entries()].find(([n])=>n.includes(v))?.[1];if(!hit)return;
+if(hit.f){fit(hit.f.geometry);selectDong(hit.f)}else{fit(hit.g,12);setSel(hit.g);info.innerHTML=`<h3>${v}</h3><p class="muted">동을 누르면 규제 내용이 나옵니다.</p>`}};
+q.addEventListener('change',go);q.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+
+// ── 켜고 끄기
+const vis=(id,on)=>map.getLayer(id)&&map.setLayoutProperty(id,'visibility',on?'visible':'none');
+const tog=(id,fn)=>$(id).addEventListener('change',e=>fn(e.target.checked));
+const terrOn=()=>onId('L_tr')&&baseMode!==2,watOn=()=>onId('L_wa')&&baseMode!==2;
+window._applyVis=()=>{const z=onId('L_zone');['zfill','zA','zB','zW'].forEach(i=>vis(i,z));vis('fz',onId('L_fz'));vis('terr',terrOn());['wb','rv','lw1','lw2','lw3','lw4','lw5'].forEach(i=>vis(i,watOn()));vis('ldong',onId('L_dong'));vis('land',!baseMode)};
+['L_zone','L_fz','L_tr','L_wa','L_dong'].forEach(id=>tog(id,()=>_applyVis()));
+_applyVis();
+document.querySelectorAll('#jump button').forEach(b=>b.disabled=false);
+{const m=location.hash.match(/^#(-?[\d.]+),(-?[\d.]+)(?:,([\d.]+))?$/);if(m)map.jumpTo({center:[+m[2],+m[1]],zoom:m[3]?+m[3]:zk(40)})}
+map.on('moveend',()=>{const c=map.getCenter();history.replaceState(null,'',`#${c.lat.toFixed(5)},${c.lng.toFixed(5)},${map.getZoom().toFixed(2)}`)});
+{const qb=new URLSearchParams(location.search).get('base');if(qb==='map'||qb==='sat')setBase(qb==='map'?1:2)}
+bLoad();
+}).catch(err=>{info.innerHTML='<p class="muted">지도 데이터를 불러오지 못했습니다. 새로고침해 주세요.</p>';console.error(err)});
+
+// ── 지역 바로가기·확대 버튼
+const J=[['전국',KR],['수도권',[[126.55,37.0],[127.55,37.95]]],['서울',[[126.76,37.42],[127.19,37.71]]],['대전·세종',[[127.15,36.2],[127.55,36.65]]],['전주',[[127.0,35.75],[127.2,35.9]]],['부산·울산',[[128.8,35.0],[129.45,35.75]]],['대구',[[128.4,35.7],[128.8,36.05]]],['광주',[[126.7,35.05],[127.0,35.27]]]];
+$('jump').innerHTML=J.map((j,i)=>`<button data-i="${i}" disabled>${j[0]}</button>`).join('');
+document.querySelectorAll('#jump button').forEach(b=>b.onclick=()=>map.fitBounds(J[+b.dataset.i][1],{padding:{top:70,bottom:20,left:20,right:20},duration:800,bearing:mode3?map.getBearing():0}));
+$('zi').onclick=()=>map.zoomIn();$('zo').onclick=()=>map.zoomOut();$('zr').onclick=()=>map.fitBounds(KR,{padding:{top:70,bottom:20,left:20,right:20},duration:800,pitch:0,bearing:0});
+
+// ── 배경지도(단색·일반지도·위성)
+var baseMode=0,mode3=false,bOn=true,VK='',vwFail=false,bIdx=null;
+try{VK=localStorage.getItem('vwkey')||''}catch(e){}
+const vkI=$('vk'),vkm=$('vkm');vkI.value=VK;vkm.textContent=VK?'저장된 키를 쓰는 중':'';
+const SRC=()=>VK&&!vwFail?{
+1:{tiles:[`https://api.vworld.kr/req/wmts/1.0.0/${VK}/Base/{z}/{y}/{x}.png`],attr:'배경: 브이월드(국토교통부)'},
+2:{tiles:[`https://api.vworld.kr/req/wmts/1.0.0/${VK}/Satellite/{z}/{y}/{x}.jpeg`],attr:'배경: 브이월드 위성(국토교통부)',over:[`https://api.vworld.kr/req/wmts/1.0.0/${VK}/Hybrid/{z}/{y}/{x}.png`]}}:{
+1:{tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],attr:'배경: © OpenStreetMap contributors'},
+2:{tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],attr:'배경 위성: Esri, Maxar, Earthstar Geographics'}};
+map.on('error',e=>{if(!vwFail&&VK&&e&&e.sourceId&&/^base/.test(e.sourceId)){vwFail=true;vkm.textContent='브이월드 타일을 불러오지 못해(키 또는 등록 도메인 문제일 수 있음) 대체 배경으로 바꿨습니다.';setBaseLayer()}});
+function setBaseLayer(){if(!map.getLayer('land'))return;['basemap','baseover'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id)});
+attrEl.textContent='';if(!baseMode)return;const s=SRC()[baseMode];
+map.addSource('basemap',{type:'raster',tiles:s.tiles,tileSize:256,maxzoom:19});map.addLayer({id:'basemap',type:'raster',source:'basemap'},'land');
+if(s.over){map.addSource('baseover',{type:'raster',tiles:s.over,tileSize:256,maxzoom:19});map.addLayer({id:'baseover',type:'raster',source:'baseover'},'b2')}
+attrEl.textContent=s.attr+(bOn?' · 건물: 국토교통부 GIS건물통합정보':'')}
+// 배경에 따라 색칠 진하기·글자 테두리 바꾸기: 단색 = 진한 면, 일반지도 = 옅은 면, 위성 = 옅은 면 + 흰 글자
+function styBase(){if(!map.getLayer('land'))return;const sat=baseMode===2;
+map.setPaintProperty('zfill','fill-opacity',baseMode?.32:.72);
+map.setPaintProperty('dline','line-color',sat?'rgba(255,255,255,.55)':baseMode?'rgba(91,107,114,.6)':P.line);
+map.setPaintProperty('mline','line-color',sat?'#ffffff':P.sub);map.setPaintProperty('pline','line-color',sat?'#ffffff':P.ink);
+['ldong','lmuni','lsido','lw1','lw2','lw3','lw4','lw5'].forEach(id=>{map.setPaintProperty(id,'text-halo-color',sat?'rgba(0,0,0,.7)':P.land);if(/^l(dong|muni)/.test(id))map.setPaintProperty(id,'text-color',sat?'#fff':P.ink)});
+map.setPaintProperty('lsido','text-color',sat?'#fff':P.sub);
+map.setPaintProperty('sel','line-color',sat?'#ffd43b':P.ink);
+window._applyVis&&_applyVis();sty()}
+// 건물: 일반지도·단색 = 용도색 면/불투명 기둥, 위성 = 테두리+옅은 면/반투명 기둥
+function sty(){if(!map.getLayer('b2'))return;const sat=baseMode===2;
+map.setPaintProperty('b2','fill-opacity',sat?.18:.85);map.setPaintProperty('b2','fill-outline-color',sat?'rgba(0,0,0,0)':(dark?'#0d1c24':'#ffffff'));
+map.setPaintProperty('b3','fill-extrusion-opacity',sat?.82:.9);
+vis2('b2',bOn&&!mode3);vis2('b2l',bOn&&!mode3&&sat);vis2('b3',bOn&&mode3&&!vw3);bLoad()}
+const vis2=(id,on)=>map.setLayoutProperty(id,'visibility',on?'visible':'none');
+async function setBase(m){if(m===baseMode)return;if(vw3)await setDim(false);baseMode=m;['bm0','bm1','bm2'].forEach((id,i)=>$(id).classList.toggle('on',i===m));await ready;setBaseLayer();styBase()}
+[0,1,2].forEach(i=>$('bm'+i).onclick=()=>setBase(i));
+$('vks').onclick=()=>{VK=vkI.value.trim();vwFail=false;try{VK?localStorage.setItem('vwkey',VK):localStorage.removeItem('vwkey')}catch(e){}vkm.textContent=VK?'저장했습니다.':'키를 지웠습니다.';setBaseLayer()};
+$('bbtn').onclick=()=>{bOn=!bOn;const b=$('bbtn');b.classList.toggle('on',bOn);b.textContent=bOn?'🏢 건물 켜짐':'🏢 건물 꺼짐';setBaseLayer();sty()};
+
+// ── 건물 2D·3D (화면 중심 가까운 타일 16개까지)
+const bCache=new Map(),bBund=new Map();
+const getB=k=>{if(!bBund.has(k)){bBund.set(k,fetch('bld/'+k+'.txt').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}));if(bBund.size>12)bBund.delete(bBund.keys().next().value)}return bBund.get(k)};
+const tileOf=(lon,lat,z)=>{const n=2**z;return [Math.floor((lon+180)/360*n),Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n)]};
+const bDecode=j=>{const[ox,oy]=j.o;return j.r.map(r=>{const f=r[8];let x=0,y=0;const ring=[];for(let k=0;k<f.length;k+=2){x+=f[k];y+=f[k+1];ring.push([ox+x/1e5,oy+y/1e5])}ring.push(ring[0]);
+return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.d[r[4]],j:r[5],n:r[6],a:r[7]},geometry:{type:'Polygon',coordinates:[ring]}}})};
+let bSeq=0;
+async function bLoad(){if(!map.getSource('b'))return;if(!bIdx){bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}))}
+const my=++bSeq,z=map.getZoom(),src=map.getSource('b');if(!bOn||vw3){src.setData(EMPTY);bst.textContent='';return}
+if(z<14){src.setData(EMPTY);bst.textContent=z>=12?'건물은 조금 더 확대하면(축척 약 200m) 나타납니다':'';return}
+const b=map.getBounds(),Z=bIdx.z,[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y1]=tileOf(b.getEast(),b.getSouth(),Z);
+const cc=map.getCenter(),[cx0,cy0]=tileOf(cc.lng,cc.lat,Z),cand=[];
+for(let x=Math.max(x0,cx0-4);x<=Math.min(x1,cx0+4);x++)for(let y=Math.max(y0,cy0-4);y<=Math.min(y1,cy0+4);y++){const k=x+'_'+y;if(bIdx.t[k])cand.push([(x-cx0)**2+(y-cy0)**2,k])}
+cand.sort((p,q)=>p[0]-q[0]);const want=cand.slice(0,16).map(c=>c[1]);
+if(!want.length){src.setData(EMPTY);bst.textContent='이 지역은 건물 자료 범위 밖입니다 (경기도는 준비 중)';return}
+bst.textContent='건물 불러오는 중…';
+await Promise.all(want.filter(k=>!bCache.has(k)).map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}));
+if(my!==bSeq)return;
+if(bCache.size>60){for(const k of [...bCache.keys()].slice(0,bCache.size-60))if(!want.includes(k))bCache.delete(k)}
+const feats=want.flatMap(k=>bCache.get(k)||[]);src.setData({type:'FeatureCollection',features:feats});bst.textContent=`건물 ${feats.length.toLocaleString()}동 · 누르면 지번·용도·층수`}
+let lt;map.on('moveend',()=>{clearTimeout(lt);lt=setTimeout(bLoad,150)});
+
+// ── 2D·3D: 3D에서도 규제지역·경계·이름표가 그대로 보인다. 위성+3D는 브이월드 실사 3D를 띄운다(안 되면 색 기둥).
+var vw3=false,vw3Fail=false,vw3C=null;const v3f=$('v3f');
+addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data.v3d)return;if(e.data.v3d==='ok'&&vw3){bst.textContent='실사 3D · 끌어서 이동, 오른쪽 버튼(또는 Ctrl+끌기)으로 회전·기울이기, 휠로 확대';return}
+if(e.data.v3d==='fail'&&vw3){vw3Fail=true;vw3Off();sty();map.easeTo({pitch:55,bearing:-15,zoom:Math.max(map.getZoom(),15.5),duration:700});attrEl.textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
+function vw3On(c){vw3=true;vw3C=c;fig.classList.add('vw3');v3f.src=`v3d.html?embed=1&lat=${c[1].toFixed(6)}&lon=${c[0].toFixed(6)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
+function vw3Off(){let c=null;try{c=v3f.contentWindow.getCenter&&v3f.contentWindow.getCenter()}catch(e){}vw3=false;fig.classList.remove('vw3');v3f.src='about:blank';setBaseLayer();return c||vw3C}
+const rot=on=>{if(on){map.dragRotate.enable();map.touchZoomRotate.enableRotation()}else{map.dragRotate.disable();map.touchZoomRotate.disableRotation()}};
+async function setDim(v){await ready;['v2','v3'].forEach((id,i)=>$(id).classList.toggle('on',i===(v?1:0)));
+if(v&&baseMode===2&&!vw3Fail){mode3=true;$('vrot').style.display='none';sty();const c=map.getCenter();vw3On([c.lng,c.lat]);return}
+if(!v&&vw3){const c=vw3Off();mode3=false;sty();map.jumpTo({center:c,zoom:Math.max(map.getZoom(),15),pitch:0,bearing:0});rot(false);return}
+mode3=v;$('vrot').style.display=v?'':'none';rot(v);map.setPitch&&0;sty();
+if(v)map.easeTo({pitch:55,bearing:-15,zoom:Math.max(map.getZoom(),15.5),duration:700});else map.easeTo({pitch:0,bearing:0,duration:500})}
+$('v2').onclick=()=>setDim(false);$('v3').onclick=()=>setDim(true);
+$('vrot').onclick=()=>map.easeTo({bearing:map.getBearing()+45,duration:600});
+}
+</script>
+</body>
+</html>

@@ -65,8 +65,13 @@
 - 점포 밀집도: 다운로드 폴더의 `소상공인시장진흥공단_상가(상권)정보_YYYYMMDD.zip`을 device_bash에서 `python3 shop_extract.py <zip> shop_cells.txt`로 8개 시도 점포를 250m 칸(학원과 같은 격자)·업종 대분류(I2 음식, G2 소매, S2 개인서비스, Q1 보건의료, P1 교육, R1 예술·스포츠, I1 숙박, L1 부동산, M1 과학·기술, N1 시설관리·임대)별로 센다 → device_stage_files → `raw/shop_cells.txt` → `SHOPDATE="YYYY년 M월" python3 build_shop.py` → data/shop.json(칸 + 상권 이름표: 생활업종 40곳 이상 칸을 이어 붙이고 너무 큰 덩어리는 기준을 1.6배씩 올려 나눔, 합계 400곳 이상만).
 - 상권 경계: ① 서울 열린데이터광장 OA-15560 '서울시 상권분석서비스(영역-상권)' ZIP(로그인 불필요, 페이지의 `downloadFile('5')`) → `raw/seoul.*`(EPSG:5181, UTF-8) ② 공공데이터포털 15090955 '소상공인시장진흥공단_주요상권현황'(로그인 불필요, 2024-01-01 기준 1회성, cp949, 좌표는 '경도,위도|…' 문자열) → `raw/major_zones.csv`. 내장 브라우저로 받으면 GUID .tmp로 저장됨. `SEOULZONE="2023년 10월 파일" python3 build_shop_zone.py` → data/shop_zone.json. 두 원본 모두 갱신이 드물어 새 파일이 올라왔을 때만 다시 만든다.
 
+## K. 새 엔진 지도 ml.html (MapLibre 전환, 진행 중)
+- `ml.tpl.html` → gen.py가 index.html과 같은 자리표시자를 채워 `ml.html`을 만든다. 글자는 Hangul만 브라우저 글꼴로 그리고, 숫자·영문은 `fonts/Noto Sans Regular|Medium/{범위}.pbf`(protomaps/basemaps-assets, OFL)를 쓴다.
+- 1단계(2026-11-19): 기본 틀·배경(단색/일반/위성)·건물 2D·3D·규제지역·외국인 토허·지형·강·경계·이름표·동 검색. 2단계: 철도·도로·고속도로·학교·학원. 3단계: 인구·상권·노선 목록·통합 검색 → 끝나면 ml.html을 index.html로 바꾼다.
+- 기존 지도의 확대 배율 k는 `zk(k)=Z0+log2(k)`(Z0=전국 맞춤 줌)로 환산해 표시 기준을 맞춘다.
+
 ## D. 빌드·검증·게시
-1. `HWYDATE="(hwy 갱신 시 오늘, 아니면 기존 값: 2026년 11월 17일 조회)" python3 gen.py` → index.html
+1. (ml.tpl.html도 함께 처리됨) `HWYDATE="(hwy 갱신 시 오늘, 아니면 기존 값: 2026년 11월 17일 조회)" python3 gen.py` → index.html
 2. 검증: `python3 -c` 로 data/*.json 파싱, rail 노선 수 80개 이상, stations 1000개 이상, index.html에 `__` 자리표시자가 남지 않았는지.
 3. 게시: `mcp__claude-artifacts__get_artifact`로 현재 version 확인 → `publish_files(slug, base_version, files=[index.html, data/rail.json, data/stations.json (+ data/hwy.json, data/edu.json, data/hagwon_grid.json, data/hagwon_pts.json, data/pop.json, data/flow.json, data/roads_big.json, data/roads_main.json, data/shop.json, data/shop_zone.json, bld.html)], label="정기 업데이트 YYYY-MM-DD")`. mode는 기본 patch.
 4. 템플릿을 고쳤으면 Projects 도구로 `kr-map/index.tpl.html`(및 고친 스크립트)을 덮어쓴다.

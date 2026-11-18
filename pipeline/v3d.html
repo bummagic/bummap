@@ -28,23 +28,37 @@ if(VK)document.write('<script src="https://map.vworld.kr/js/webglMapInit.js.do?v
 <script>
 {
 const q=new URLSearchParams(location.search),lat=+q.get('lat')||37.5005,lon=+q.get('lon')||127.059;
+// 2D 지도(MapLibre)와 같은 화면이 되도록 카메라 계산: z=MapLibre 줌(512px 타일), p=기울기(0=수직), b=방향(북=0)
+const Z=q.has('z')?+q.get('z'):16.5,PT=q.has('p')?Math.min(85,Math.max(0,+q.get('p'))):55,BR=+q.get('b')||0,RD=Math.PI/180;
+const fovyOf=()=>{const w=innerWidth||1000,h=innerHeight||700;return w>h?2*Math.atan(Math.tan(30*RD)*h/w):60*RD};
+const camFor=fovy=>{const h=innerHeight||700,mpp=40075016.7*Math.cos(lat*RD)/(512*2**Z),range=(h/2*mpp)/Math.tan(fovy/2),
+ up=range*Math.cos(PT*RD),hz=range*Math.sin(PT*RD),dn=-hz*Math.cos(BR*RD),de=-hz*Math.sin(BR*RD);
+ return {lon:lon+de/(111320*Math.cos(lat*RD)),lat:lat+dn/111320,h:Math.max(30,up),head:BR,pitch:-(90-PT)}};
 document.getElementById('back').href='index.html#'+lat.toFixed(5)+','+lon.toFixed(5);
 const emb=q.get('embed')==='1';if(emb){document.querySelector('.bar').style.display='none';document.getElementById('src').style.display='none'}
 const tell=(st,why)=>{try{if(emb&&parent!==window)parent.postMessage({v3d:st,why},location.origin)}catch(e){}};
 const msg=(t,why)=>{tell('fail',why);if(emb)return;const m=document.getElementById('msg');m.innerHTML=t;m.style.display='block'};
 // 화면 가운데가 가리키는 땅의 경위도(2D로 돌아갈 때 위치 맞추기용)
+window.getCam=function(){try{const C=ws3d.common,v=ws3d.viewer,cam=v.camera,cv=v.scene.canvas;const p=v.scene.pickPosition&&v.scene.globe?cam.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2)):null;if(!p)return null;
+const g=C.Cartographic.fromCartesian(p),range=C.Cartesian3.distance(cam.positionWC,p),mpp=range*Math.tan(cam.frustum.fovy/2)/(cv.clientHeight/2);
+return {lon:g.longitude/RD,lat:g.latitude/RD,z:Math.log2(40075016.7*Math.cos(g.latitude)/(512*mpp)),b:((cam.heading/RD)%360+360)%360,p:90+cam.pitch/RD}}catch(e){return null}};
 window.getCenter=function(){try{const C=window.ws3d&&ws3d.common,v=ws3d.viewer,cv=v.scene.canvas;const p=v.camera.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2));if(!p)return null;const g=C.Cartographic.fromCartesian(p);return [g.longitude*180/Math.PI,g.latitude*180/Math.PI]}catch(e){return null}};
 if(!VK)msg('<p><b>브이월드 인증키가 없습니다.</b></p><p>사이버 임장지도 화면 오른쪽 패널의 ‘배경지도 설정’에 인증키를 넣고 저장한 뒤 다시 들어와 주세요.</p>','브이월드 인증키가 없습니다');
 else if(window.vworldIsValid==='false')msg('<p><b>브이월드가 이 키를 거부했습니다.</b></p><p>'+(window.vworldErrMsg||'')+'</p>','브이월드 응답: '+(window.vworldErrMsg||'키 거부'));
 else if(!window.vw)msg('<p><b>브이월드 3D 지도를 불러오지 못했습니다.</b></p><p>브이월드 ‘인증키 관리’에서 이 키의 활용 API에 <b>WebGL 3D 지도 API</b>가 들어 있는지, 서비스 URL이 <b>https://bummagic.github.io</b> 인지 확인해 주세요.</p><small>활용 API를 바꾸면 반영까지 잠시 걸릴 수 있습니다.</small>','키에 WebGL 3D 지도 API 권한이 있는지 확인해 주세요');
 else{
-  // 목표 지점 남쪽 약 1km, 높이 700m에서 북쪽을 35° 내려다보는 위치
+  // 2D에서 보던 화면과 같은 위치·배율·기울기·방향에서 바로 시작(전국→근처로 날아오는 장면 없이)
+  const c0=camFor(fovyOf());
   const map=new vw.Map();
-  map.setOption({mapId:'vmap',initPosition:new vw.CameraPosition(new vw.CoordZ(lon,lat-0.0065,450),new vw.Direction(0,-35,0)),logo:true,navigation:true});
+  map.setOption({mapId:'vmap',initPosition:new vw.CameraPosition(new vw.CoordZ(c0.lon,c0.lat,c0.h),new vw.Direction(c0.head,c0.pitch,0)),logo:true,navigation:true});
   try{map.start()}catch(e){msg('<p>브이월드 3D 지도를 시작하지 못했습니다.</p>','3D 지도 시작 실패');}
   // 처음 몇 초는 화면을 계속 다시 그려 건물 모델이 끝까지 내려오게 한다(가만히 있으면 일부만 그려지고 멈추는 경우가 있음)
   let n=0;const kick=setInterval(()=>{try{window.ws3d&&ws3d.viewer&&ws3d.viewer.scene.requestRender()}catch(e){}if(++n>60)clearInterval(kick)},500);
-  let okSent=false;const chk=setInterval(()=>{if(document.querySelector('#vmap canvas')){okSent=true;clearInterval(chk);tell('ok')}},1000);
+  // 엔진이 준비되면 날아가는 동작을 끊고 카메라를 바로 놓은 뒤에야 화면을 보이게 한다(부모 지도는 그때까지 2D·3D 지도를 그대로 보여줌)
+  const place=()=>{const C=ws3d.common,cam=ws3d.viewer.camera;try{cam.cancelFlight()}catch(e){}const c=camFor(cam.frustum.fovy||fovyOf());
+   cam.setView({destination:C.Cartesian3.fromDegrees(c.lon,c.lat,c.h),orientation:{heading:c.head*RD,pitch:c.pitch*RD,roll:0}})};
+  let okSent=false;const chk=setInterval(()=>{if(!(window.ws3d&&ws3d.viewer&&ws3d.common&&document.querySelector('#vmap canvas')))return;clearInterval(chk);
+   place();let k=0;const t=setInterval(()=>{try{if(ws3d.viewer.camera._currentFlight||k<3)place()}catch(e){}if(++k>=8){clearInterval(t);if(!okSent){okSent=true;tell('ok')}}},120)},150);
   // 30초 안에 3D 화면(캔버스)이 생기지 않으면 실패로 본다
   setTimeout(()=>{clearInterval(chk);if(!okSent)msg('<p>브이월드 3D 화면이 나타나지 않았습니다. 키의 활용 API(WebGL 3D 지도)와 서비스 URL을 확인해 주세요.</p>','3D 화면이 나타나지 않았습니다(키 권한·서비스 URL 확인)')},30000);
 }

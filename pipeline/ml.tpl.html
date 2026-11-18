@@ -27,7 +27,7 @@ h3{font-size:15px;margin:0 0 8px;font-weight:700}
 .main{display:grid;grid-template-columns:minmax(0,1fr) 340px;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge)}
 .fig{position:relative;height:clamp(520px,84vh,980px);background:var(--sea);overflow:hidden}
 #map{position:absolute;inset:0}
-#v3f{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#0d1c24}.fig.vw3 #v3f{display:block}.fig.vw3 .zoom,.fig.vw3 .jump,.fig.vw3 #q{display:none}
+#v3f{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#0d1c24}.fig.vw3 #v3f{display:block;opacity:0;transition:opacity .25s}.fig.vw3.v3ok #v3f{opacity:1}.fig.vw3:not(.v3ok) #v3f{pointer-events:none}.fig.v3ok .zoom,.fig.v3ok .jump,.fig.v3ok #q{display:none}
 .seg{display:inline-flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin-left:0}.seg button:last-child{border-radius:0 8px 8px 0}
 button.on{outline:2px solid var(--zB);outline-offset:-2px;font-weight:700}button:disabled{opacity:.45;cursor:default}
 #bst,#attr{position:absolute;font-size:12px;color:var(--sub);background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:2px 8px;pointer-events:none;z-index:2}#bst{left:12px;bottom:40px}#attr{right:64px;bottom:12px}#attr:empty,#bst:empty{display:none}
@@ -333,7 +333,7 @@ map.setPaintProperty('b2','fill-opacity',sat?.18:.85);map.setPaintProperty('b2',
 map.setPaintProperty('b3','fill-extrusion-opacity',sat?.82:.9);
 vis2('b2',bOn&&!mode3);vis2('b2l',bOn&&!mode3&&sat);vis2('b3',bOn&&mode3&&!vw3);bLoad()}
 const vis2=(id,on)=>map.setLayoutProperty(id,'visibility',on?'visible':'none');
-async function setBase(m){if(m===baseMode)return;if(vw3)await setDim(false);baseMode=m;['bm0','bm1','bm2'].forEach((id,i)=>$(id).classList.toggle('on',i===m));await ready;setBaseLayer();styBase()}
+async function setBase(m){if(m===baseMode)return;await ready;if(vw3)vw3Off();baseMode=m;['bm0','bm1','bm2'].forEach((id,i)=>$(id).classList.toggle('on',i===m));setBaseLayer();styBase();if(m===2&&mode3&&!vw3Fail)vw3On()}
 [0,1,2].forEach(i=>$('bm'+i).onclick=()=>setBase(i));
 $('vks').onclick=()=>{VK=vkI.value.trim();vwFail=false;try{VK?localStorage.setItem('vwkey',VK):localStorage.removeItem('vwkey')}catch(e){}vkm.textContent=VK?'저장했습니다.':'키를 지웠습니다.';setBaseLayer()};
 $('bbtn').onclick=()=>{bOn=!bOn;const b=$('bbtn');b.classList.toggle('on',bOn);b.textContent=bOn?'🏢 건물 켜짐':'🏢 건물 꺼짐';setBaseLayer();sty()};
@@ -362,16 +362,23 @@ let lt;map.on('moveend',()=>{clearTimeout(lt);lt=setTimeout(bLoad,150)});
 
 // ── 2D·3D: 3D에서도 규제지역·경계·이름표가 그대로 보인다. 위성+3D는 브이월드 실사 3D를 띄운다(안 되면 색 기둥).
 var vw3=false,vw3Fail=false,vw3C=null;const v3f=$('v3f');
-addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data.v3d)return;if(e.data.v3d==='ok'&&vw3){bst.textContent='실사 3D · 끌어서 이동, 오른쪽 버튼(또는 Ctrl+끌기)으로 회전·기울이기, 휠로 확대';return}
-if(e.data.v3d==='fail'&&vw3){vw3Fail=true;vw3Off();sty();map.easeTo({pitch:55,bearing:-15,zoom:Math.max(map.getZoom(),15.5),duration:700});attrEl.textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
-function vw3On(c){vw3=true;vw3C=c;fig.classList.add('vw3');v3f.src=`v3d.html?embed=1&lat=${c[1].toFixed(6)}&lon=${c[0].toFixed(6)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
-function vw3Off(){let c=null;try{c=v3f.contentWindow.getCenter&&v3f.contentWindow.getCenter()}catch(e){}vw3=false;fig.classList.remove('vw3');v3f.src='about:blank';setBaseLayer();return c||vw3C}
+// 지금 보는 카메라(중심·배율·기울기·방향)를 그대로 넘기고 돌려받는다
+const camNow=()=>{const c=map.getCenter();return {lon:c.lng,lat:c.lat,z:map.getZoom(),p:map.getPitch(),b:map.getBearing()}};
+const camSet=c=>c&&map.jumpTo({center:[c.lon,c.lat],zoom:Math.min(22,Math.max(3,c.z)),bearing:c.b,pitch:Math.max(0,Math.min(70,c.p))});
+addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data.v3d)return;if(e.data.v3d==='ok'&&vw3){fig.classList.add('v3ok');bst.textContent='실사 3D · 끌어서 이동, 오른쪽 버튼(또는 Ctrl+끌기)으로 회전·기울이기, 휠로 확대';return}
+if(e.data.v3d==='fail'&&vw3){vw3Fail=true;vw3Off();sty();attrEl.textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
+function vw3On(){const c=camNow();vw3=true;vw3C=c;fig.classList.remove('v3ok');fig.classList.add('vw3');$('vrot').style.display='none';
+v3f.src=`v3d.html?embed=1&lat=${c.lat.toFixed(6)}&lon=${c.lon.toFixed(6)}&z=${c.z.toFixed(2)}&p=${c.p.toFixed(1)}&b=${c.b.toFixed(1)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
+function vw3Off(){let c=null;try{c=v3f.contentWindow.getCam&&v3f.contentWindow.getCam()}catch(e){}vw3=false;fig.classList.remove('vw3','v3ok');v3f.src='about:blank';setBaseLayer();c=c||vw3C;camSet(c);if(mode3)$('vrot').style.display='';return c}
 const rot=on=>{if(on){map.dragRotate.enable();map.touchZoomRotate.enableRotation()}else{map.dragRotate.disable();map.touchZoomRotate.disableRotation()}};
+// 2D→3D: 배율은 건물이 보이는 축척(z14) 이상이면 그대로, 기울기는 이미 기울어 있으면 그대로(아니면 55°)
+const z3=()=>map.getZoom()>=14?map.getZoom():15.5,p3=()=>map.getPitch()>=20?map.getPitch():55;
 async function setDim(v){await ready;['v2','v3'].forEach((id,i)=>$(id).classList.toggle('on',i===(v?1:0)));
-if(v&&baseMode===2&&!vw3Fail){mode3=true;$('vrot').style.display='none';sty();const c=map.getCenter();vw3On([c.lng,c.lat]);return}
-if(!v&&vw3){const c=vw3Off();mode3=false;sty();map.jumpTo({center:c,zoom:Math.max(map.getZoom(),15),pitch:0,bearing:0});rot(false);return}
-mode3=v;$('vrot').style.display=v?'':'none';rot(v);map.setPitch&&0;sty();
-if(v)map.easeTo({pitch:55,bearing:-15,zoom:Math.max(map.getZoom(),15.5),duration:700});else map.easeTo({pitch:0,bearing:0,duration:500})}
+if(v&&vw3)return;
+if(v&&baseMode===2&&!vw3Fail){mode3=true;rot(true);sty();map.jumpTo({zoom:z3(),pitch:p3()});vw3On();return}
+if(!v&&vw3){vw3Off();mode3=false;sty();rot(false);map.easeTo({pitch:0,bearing:0,duration:400});return}
+mode3=v;$('vrot').style.display=v?'':'none';rot(v);sty();
+if(v)map.easeTo({pitch:p3(),zoom:z3(),duration:600});else map.easeTo({pitch:0,bearing:0,duration:500})}
 $('v2').onclick=()=>setDim(false);$('v3').onclick=()=>setDim(true);
 $('vrot').onclick=()=>map.easeTo({bearing:map.getBearing()+45,duration:600});
 }

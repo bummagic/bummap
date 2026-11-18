@@ -14,9 +14,10 @@ html,body{margin:0;height:100%;font:15px/1.5 "Noto Sans KR",system-ui,sans-serif
 #msg p{margin:0 0 8px}#msg small{color:var(--sub)}
 #src{position:absolute;right:10px;bottom:6px;z-index:1000;font-size:11px;color:#fff;text-shadow:0 0 3px #000}
 </style>
+<script src="vwkey.js"></script>
 <script>
 // 브이월드 WebGL 3D 지도 API 3.0(실사 건물·지형). 키는 지도 화면의 '배경지도 설정'에서 저장한 것(이 브라우저의 localStorage)을 쓴다.
-var VK='';try{VK=localStorage.getItem('vwkey')||''}catch(e){}
+var VK='';try{VK=localStorage.getItem('vwkey')||''}catch(e){}if(!VK&&window.VWKEY_DEFAULT)VK=VWKEY_DEFAULT;
 if(VK)document.write('<script src="https://map.vworld.kr/js/webglMapInit.js.do?version=3.0&apiKey='+encodeURIComponent(VK)+'"><\/script>');
 </script>
 </head>

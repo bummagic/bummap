@@ -263,6 +263,7 @@ footer{font-size:13px;color:var(--sub)}
 <p>출처: <a href="https://mobile.newsis.com/view/NISX20251015_0003363935">뉴시스(10·15 대책)</a> · <a href="https://m.seoul.co.kr/news/2025/10/16/20251016001004">서울신문</a> · <a href="https://imnews.imbc.com/news/2026/econo/article/6833827_36932.html">MBC(동탄·기흥·구리)</a> · <a href="https://www.fnnews.com/news/202508231349341303">파이낸셜뉴스(화성 4개 구)</a> · <a href="https://biz.heraldcorp.com/article/10928147">헤럴드경제</a> · <a href="https://www.mediapen.com/news/view/1136176">미디어펜</a> · <a href="https://www.newspim.com/news/view/20261113001166">뉴스핌</a> · <a href="https://www.korea.kr/news/customizedNewsView.do?newsId=148970419">정책브리핑(외국인 토허)</a> · <a href="https://www.economicpost.co.kr/181427">이코노믹포스트</a> · <a href="https://www.kyeonggi.com/article/20251015580444">경기일보</a> · 철도: <a href="https://biz.sbs.co.kr/amp/article/20000275878">SBS Biz(신안산선)</a> · <a href="https://kbthink.com/realestate/basics/blog/260805.html">KB(월판선)</a> · <a href="https://www.kyeongin.com/article/1769309">경인일보(인동선)</a> · <a href="https://www.hankyung.com/article/202506105435i">한국경제(7·9호선)</a> · <a href="https://www.kukinews.com/article/view/kuk202601080154">쿠키뉴스(도봉산옥정선)</a> · <a href="https://news.bizwatch.co.kr/article/real_estate/2025/03/26/0033">비즈워치(옥정포천선)</a> · <a href="https://v.daum.net/v/8QcQCBZvN9">세계일보(신분당선 호매실)</a> · <a href="https://www.segye.com/newsView/20260417515082">세계일보(대장홍대선)</a> · <a href="https://www.kukinews.com/article/view/kuk202512230122">쿠키뉴스(송파하남선)</a> · <a href="https://www.dailian.co.kr/news/view/1526769/">데일리안(강동하남남양주선)</a> · <a href="https://news.mtn.co.kr/news-detail/2025061022392194618">MTN(신분당선 용산~신사)</a> · <a href="https://github.com/plazalabs/kr-rail-map">kr-rail-map</a> · <a href="https://www.openstreetmap.org">OpenStreetMap</a></p>
 </footer>
 
+<script src="vwkey.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script>
@@ -398,7 +399,7 @@ document.getElementById('jump').innerHTML=J.map((j,i)=>`<button data-i="${i}">${
 document.querySelectorAll('#jump button').forEach(b=>b.onclick=()=>{const j=J[+b.dataset.i];j[1]?box(...j[1]):zs.transition().duration(800).call(zoom.transform,d3.zoomIdentity)});
 // 배경지도(단색·일반지도·위성)와 건물 2D·3D — D3 지도 아래에 MapLibre를 깔아 D3의 확대·이동을 그대로 따라가게 한다(2D). 3D에서는 MapLibre를 직접 조작.
 var ML=null,baseMode=0,mode3=false,bOn=true,VK='',vwFail=false,bIdx=null;
-try{VK=localStorage.getItem('vwkey')||''}catch(e){}
+try{VK=localStorage.getItem('vwkey')||''}catch(e){}if(!VK&&window.VWKEY_DEFAULT)VK=VWKEY_DEFAULT;
 const vkI=document.getElementById('vk'),vkm=document.getElementById('vkm'),bst=document.getElementById('bst');vkI.value=VK;vkm.textContent=VK?'저장된 키를 쓰는 중':'';
 const BCATS=[[1,'아파트·공동주택','#c8452f'],[2,'단독주택','#e8a07a'],[3,'근린생활·판매·숙박','#c2127a'],[4,'업무','#3b5bdb'],[5,'교육·노유자','#2e9d5b'],[6,'문화·종교·의료·운동','#8e44ad'],[7,'공장·창고 등','#8a8f73'],[8,'기타 용도','#7a8a93'],[0,'용도 정보 없음','#b9bcb5']];
 const BCOL=Object.fromEntries(BCATS.map(c=>[c[0],c[2]]));

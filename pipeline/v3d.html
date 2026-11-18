@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>실사 3D 지도</title>
+<style>
+:root{color-scheme:light dark;--ink:light-dark(#13242e,#e6eef0);--panel:light-dark(#ffffff,#132a34);--edge:light-dark(#d9dbcf,#29434f);--sub:light-dark(#4a5a62,#a9bcc2)}
+html,body{margin:0;height:100%;font:15px/1.5 "Noto Sans KR",system-ui,sans-serif;color:var(--ink);background:#0d1c24}
+#vmap{position:absolute;inset:0}
+.bar{position:absolute;top:10px;left:10px;z-index:1000;display:flex;gap:8px;flex-wrap:wrap}
+.bar a{display:inline-flex;align-items:center;height:40px;padding:0 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);text-decoration:none;font-size:14px}
+#msg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1000;max-width:min(460px,90vw);background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:16px 18px;display:none}
+#msg p{margin:0 0 8px}#msg small{color:var(--sub)}
+#src{position:absolute;right:10px;bottom:6px;z-index:1000;font-size:11px;color:#fff;text-shadow:0 0 3px #000}
+</style>
+<script>
+// 브이월드 WebGL 3D 지도 API 3.0(실사 건물·지형). 키는 지도 화면의 '배경지도 설정'에서 저장한 것(이 브라우저의 localStorage)을 쓴다.
+var VK='';try{VK=localStorage.getItem('vwkey')||''}catch(e){}
+if(VK)document.write('<script src="https://map.vworld.kr/js/webglMapInit.js.do?version=3.0&apiKey='+encodeURIComponent(VK)+'"><\/script>');
+</script>
+</head>
+<body>
+<div id="vmap" role="application" aria-label="브이월드 실사 3D 지도"></div>
+<div class="bar"><a id="back" href="index.html">← 투자 지도로</a></div>
+<div id="msg"></div>
+<div id="src">3D 지도: 브이월드(국토교통부)</div>
+<script>
+{
+const q=new URLSearchParams(location.search),lat=+q.get('lat')||37.5005,lon=+q.get('lon')||127.059;
+document.getElementById('back').href='index.html#'+lat.toFixed(5)+','+lon.toFixed(5);
+const msg=t=>{const m=document.getElementById('msg');m.innerHTML=t;m.style.display='block'};
+if(!VK)msg('<p><b>브이월드 인증키가 없습니다.</b></p><p>투자 지도 화면 오른쪽 패널의 ‘배경지도 설정’에 인증키를 넣고 저장한 뒤 다시 들어와 주세요.</p>');
+else if(!window.vw)msg('<p><b>브이월드 3D 지도를 불러오지 못했습니다.</b></p><p>브이월드 ‘인증키 관리’에서 이 키의 활용 API에 <b>WebGL 3D 지도 API</b>가 들어 있는지, 서비스 URL이 <b>https://bummagic.github.io</b> 인지 확인해 주세요.</p><small>활용 API를 바꾸면 반영까지 잠시 걸릴 수 있습니다.</small>');
+else{
+  // 목표 지점 남쪽 약 1km, 높이 700m에서 북쪽을 35° 내려다보는 위치
+  const map=new vw.Map();
+  map.setOption({mapId:'vmap',initPosition:new vw.CameraPosition(new vw.CoordZ(lon,lat-0.009,700),new vw.Direction(0,-35,0)),logo:true,navigation:true});
+  map.start();
+}
+}
+</script>
+</body>
+</html>

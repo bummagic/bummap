@@ -164,6 +164,7 @@ footer{font-size:13px;color:var(--sub)}
 <button id="bbtn" disabled title="일반지도·위성에서 동 단위로 확대하면 건물이 보입니다">🏢 건물 끔</button>
 <span class="seg" role="group" aria-label="건물 보기"><button id="v2" class="on" disabled>2D</button><button id="v3" disabled>3D</button></span>
 <button id="vrot" style="display:none">↻ 45°</button>
+<button id="v3r" title="브이월드 실사 3D(건물 사진 입힌 3D)로 지금 보는 곳을 엽니다">🏙 실사 3D</button>
 </div>
 <div class="zoom"><button id="zi" aria-label="확대">+</button><button id="zo" aria-label="축소">−</button><button id="zr" aria-label="전국 보기">⟲</button></div>
 <div class="hint">휠·두 손가락으로 확대, 끌어서 이동</div>
@@ -448,11 +449,12 @@ async function setDim(v){if(!ML||!baseMode)return;mode3=v;['v2','v3'].forEach((i
 if(v){ML.easeTo({pitch:55,bearing:-15,zoom:Math.max(ML.getZoom(),15.5),duration:700})}
 else{ML.jumpTo({pitch:0,bearing:0});const c=ML.getCenter(),k=512*2**ML.getZoom()/(2*Math.PI*proj.scale()),p=proj([c.lng,c.lat]);svg.call(zoom.transform,d3.zoomIdentity.translate(W/2-k*p[0],H/2-k*p[1]).scale(k))}}
 async function setBase(m){if(m===baseMode)return;if(mode3)await setDim(false);baseMode=m;['bm0','bm1','bm2'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===m));
-fig.classList.toggle('bm',!!m);fig.classList.toggle('sat',m===2);g.TR.style('display',m||!onId('L_tr')?'none':null);g.WA.style('display',m||!onId('L_wa')?'none':null);wl.style('opacity',m?0:1);
+fig.classList.toggle('bm',!!m);fig.classList.toggle('sat',m===2);g.TR.style('display',m===2||!onId('L_tr')?'none':null);g.WA.style('display',m===2||!onId('L_wa')?'none':null);wl.style('opacity',m===2?0:1);
 ['bbtn','v2','v3'].forEach(id=>document.getElementById(id).disabled=!m);
 if(m){bst.textContent='배경지도 불러오는 중…';try{await ensureML()}catch(e){bst.textContent='배경지도 도구를 불러오지 못했습니다';return}ML.resize();setBaseLayer();mlSync(d3.zoomTransform(svg.node()));sty()}}
 [0,1,2].forEach(i=>document.getElementById('bm'+i).onclick=()=>setBase(i));
 document.getElementById('v2').onclick=()=>setDim(false);document.getElementById('v3').onclick=()=>setDim(true);
+document.getElementById('v3r').onclick=()=>{let c;if(ML&&mode3){const p=ML.getCenter();c=[p.lng,p.lat]}else c=camOf(d3.zoomTransform(svg.node())).center;location.href=`v3d.html?lat=${c[1].toFixed(5)}&lon=${c[0].toFixed(5)}`};
 document.getElementById('vrot').onclick=()=>ML&&ML.easeTo({bearing:ML.getBearing()+45,duration:600});
 document.getElementById('bbtn').onclick=()=>{bOn=!bOn;const b=document.getElementById('bbtn');b.classList.toggle('on',bOn);b.textContent=bOn?'🏢 건물 켜짐':'🏢 건물 꺼짐';sty()};
 {const b=document.getElementById('bbtn');b.classList.add('on');b.textContent='🏢 건물 켜짐'}

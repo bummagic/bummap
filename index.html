@@ -32,7 +32,7 @@ h3{font-size:15px;margin:0 0 8px;font-weight:700}
 .kpi span{font-size:13px;color:var(--sub)}
 .main{display:grid;grid-template-columns:minmax(0,1fr) 340px;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge)}
 .fig{position:relative;height:clamp(520px,84vh,980px);background:var(--sea);overflow:hidden}
-.fig>svg{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none;transform-origin:0 0}.fig{touch-action:none}.fig.zooming>svg{will-change:transform}
 .fig>svg:active{cursor:grabbing}
 .seg{display:inline-flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin-left:0}.seg button:last-child{border-radius:0 8px 8px 0}
 button.on{outline:2px solid var(--zB);outline-offset:-2px;font-weight:700}button:disabled{opacity:.45;cursor:default}
@@ -43,6 +43,7 @@ button.on{outline:2px solid var(--zB);outline-offset:-2px;font-weight:700}button
 #bst,#attr{position:absolute;font-size:12px;color:var(--sub);background:var(--panel);border:1px solid var(--edge);border-radius:6px;padding:2px 8px;pointer-events:none}#bst{left:12px;bottom:44px;display:none}.fig.bm #bst{display:block}#attr{right:64px;bottom:12px;display:none}.fig.bm #attr{display:block}
 .maplibregl-popup-content{background:var(--panel);color:var(--ink);font:14px/1.5 "Noto Sans KR",system-ui,sans-serif;padding:10px 12px;border-radius:8px}.maplibregl-popup-tip{display:none}
 .pp h4{margin:0 0 4px;font-size:15px}.pp dl{margin:0;display:grid;grid-template-columns:5.5em 1fr;gap:2px 8px;font-size:13.5px}.pp dt{color:var(--sub)}.pp dd{margin:0}
+.fig.zooming .zl{visibility:hidden}
 .tools{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;pointer-events:none}
 .tools>*{pointer-events:auto}
 input[type=search]{font:16px "Noto Sans KR",sans-serif;height:44px;padding:0 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);width:min(280px,100%)}
@@ -276,7 +277,7 @@ const cat=c=>{const m=c.slice(0,5);if(m.startsWith('11')||A12.includes(m))return
 const foreign=c=>/^(11|23|31)/.test(c)&&!FX.includes(c.slice(0,5));
 const muniName=c=>{const m=c.slice(0,5),n=MUNI[m]||'';let s=n.replace(/^(\S+?시)(\S+구)$/,'$1 $2');if(m==='31240'){s+=DT.includes(c)?' 동탄구':BJ.includes(c)?' 병점구':['3124012','3124031','3124033','3124043','3124056'].includes(c)?' 효행구':' 만세구'}return (SIDO[m.slice(0,2)]||'')+' '+s};
 const shortMuni=m=>{const n=MUNI[m]||'';const r=n.match(/^\S+?시(\S+구)$/);return r?r[1]:n};
-const fig=document.getElementById('fig'),svg=d3.select('#svg'),vp=d3.select('#vp');
+const fig=document.getElementById('fig'),svg=d3.select('#svg'),zs=d3.select(fig),svgEl=document.getElementById('svg'),vp=d3.select('#vp');
 const W=fig.clientWidth,H=fig.clientHeight;svg.attr('viewBox',`0 0 ${W} ${H}`);
 const info=document.getElementById('info');
 const ST={open:'운행 중',construction:'공사 중',planned:'계획'};
@@ -304,7 +305,8 @@ ml.push({m:'dt',c:path.centroid(dt),n:'동탄구'},{m:'bj',c:path.centroid(bj),n
 const sd=d3.groups(obj.geometries,x=>x.properties.code.slice(0,2)).map(([s,gs])=>({n:SIDO[s],c:path.centroid(topojson.merge(t,gs.filter(x=>!/^37430/.test(x.properties.code))))}));
 const sdl=g.L.selectAll('text.sd').data(sd).join('text').attr('class','lb sd').attr('x',d=>d.c[0]).attr('y',d=>d.c[1]).text(d=>d.n);
 const mlab=g.L.selectAll('text.mn').data(ml).join('text').attr('class','lb mn').attr('x',d=>d.c[0]).attr('y',d=>d.c[1]).text(d=>d.n);
-const dlab=g.N.selectAll('text').data(fs).join('text').attr('class','lb').attr('x',d=>path.centroid(d)[0]).attr('y',d=>path.centroid(d)[1]).text(d=>d.properties.name);
+fs.forEach(f=>f._c=path.centroid(f));
+const dlab=g.N.selectAll('text').data(fs).join('text').attr('class','lb').attr('x',d=>d._c[0]).attr('y',d=>d._c[1]).text(d=>d.properties.name);
 const geo=l=>({type:'MultiLineString',coordinates:l});
 const hg=g.HW.selectAll('g').data(hwy).join('g').attr('class',d=>d.s==='construction'?'hwc':'hw');
 hg.append('path').attr('class','cs').attr('d',d=>path(geo(d.l)));
@@ -341,7 +343,7 @@ popLayer(false);flowLayer(false);
 let hpts=null,hpLoading=false,hpSel=null;
 const hpDraw=()=>{const k=curK;if(!document.getElementById('L_hp').checked||k<30){g.HP.selectAll('circle').remove();return}
 if(!hpts){if(!hpLoading){hpLoading=true;fetch('data/hagwon_pts.json').then(r=>r.json()).then(a=>{hpts=a;a.forEach(d=>d.p=proj([d[3]/1e5,d[2]/1e5]));hpDraw()}).catch(()=>{})}return}
-const tr=d3.zoomTransform(svg.node()),x0=tr.invertX(0),x1=tr.invertX(W),y0=tr.invertY(0),y1=tr.invertY(H);
+const tr=d3.zoomTransform(fig),x0=tr.invertX(0),x1=tr.invertX(W),y0=tr.invertY(0),y1=tr.invertY(H);
 const vis=hpts.filter(d=>d.p[0]>=x0&&d.p[0]<=x1&&d.p[1]>=y0&&d.p[1]<=y1).slice(0,5000);
 g.HP.selectAll('circle').data(vis,d=>d[2]+'_'+d[3]+d[0]).join(en=>en.append('circle').attr('class',d=>'hp '+d[1]).attr('cx',d=>d.p[0]).attr('cy',d=>d.p[1]).on('click',(e,d)=>{e.stopPropagation();pick(d.p);info.innerHTML=`<h3>${d[0]}</h3><div class="muted">학원 · ${HK[d[1]]}</div><dl>${d[4]?`<dt>건물</dt><dd>${d[4]}</dd>`:''}<dt>출처</dt><dd>상가(상권)정보 (${hgd.ref})</dd></dl>`}).call(s=>s.append('title').text(d=>d[0]))).attr('r',2.6/k)};
 const xy=d=>proj([d[3]/1e5,d[2]/1e5]);edu.s.forEach(d=>d.p=xy(d));edu.u.forEach(d=>d.p=xy(d));
@@ -355,11 +357,13 @@ const esn=g.EN.selectAll('text.es').data(edu.s).join('text').attr('class','ed es
 const eunl=g.EN.selectAll('text.eu').data(edu.u).join('text').attr('class','ed u').attr('x',d=>d.p[0]).attr('y',d=>d.p[1]).text(d=>d[0]);
 const ck=id=>document.getElementById(id).checked,sVis=d=>ck('L_s'+d[1][0]),uVis=()=>ck('L_un');
 let curK=1;
+// 화면 밖 요소는 숨긴다(vb = 화면 범위를 지도 좌표로, 여유 60px)
+let vb=[-1e9,-1e9,1e9,1e9];const inV=p=>p[0]>=vb[0]&&p[0]<=vb[2]&&p[1]>=vb[1]&&p[1]<=vb[3];
 const edRender=()=>{const k=curK;const sm=d=>d[1][0]==='e'?k>=8:k>=5;
-esc.attr('r',(k>=20?3.4:2.4)/k).style('display',d=>sVis(d)&&sm(d)?null:'none');
+esc.attr('r',(k>=20?3.4:2.4)/k).style('display',d=>sVis(d)&&sm(d)&&inV(d.p)?null:'none');
 const us=(k>=6?7:5)/k;eun.attr('width',us).attr('height',us).attr('rx',1.2/k).attr('x',d=>d.p[0]-us/2).attr('y',d=>d.p[1]-us/2).style('display',uVis()&&k>=1.6?null:'none');
 g.EN.attr('font-size',10/k).attr('stroke-width',2.5/k);
-esn.attr('dx',4.5/k).attr('dy',3.5/k).style('display',d=>sVis(d)&&k>=50?null:'none');g.S.selectAll('circle.pk').attr('r',9/k);
+esn.attr('dx',4.5/k).attr('dy',3.5/k).style('display',d=>sVis(d)&&k>=50&&inV(d.p)?null:'none');g.S.selectAll('circle.pk').attr('r',9/k);
 g.HG.style('display',document.getElementById('L_hg').checked?null:'none');hgl.attr('font-size',12/k).style('display',d=>document.getElementById('L_hg').checked&&((d.t>=200&&k>=3)||(d.t>=100&&k>=8)||k>=16)&&k<60?null:'none');g.HP.selectAll('circle').attr('r',2.6/k);
 eunl.attr('font-size',11/k).attr('dx',5/k).attr('dy',4/k).style('display',uVis()&&k>=10?null:'none')};
 const pick=p=>{g.S.selectAll('*').remove();g.S.append('circle').attr('class','pk').attr('cx',p[0]).attr('cy',p[1]).attr('r',9/curK).style('fill','none').style('stroke','var(--ink)').style('stroke-width','2px').style('vector-effect','non-scaling-stroke')};
@@ -369,18 +373,28 @@ function showUni(d){pick(d.p);
 info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[1]==='c'?'전문대학':'대학교'}</div><span class="tag" style="background:var(--un)">대학</span><dl><dt>위치</dt><dd>OpenStreetMap 캠퍼스 위치</dd></dl>`}
 let hwl=[];
 const hwLabels=()=>{const pts=[];hwy.forEach(h=>{if(h.s!=='open')return;const L=h.l.reduce((a,b)=>b.length>a.length?b:a,[]);if(L.length<2)return;const p=proj(L[Math.floor(L.length/2)]);pts.push({n:h.n,c:p})});hwl=g.L.selectAll('text.hl').data(pts).join('text').attr('class','lb hl').attr('x',d=>d.c[0]).attr('y',d=>d.c[1]).style('fill','var(--hw)').style('font-weight','700').text(d=>d.n)};hwLabels();
-const zoom=d3.zoom().scaleExtent([1,3200]).translateExtent([[-W*.5,-H*.5],[W*1.5,H*1.5]]).on('zoom',e=>{const k=e.transform.k;curK=k;edRender();czRender();mlSync(e.transform);vp.attr('transform',e.transform);
+// 확대·이동하는 동안은 지도 그림만 옮기고(글자는 잠시 숨김), 크기·표시 재계산은 멈춘 뒤 한 번만 한다
+let zmT=null,zmOn=false;[g.L,g.N,g.EN,g.SN].forEach(x=>x.classed('zl',true));
+function heavy(t){const k=t.k;curK=k;vb=[t.invertX(-60),t.invertY(-60),t.invertX(W+60),t.invertY(H+60)];edRender();czRender();
 g.L.attr('stroke-width',3/k);rvp.attr('stroke-width',d=>(d.k===1?2.4:d.k===2?1.6:1)*Math.min(Math.max(1,Math.sqrt(k)),3)/k);wl.attr('font-size',11/k).style('display',d=>(d.k===1&&k>=2)||(d.k===2&&k>=4)||(d.k===3&&k>=5)||(d.k===4&&k>=9)||(d.k===5&&k>=18)?null:'none');sdl.attr('font-size',15/k).style('display',k<2.2?null:'none');mlab.attr('font-size',12/k).style('display',(k>=2.2&&k<16)?null:'none');
 hwl.attr('font-size',11/k).style('display',k>=4&&k<30?null:'none');
-g.N.attr('font-size',11/k).attr('stroke-width',2.5/k).style('display',k>=16&&document.getElementById('L_dong').checked?null:'none');
-stc.attr('r',d=>(d[3]==='ktx'?3.2:(k>=12?2.6:1.8))/k).style('display',d=>d[3]==='ktx'||k>=5?null:'none');
-g.SN.attr('font-size',10/k).attr('stroke-width',2.5/k).style('display',k>=20?null:'none');stn.attr('dx',4/k).attr('dy',3/k)});
-zoom.on('end.hp',()=>hpDraw());svg.call(zoom).call(zoom.transform,d3.zoomIdentity);
-const box=(x0,y0,x1,y1)=>{const a=proj([x0,y1]),b=proj([x1,y0]);const k=Math.min(160,0.92/Math.max((b[0]-a[0])/W,(b[1]-a[1])/H));svg.transition().duration(800).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-(a[0]+b[0])/2,-(a[1]+b[1])/2))};
-const zoomTo=f=>{const[[x0,y0],[x1,y1]]=path.bounds(f);const k=Math.min(60,0.35/Math.max((x1-x0)/W,(y1-y0)/H));svg.transition().duration(700).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(Math.max(k,3)).translate(-(x0+x1)/2,-(y0+y1)/2))};
+const dOn=k>=16&&document.getElementById('L_dong').checked;g.N.attr('font-size',11/k).attr('stroke-width',2.5/k).style('display',dOn?null:'none');if(dOn)dlab.style('display',d=>inV(d._c)?null:'none');
+stc.attr('r',d=>(d[3]==='ktx'?3.2:(k>=12?2.6:1.8))/k).style('display',d=>d[3]==='ktx'||(k>=5&&inV(d._p||(d._p=proj([d[1],d[2]]))))?null:'none');
+g.SN.attr('font-size',10/k).attr('stroke-width',2.5/k).style('display',k>=20?null:'none');if(k>=20)stn.attr('dx',4/k).attr('dy',3/k).style('display',d=>inV(d._p||(d._p=proj([d[1],d[2]])))?null:'none')}
+// 움직이는 동안에는 이미 그려진 SVG 그림을 CSS로만 늘이고 옮긴다(벡터를 다시 그리지 않음). 멈추면 실제 좌표로 다시 그린다.
+let t0=null;
+const settle=()=>{zmOn=false;const t=d3.zoomTransform(fig);vp.attr('transform',t);t0=t;svgEl.style.transform='';fig.classList.remove('zooming');heavy(t)};
+const zoom=d3.zoom().scaleExtent([1,3200]).translateExtent([[-W*.5,-H*.5],[W*1.5,H*1.5]])
+.filter(e=>(!e.ctrlKey||e.type==='wheel')&&!e.button&&!fig.classList.contains('d3v')&&!(e.target.closest&&e.target.closest('.tools,.zoom,#attr,#bst,.hint')))
+.on('zoom',e=>{const t=e.transform;curK=t.k;mlSync(t);
+if(!t0){t0=t;vp.attr('transform',t)}else{const s=t.k/t0.k;svgEl.style.transform=`translate(${t.x-s*t0.x}px,${t.y-s*t0.y}px) scale(${s})`}
+if(!zmOn){zmOn=true;fig.classList.add('zooming')}clearTimeout(zmT);zmT=setTimeout(settle,140)});
+zoom.on('end.hp',()=>hpDraw());zs.call(zoom).call(zoom.transform,d3.zoomIdentity);
+const box=(x0,y0,x1,y1)=>{const a=proj([x0,y1]),b=proj([x1,y0]);const k=Math.min(160,0.92/Math.max((b[0]-a[0])/W,(b[1]-a[1])/H));zs.transition().duration(800).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(k).translate(-(a[0]+b[0])/2,-(a[1]+b[1])/2))};
+const zoomTo=f=>{const[[x0,y0],[x1,y1]]=path.bounds(f);const k=Math.min(60,0.35/Math.max((x1-x0)/W,(y1-y0)/H));zs.transition().duration(700).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(Math.max(k,3)).translate(-(x0+x1)/2,-(y0+y1)/2))};
 const J=[['전국',null],['수도권',[126.55,37.0,127.55,37.95]],['서울',[126.76,37.42,127.19,37.71]],['부산·울산',[128.8,35.0,129.45,35.75]],['대구',[128.4,35.7,128.8,36.05]],['대전·세종',[127.15,36.2,127.55,36.65]],['광주',[126.7,35.05,127.0,35.27]]];
 document.getElementById('jump').innerHTML=J.map((j,i)=>`<button data-i="${i}">${j[0]}</button>`).join('');
-document.querySelectorAll('#jump button').forEach(b=>b.onclick=()=>{const j=J[+b.dataset.i];j[1]?box(...j[1]):svg.transition().duration(800).call(zoom.transform,d3.zoomIdentity)});
+document.querySelectorAll('#jump button').forEach(b=>b.onclick=()=>{const j=J[+b.dataset.i];j[1]?box(...j[1]):zs.transition().duration(800).call(zoom.transform,d3.zoomIdentity)});
 // 배경지도(단색·일반지도·위성)와 건물 2D·3D — D3 지도 아래에 MapLibre를 깔아 D3의 확대·이동을 그대로 따라가게 한다(2D). 3D에서는 MapLibre를 직접 조작.
 var ML=null,baseMode=0,mode3=false,bOn=true,VK='',vwFail=false,bIdx=null;
 try{VK=localStorage.getItem('vwkey')||''}catch(e){}
@@ -398,7 +412,7 @@ function camOf(t){const c=proj.invert(t.invert([W/2,H/2]));return {center:c,zoom
 function mlSync(t){if(!ML||mode3||!baseMode)return;const c=camOf(t);ML.jumpTo({center:c.center,zoom:c.zoom,bearing:0,pitch:0})}
 function loadML(){return window.maplibregl?Promise.resolve():new Promise((res,rej)=>{const l=document.createElement('link');l.rel='stylesheet';l.href='lib/maplibre-gl.css';document.head.appendChild(l);const sc=document.createElement('script');sc.src='lib/maplibre-gl-csp.js';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
 let mlP=null;
-function ensureML(){return mlP||(mlP=(async()=>{await loadML();maplibregl.setWorkerUrl('lib/maplibre-gl-csp-worker.js');const c=camOf(d3.zoomTransform(svg.node()));
+function ensureML(){return mlP||(mlP=(async()=>{await loadML();maplibregl.setWorkerUrl('lib/maplibre-gl-csp-worker.js');const c=camOf(d3.zoomTransform(fig));
 const m=new maplibregl.Map({container:'ml',center:c.center,zoom:c.zoom,attributionControl:false,maxPitch:70,fadeDuration:0,style:{version:8,sources:{},layers:[{id:'bg',type:'background',paint:{'background-color':getComputedStyle(fig).backgroundColor}}]}});
 await new Promise(r=>m.on('load',r));
 const col=['match',['get','c'],...BCATS.flatMap(c=>[c[0],c[2]]),'#b9bcb5'];
@@ -451,15 +465,15 @@ addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data
 function vw3On(c){vw3=true;vw3C=c;fig.classList.add('vw3');v3f.src=`v3d.html?embed=1&lat=${c[1].toFixed(6)}&lon=${c[0].toFixed(6)}`;document.getElementById('attr').textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
 function vw3Off(){let c=null;try{c=v3f.contentWindow.getCenter&&v3f.contentWindow.getCenter()}catch(e){}vw3=false;fig.classList.remove('vw3');v3f.src='about:blank';setBaseLayer();return c||vw3C}
 async function setDim(v){if(!ML||!baseMode)return;
-if(v&&baseMode===2&&!vw3Fail){mode3=true;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===1));fig.classList.add('d3v');document.getElementById('vrot').style.display='none';sty();vw3On(camOf(d3.zoomTransform(svg.node())).center);return}
-if(!v&&vw3){const c=vw3Off(),t=d3.zoomTransform(svg.node()),p=proj(c),k=Math.max(t.k,600);mode3=false;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===0));fig.classList.remove('d3v');sty();svg.call(zoom.transform,d3.zoomIdentity.translate(W/2-k*p[0],H/2-k*p[1]).scale(k));return}
+if(v&&baseMode===2&&!vw3Fail){mode3=true;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===1));fig.classList.add('d3v');document.getElementById('vrot').style.display='none';sty();vw3On(camOf(d3.zoomTransform(fig)).center);return}
+if(!v&&vw3){const c=vw3Off(),t=d3.zoomTransform(fig),p=proj(c),k=Math.max(t.k,600);mode3=false;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===0));fig.classList.remove('d3v');sty();zs.call(zoom.transform,d3.zoomIdentity.translate(W/2-k*p[0],H/2-k*p[1]).scale(k));return}
 mode3=v;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===(v?1:0)));fig.classList.toggle('d3v',v);document.getElementById('vrot').style.display=v?'':'none';sty();
 if(v){ML.easeTo({pitch:55,bearing:-15,zoom:Math.max(ML.getZoom(),15.5),duration:700})}
-else{ML.jumpTo({pitch:0,bearing:0});const c=ML.getCenter(),k=512*2**ML.getZoom()/(2*Math.PI*proj.scale()),p=proj([c.lng,c.lat]);svg.call(zoom.transform,d3.zoomIdentity.translate(W/2-k*p[0],H/2-k*p[1]).scale(k))}}
+else{ML.jumpTo({pitch:0,bearing:0});const c=ML.getCenter(),k=512*2**ML.getZoom()/(2*Math.PI*proj.scale()),p=proj([c.lng,c.lat]);zs.call(zoom.transform,d3.zoomIdentity.translate(W/2-k*p[0],H/2-k*p[1]).scale(k))}}
 async function setBase(m){if(m===baseMode)return;if(mode3)await setDim(false);baseMode=m;['bm0','bm1','bm2'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===m));
 fig.classList.toggle('bm',!!m);fig.classList.toggle('sat',m===2);g.TR.style('display',m===2||!onId('L_tr')?'none':null);g.WA.style('display',m===2||!onId('L_wa')?'none':null);wl.style('opacity',m===2?0:1);
 ['bbtn','v2','v3'].forEach(id=>document.getElementById(id).disabled=!m);
-if(m){bst.textContent='배경지도 불러오는 중…';try{await ensureML()}catch(e){bst.textContent='배경지도 도구를 불러오지 못했습니다';return}ML.resize();setBaseLayer();mlSync(d3.zoomTransform(svg.node()));sty()}}
+if(m){bst.textContent='배경지도 불러오는 중…';try{await ensureML()}catch(e){bst.textContent='배경지도 도구를 불러오지 못했습니다';return}ML.resize();setBaseLayer();mlSync(d3.zoomTransform(fig));sty()}}
 [0,1,2].forEach(i=>document.getElementById('bm'+i).onclick=()=>setBase(i));
 document.getElementById('v2').onclick=()=>setDim(false);document.getElementById('v3').onclick=()=>setDim(true);
 document.getElementById('vrot').onclick=()=>ML&&ML.easeTo({bearing:ML.getBearing()+45,duration:600});
@@ -467,13 +481,13 @@ document.getElementById('bbtn').onclick=()=>{bOn=!bOn;const b=document.getElemen
 {const b=document.getElementById('bbtn');b.classList.add('on');b.textContent='🏢 건물 켜짐'}
 document.getElementById('vks').onclick=()=>{VK=vkI.value.trim();vwFail=false;try{VK?localStorage.setItem('vwkey',VK):localStorage.removeItem('vwkey')}catch(e){}vkm.textContent=VK?'저장했습니다.':'키를 지웠습니다.';setBaseLayer()};
 {const q=new URLSearchParams(location.search).get('base');if(q==='map'||q==='sat')setBase(q==='map'?1:2)}
-{const m=location.hash.match(/^#(-?[\d.]+),(-?[\d.]+)$/);if(m){const p=proj([+m[2],+m[1]]);svg.call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(40).translate(-p[0],-p[1]))}}
-document.getElementById('zi').onclick=()=>svg.transition().call(zoom.scaleBy,1.8);
-document.getElementById('zo').onclick=()=>svg.transition().call(zoom.scaleBy,1/1.8);
-document.getElementById('zr').onclick=()=>svg.transition().duration(800).call(zoom.transform,d3.zoomIdentity);
+{const m=location.hash.match(/^#(-?[\d.]+),(-?[\d.]+)$/);if(m){const p=proj([+m[2],+m[1]]);zs.call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(40).translate(-p[0],-p[1]))}}
+document.getElementById('zi').onclick=()=>zs.transition().call(zoom.scaleBy,1.8);
+document.getElementById('zo').onclick=()=>zs.transition().call(zoom.scaleBy,1/1.8);
+document.getElementById('zr').onclick=()=>zs.transition().duration(800).call(zoom.transform,d3.zoomIdentity);
 const tog=(id,fn)=>document.getElementById(id).addEventListener('change',e=>fn(e.target.checked));
 tog('L_zone',on=>{g.D.classed('nozone',!on);g.O.style('display',on?null:'none');g.Wt.style('display',on?null:'none')});
-tog('L_dong',()=>svg.call(zoom.transform,d3.zoomTransform(svg.node())));
+tog('L_dong',()=>zs.call(zoom.transform,d3.zoomTransform(fig)));
 tog('L_tr',on=>g.TR.style('display',on?null:'none'));tog('L_wa',on=>{g.WA.style('display',on?null:'none');wl.style('opacity',on?1:0)});
 tog('L_fz',on=>g.F.style('display',on?null:'none'));
 const onId=id=>document.getElementById(id).checked;
@@ -557,7 +571,7 @@ document.getElementById('names').innerHTML=[...idx.keys()].map(n=>`<option value
 const q=document.getElementById('q');
 const go=()=>{const v=q.value.trim();if(!v)return;const hit=idx.get(v)||[...idx.entries()].find(([n])=>n.includes(v))?.[1];if(!hit)return;
 if(hit.f){zoomTo(hit.f);selectDong(hit.f)}else if(hit.g){zoomTo(hit.g);g.S.selectAll('circle').remove();g.S.selectAll('path').data([hit.g]).join('path').attr('class','sel').attr('d',path);info.innerHTML=`<h3>${v}</h3><p class="muted">동을 누르면 규제 내용이 나옵니다.</p>`}
-else if(hit.u){svg.transition().duration(700).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(18).translate(-hit.u.p[0],-hit.u.p[1]));showUni(hit.u)}else if(hit.r){zoomTo(geo(hit.r.l));showLine(hit.r)}else if(hit.h){zoomTo(geo(hit.h.l));showHwy(hit.h)}};
+else if(hit.u){zs.transition().duration(700).call(zoom.transform,d3.zoomIdentity.translate(W/2,H/2).scale(18).translate(-hit.u.p[0],-hit.u.p[1]));showUni(hit.u)}else if(hit.r){zoomTo(geo(hit.r.l));showLine(hit.r)}else if(hit.h){zoomTo(geo(hit.h.l));showHwy(hit.h)}};
 q.addEventListener('change',go);q.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
 }).catch(err=>{info.innerHTML='<p class="muted">지도 데이터를 불러오지 못했습니다. 새로고침해 주세요.</p>';console.error(err)});
 }

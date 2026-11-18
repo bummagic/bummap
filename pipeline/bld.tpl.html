@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>건물 2D·3D 지도</title>
+<link rel="stylesheet" href="lib/maplibre-gl.css">
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#fbfbf2,#0d1c24);--ink:light-dark(#13242e,#e6eef0);--sub:light-dark(#4a5a62,#a9bcc2);--panel:light-dark(#ffffff,#132a34);--edge:light-dark(#d9dbcf,#29434f);--acc:light-dark(#c2127a,#ef4aa0)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 "Noto Sans KR",system-ui,sans-serif}
+#map{position:absolute;inset:0}
+.bar{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;pointer-events:none;z-index:2}
+.bar>*{pointer-events:auto}
+button,.chip{font:14px "Noto Sans KR",system-ui,sans-serif;height:40px;min-width:44px;padding:0 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);cursor:pointer}
+button.on{outline:2px solid var(--acc);outline-offset:-2px;font-weight:700}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+a.back{display:inline-flex;align-items:center;height:40px;padding:0 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);text-decoration:none;font-size:14px}
+.panel{position:absolute;right:10px;bottom:28px;width:min(300px,calc(100% - 20px));max-height:60vh;overflow:auto;background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:12px 14px;z-index:2}
+.panel h3{margin:0 0 6px;font-size:15px}
+.lg{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;font-size:13.5px;align-items:center}
+.lg label{display:contents;cursor:pointer}.lg input{width:18px;height:18px;margin:0;accent-color:var(--acc)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.muted{color:var(--sub);font-size:13px}
+#status{position:absolute;left:10px;bottom:28px;background:var(--panel);border:1px solid var(--edge);border-radius:8px;padding:4px 10px;font-size:13px;color:var(--sub);z-index:2}
+.maplibregl-popup-content{background:var(--panel);color:var(--ink);font:14px/1.5 "Noto Sans KR",system-ui,sans-serif;padding:10px 12px;border-radius:8px}
+.maplibregl-popup-tip{display:none}
+select.rs{font:14px "Noto Sans KR",system-ui,sans-serif;height:40px;padding:0 8px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);cursor:pointer}
+.seg{display:inline-flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin:0}.seg button:last-child{border-radius:0 8px 8px 0}
+.key{display:flex;gap:6px;margin-top:8px}.key input{flex:1;min-width:0;height:36px;font:14px system-ui;padding:0 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink)}.key button{height:36px}
+#attr{position:absolute;right:10px;bottom:4px;font-size:11px;color:var(--sub);background:var(--panel);padding:0 6px;border-radius:4px;z-index:2}
+.pp h4{margin:0 0 4px;font-size:15px}.pp dl{margin:0;display:grid;grid-template-columns:5.5em 1fr;gap:2px 8px;font-size:13.5px}.pp dt{color:var(--sub)}.pp dd{margin:0}
+.dl{position:absolute;transform:translate(-50%,-50%);font-size:12px;font-weight:700;color:var(--sub);text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;white-space:nowrap}
+@media(max-width:600px){.panel{max-height:34vh;bottom:10px}#status{bottom:auto;top:58px}}
+</style>
+</head>
+<body>
+<div id="map" role="application" aria-label="건물 2D·3D 지도"></div>
+<div class="bar">
+<a class="back" id="back" href="index.html">← 규제지역 지도</a>
+<button id="b2">2D</button><button id="b3" class="on">3D</button>
+<span class="seg"><button id="m0" class="on">단색</button><button id="m1">일반지도</button><button id="m2">위성</button></span>
+<button id="bb" class="on">🏢 건물 켜짐</button>
+<select id="rdm" class="rs" aria-label="도로 표시"><option value="b" selected>🛣 고속도로+8차선↑</option><option value="x">🛣 고속도로만</option><option value="all">🛣 주요도로 전체</option><option value="off">🛣 도로 끔</option></select>
+<button id="bm" title="오른쪽 버튼(또는 두 손가락)으로 끌어도 돌리고 기울일 수 있습니다">↻ 45° 돌리기</button>
+</div>
+<div id="attr"></div>
+<div id="status">건물은 동 단위로 확대하면 나타납니다</div>
+<div class="panel">
+<h3>건물 용도</h3>
+<div class="lg" id="lg"></div>
+<details style="margin-top:10px"><summary class="muted" style="cursor:pointer">배경지도 설정 (브이월드 인증키)</summary>
+<p class="muted" style="margin:6px 0 0">브이월드 인증키를 넣으면 일반지도·위성을 브이월드(한글 지명 포함)로 봅니다. 키는 이 브라우저에만 저장되고 서버로 올라가지 않습니다. 키가 없거나 막히면 OpenStreetMap·Esri 위성으로 대신 보여줍니다.</p>
+<div class="key"><input id="vk" type="password" placeholder="브이월드 인증키" autocomplete="off"><button id="vks">저장</button></div>
+<p class="muted" id="vkm" style="margin:4px 0 0"></p></details>
+<p class="muted" style="margin:8px 0 0">위성 배경에서는 사진이 가리지 않게 2D는 용도색 테두리, 3D는 반투명 건물로 바뀝니다.</p>
+<p class="muted" style="margin:6px 0 0">도로: 주황 고속국도·도시고속도로, 보라 왕복 8차선 이상, 회색(주요도로 전체 선택 시) 국도·시도·지방도 왕복 4차선 이상. 도로를 누르면 이름·등급·차선.</p>
+<p class="muted" style="margin:6px 0 0">높이는 건축물대장 높이(없으면 지상층수×3.3m). 건물을 누르면 지번·용도·층수·사용승인일이 나옵니다.</p>
+<p class="muted" style="margin:6px 0 0">출처: 국토교통부 GIS건물통합정보(브이월드, __BLDDATE__ 기준). 강·철도는 OpenStreetMap, 도로는 국토교통부 ITS 전국 표준노드링크(__ROADDATE__).</p>
+</div>
+<script src="lib/maplibre-gl-csp.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+{
+maplibregl.setWorkerUrl('lib/maplibre-gl-csp-worker.js');
+const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+const C=dark?{bg:'#16262e',sea:'#10303d',wat:'#1d4d63',line:'#26404b',txt:'#a9bcc2'}:{bg:'#f4f3ec',sea:'#cfe8f0',wat:'#a9d3e6',line:'#cfcfc4',txt:'#4a5a62'};
+const CATS=[[1,'아파트·공동주택','#c8452f'],[2,'단독주택','#e8a07a'],[3,'근린생활·판매·숙박','#c2127a'],[4,'업무','#3b5bdb'],[5,'교육·노유자','#2e9d5b'],[6,'문화·종교·의료·운동','#8e44ad'],[7,'공장·창고 등','#8a8f73'],[8,'기타 용도','#7a8a93'],[0,'용도 정보 없음','#b9bcb5']];
+const USE={1:'공동주택',2:'단독주택',3:'근린생활·판매·숙박',4:'업무시설',5:'교육연구·노유자',6:'문화·종교·의료·운동',7:'공장·창고·위험물 등',8:'기타',0:'정보 없음'};
+const q=new URLSearchParams(location.search);
+const start=[+q.get('lon')||127.0276,+q.get('lat')||37.4979],z0=+q.get('z')||15.5;
+document.getElementById('back').href='index.html'+(q.get('lat')?`#${q.get('lat')},${q.get('lon')}`:'');
+const map=new maplibregl.Map({container:'map',center:start,zoom:z0,pitch:55,bearing:-15,maxPitch:70,hash:false,attributionControl:false,
+style:{version:8,sources:{},layers:[{id:'bg',type:'background',paint:{'background-color':C.bg}}]}});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-right');
+map.addControl(new maplibregl.ScaleControl({unit:'metric'}),'bottom-left');
+const on=new Set(CATS.map(c=>c[0]));
+document.getElementById('lg').innerHTML=CATS.map(c=>`<label><input type="checkbox" data-c="${c[0]}" checked><span><span class="sw" style="background:${c[2]}"></span>${c[1]}</span></label>`).join('');
+let mode3=true;
+const filt=()=>['in',['get','c'],['literal',[...on]]];
+map.on('load',async()=>{
+const [t,wat,rail]=await Promise.all(['data/sub.json','data/water.json','data/rail.json'].map(u=>fetch(u).then(r=>r.json()).catch(()=>null)));
+if(t){const o=t.objects.skorea_submunicipalities_geo;
+map.addSource('land',{type:'geojson',data:topojson.merge(t,o.geometries)});
+map.addSource('dong',{type:'geojson',data:topojson.mesh(t,o,(a,b)=>a!==b)});
+map.setPaintProperty('bg','background-color',C.sea);
+map.addLayer({id:'land',type:'fill',source:'land',paint:{'fill-color':C.bg}});
+map.addLayer({id:'dong',type:'line',source:'dong',paint:{'line-color':C.line,'line-width':1}});
+window._dongs=topojson.feature(t,o).features}
+if(wat){map.addSource('wat',{type:'geojson',data:{type:'FeatureCollection',features:(wat.w||[]).map(w=>({type:'Feature',geometry:{type:'MultiPolygon',coordinates:w.p}}))}});
+map.addSource('riv',{type:'geojson',data:{type:'FeatureCollection',features:(wat.r||[]).map(r=>({type:'Feature',properties:{k:r.k},geometry:{type:'MultiLineString',coordinates:r.l}}))}});
+map.addLayer({id:'wat',type:'fill',source:'wat',paint:{'fill-color':C.wat}});
+map.addLayer({id:'riv',type:'line',source:'riv',paint:{'line-color':C.wat,'line-width':['match',['get','k'],1,6,2,4,2]}})}
+map.addSource('rd',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+const RW=(a,b,c)=>['match',['get','c'],'x',a,'8',b,c];
+map.addLayer({id:'rd',type:'line',source:'rd',layout:{'line-cap':'round','line-join':'round'},paint:{'line-width':['interpolate',['linear'],['zoom'],8,RW(2,1.6,.8),13,RW(4,3.2,1.8),17,RW(9,7,4)]}});
+rdSty();rdApply();
+if(rail){map.addSource('rail',{type:'geojson',data:{type:'FeatureCollection',features:rail.filter(r=>r.s==='open').map(r=>({type:'Feature',properties:{c:r.k==='m'?r.c:r.k==='ktx'?'#b3261e':'#3d4f58'},geometry:{type:'MultiLineString',coordinates:r.l}}))}});
+map.addLayer({id:'rail',type:'line',source:'rail',paint:{'line-color':['get','c'],'line-width':2.5}})}
+map.addSource('b',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+const col=['match',['get','c'],...CATS.flatMap(c=>[c[0],c[2]]),'#b9bcb5'];
+map.addLayer({id:'b2',type:'fill',source:'b',filter:filt(),layout:{visibility:'none'},paint:{'fill-color':col,'fill-outline-color':dark?'#0d1c24':'#ffffff'}});
+map.addLayer({id:'b2l',type:'line',source:'b',filter:filt(),layout:{visibility:'none'},paint:{'line-color':col,'line-width':['interpolate',['linear'],['zoom'],14,1,18,2.5]}});
+map.addLayer({id:'b3',type:'fill-extrusion',source:'b',filter:filt(),paint:{'fill-extrusion-color':col,'fill-extrusion-height':['/',['get','h'],10],'fill-extrusion-opacity':.9,'fill-extrusion-vertical-gradient':true}});
+map.addSource('sel',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+map.addLayer({id:'sel',type:'line',source:'sel',paint:{'line-color':dark?'#ffffff':'#13242e','line-width':3}});
+idx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}));
+document.querySelector('.panel .muted:last-child').innerHTML=document.querySelector('.panel .muted:last-child').innerHTML;
+sty();load();});
+let VK='';try{VK=localStorage.getItem('vwkey')||''}catch(e){}
+let baseMode=0,vwFail=false;
+const vkm=document.getElementById('vkm');document.getElementById('vk').value=VK;vkm.textContent=VK?'저장된 키를 쓰는 중':'';
+const SRC=()=>{const vw=VK&&!vwFail;return vw?{
+1:{tiles:[`https://api.vworld.kr/req/wmts/1.0.0/${VK}/Base/{z}/{y}/{x}.png`],max:19,attr:'배경: 브이월드(국토교통부)'},
+2:{tiles:[`https://api.vworld.kr/req/wmts/1.0.0/${VK}/Satellite/{z}/{y}/{x}.jpeg`],max:19,attr:'배경: 브이월드 위성(국토교통부)',over:[`https://api.vworld.kr/req/wmts/1.0.0/${VK}/Hybrid/{z}/{y}/{x}.png`]}}:{
+1:{tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],max:19,attr:'배경: © OpenStreetMap contributors'},
+2:{tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],max:19,attr:'배경 위성: Esri, Maxar, Earthstar Geographics'}}};
+function setBase(m){baseMode=m;['m0','m1','m2'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===m));
+['basemap','baseover'].forEach(id=>{if(map.getLayer(id))map.removeLayer(id);if(map.getSource(id))map.removeSource(id)});
+const vec=['land','dong','wat','riv'];vec.forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility',m?'none':'visible'));
+document.getElementById('attr').textContent='';sty();rdSty();
+if(!m)return;const S=SRC()[m];
+map.addSource('basemap',{type:'raster',tiles:S.tiles,tileSize:256,maxzoom:S.max});map.addLayer({id:'basemap',type:'raster',source:'basemap'},'rd');
+if(S.over){map.addSource('baseover',{type:'raster',tiles:S.over,tileSize:256,maxzoom:S.max});map.addLayer({id:'baseover',type:'raster',source:'baseover'},'b2')}
+document.getElementById('attr').textContent=S.attr}
+map.on('error',e=>{if(!vwFail&&VK&&baseMode&&e&&e.sourceId&&/^base/.test(e.sourceId)){vwFail=true;vkm.textContent='브이월드 타일을 불러오지 못해(키 또는 등록 도메인 문제일 수 있음) 대체 배경으로 바꿨습니다.';setBase(baseMode)}});
+document.getElementById('m0').onclick=()=>setBase(0);document.getElementById('m1').onclick=()=>setBase(1);document.getElementById('m2').onclick=()=>setBase(2);
+document.getElementById('vks').onclick=()=>{VK=document.getElementById('vk').value.trim();vwFail=false;try{VK?localStorage.setItem('vwkey',VK):localStorage.removeItem('vwkey')}catch(e){}vkm.textContent=VK?'저장했습니다. 일반지도·위성 버튼을 다시 눌러 보세요.':'키를 지웠습니다.';if(baseMode)setBase(baseMode)};
+let bOn=true;document.getElementById('bb').onclick=()=>{bOn=!bOn;const b=document.getElementById('bb');b.classList.toggle('on',bOn);b.textContent=bOn?'🏢 건물 켜짐':'🏢 건물 꺼짐';
+sty();st.style.display=bOn?'':'none'};
+// 배경별 건물 표현: 단색·일반지도 = 채운 면/불투명 3D, 위성 = 용도색 테두리+옅은 면/반투명 3D
+function sty(){if(!map.getLayer('b2'))return;const sat=baseMode===2;
+map.setPaintProperty('b2','fill-opacity',sat?.18:baseMode===1?.85:1);
+map.setPaintProperty('b2','fill-outline-color',sat?'rgba(0,0,0,0)':(dark?'#0d1c24':'#ffffff'));
+map.setPaintProperty('b3','fill-extrusion-opacity',sat?.6:.9);
+map.setPaintProperty('sel','line-color',sat?'#ffd43b':(dark?'#ffffff':'#13242e'));
+map.setLayoutProperty('b2','visibility',bOn&&!mode3?'visible':'none');
+map.setLayoutProperty('b2l','visibility',bOn&&!mode3&&sat?'visible':'none');
+map.setLayoutProperty('b3','visibility',bOn&&mode3?'visible':'none');
+map.setLayoutProperty('sel','visibility',bOn?'visible':'none')}
+// 도로(국토부 표준노드링크): x 고속국도·도시고속, 8 왕복 8차선↑, m 그 밖의 주요도로
+const RK={101:'고속국도',102:'도시고속도로',103:'일반국도',104:'특별·광역시도',105:'국가지원지방도',106:'지방도'};
+const rdD={},rdRef={};
+const rdF=d=>d.r.map(o=>({type:'Feature',properties:{n:o.n,k:o.k,c:o.c,l:o.l},geometry:{type:'MultiLineString',coordinates:o.g}}));
+function rdGet(k,f){return rdD[k]||(rdD[k]=fetch(f).then(r=>r.json()).then(d=>{rdRef.v=d.ref;return rdF(d)}).catch(()=>[]))}
+function rdSty(){if(!map.getLayer('rd'))return;const sat=baseMode===2;
+map.setPaintProperty('rd','line-color',['match',['get','c'],'x',sat?'#ff922b':'#e8590c','8',sat?'#e599f7':'#7c3aed',sat?'#f8f9fa':'#868e96']);
+map.setPaintProperty('rd','line-opacity',['match',['get','c'],'m',sat?.75:.85,.95])}
+async function rdApply(){const m=document.getElementById('rdm').value;if(!map.getLayer('rd'))return;
+map.setLayoutProperty('rd','visibility',m==='off'?'none':'visible');if(m==='off')return;
+map.setFilter('rd',m==='x'?['==',['get','c'],'x']:m==='b'?['in',['get','c'],['literal',['x','8']]]:null);
+const fs=(await rdGet('B','data/roads_big.json')).concat(m==='all'?await rdGet('M','data/roads_main.json'):[]);
+map.getSource('rd').setData({type:'FeatureCollection',features:fs})}
+document.getElementById('rdm').onchange=rdApply;
+let idx=null;const cache=new Map();let busy=false;const bc=new Map();
+const getB=bk=>{if(!bc.has(bk)){bc.set(bk,fetch('bld/'+bk+'.txt').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}));if(bc.size>12)bc.delete(bc.keys().next().value)}return bc.get(bk)};
+const st=document.getElementById('status');
+function tileOf(lon,lat,z){const n=2**z;return [Math.floor((lon+180)/360*n),Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n)]}
+function decode(j){const[ox,oy]=j.o;return j.r.map((r,i)=>{const f=r[8];let x=0,y=0;const ring=[];for(let k=0;k<f.length;k+=2){x+=f[k];y+=f[k+1];ring.push([ox+x/1e5,oy+y/1e5])}ring.push(ring[0]);
+return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.d[r[4]],j:r[5],n:r[6],a:r[7]},geometry:{type:'Polygon',coordinates:[ring]}}})}
+async function load(){if(!idx)return;const z=map.getZoom();
+if(z<14){map.getSource('b').setData({type:'FeatureCollection',features:[]});st.textContent='건물은 동 단위(축척 약 200m)로 확대하면 나타납니다';return}
+const b=map.getBounds(),Z=idx.z;const[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y1]=tileOf(b.getEast(),b.getSouth(),Z);
+const want=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const k=x+'_'+y;if(idx.t[k])want.push(k)}
+if(want.length>12){st.textContent='범위가 넓어 건물을 다 그릴 수 없습니다. 조금 더 확대해 주세요';return}
+if(!want.length){map.getSource('b').setData({type:'FeatureCollection',features:[]});st.textContent='이 지역은 건물 자료 범위(수도권·충청·전북) 밖입니다';return}
+st.textContent='건물 불러오는 중…';
+await Promise.all(want.filter(k=>!cache.has(k)).map(k=>{const [bk,off,len]=idx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>cache.set(k,decode(j))).catch(()=>cache.set(k,[]))}));
+if(cache.size>60){for(const k of [...cache.keys()].slice(0,cache.size-60))if(!want.includes(k))cache.delete(k)}
+const feats=want.flatMap(k=>cache.get(k)||[]);map.getSource('b').setData({type:'FeatureCollection',features:feats});
+st.textContent=`건물 ${feats.length.toLocaleString()}동 표시 중`;labels()}
+let lt;map.on('moveend',()=>{clearTimeout(lt);lt=setTimeout(load,150)});
+// 동 이름(DOM 표시, 확대 시)
+const labs=[];function labels(){labs.forEach(e=>e.remove());labs.length=0;if(!window._dongs||map.getZoom()<14.5)return;const b=map.getBounds();
+for(const f of window._dongs){const bb=f._c||(f._c=centroid(f));if(!b.contains(bb))continue;const p=map.project(bb);const e=document.createElement('div');e.className='dl';e.textContent=f.properties.name;e.style.left=p.x+'px';e.style.top=p.y+'px';document.getElementById('map').appendChild(e);labs.push(e)}}
+map.on('move',()=>{if(labs.length){labs.forEach(e=>e.remove());labs.length=0}});
+function centroid(f){let sx=0,sy=0,n=0;const g=f.geometry,cs=g.type==='Polygon'?[g.coordinates]:g.coordinates;cs.forEach(p=>p[0].forEach(c=>{sx+=c[0];sy+=c[1];n++}));return [sx/n,sy/n]}
+const popup=new maplibregl.Popup({closeButton:true,maxWidth:'300px'});
+function pick(e){const f=e.features&&e.features[0];if(!f)return;const p=f.properties;
+map.getSource('sel').setData(f.geometry?{type:'Feature',geometry:f.geometry}:{type:'FeatureCollection',features:[]});
+popup.setLngLat(e.lngLat).setHTML(`<div class="pp"><h4>${p.n||USE[p.c]}</h4><div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${USE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd></dl></div>`).addTo(map)}
+map.on('click','b3',pick);map.on('click','b2',pick);
+map.on('click','rd',e=>{const ly=['b2','b3'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none');if(ly.length&&map.queryRenderedFeatures(e.point,{layers:ly}).length)return;const p=e.features[0].properties;
+popup.setLngLat(e.lngLat).setHTML(`<div class="pp"><h4>${p.n||'(이름 없음)'}</h4><dl><dt>등급</dt><dd>${RK[p.k]||''}</dd><dt>차선</dt><dd>왕복 약 ${p.l}${p.l>=12?'+':''}차선</dd><dt>출처</dt><dd>국토교통부 표준노드링크 (${rdRef.v||''})</dd></dl></div>`).addTo(map)});
+map.on('mouseenter','rd',()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave','rd',()=>map.getCanvas().style.cursor='');
+['b3','b2'].forEach(l=>{map.on('mouseenter',l,()=>map.getCanvas().style.cursor='pointer');map.on('mouseleave',l,()=>map.getCanvas().style.cursor='')});
+const set=m=>{mode3=m;document.getElementById('b3').classList.toggle('on',m);document.getElementById('b2').classList.toggle('on',!m);
+sty();map.easeTo({pitch:m?55:0,bearing:m?-15:0,duration:700})};
+document.getElementById('b2').onclick=()=>set(false);document.getElementById('b3').onclick=()=>set(true);
+document.getElementById('bm').onclick=()=>map.easeTo({bearing:map.getBearing()+45,duration:600});
+document.getElementById('lg').addEventListener('change',e=>{const c=+e.target.dataset.c;e.target.checked?on.add(c):on.delete(c);['b2','b2l','b3'].forEach(l=>map.setFilter(l,filt()))});
+}
+</script>
+</body>
+</html>

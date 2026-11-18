@@ -1,4 +1,4 @@
-# 전국 규제지역·철도·고속도로 지도 — 정기 업데이트 런북
+# 사이버 임장지도 (구 전국 규제지역·철도·고속도로 지도) — 정기 업데이트 런북
 
 대상 아티팩트: slug `debdbe3c-466e-42f4-b2ed-73ea93bf6edc` (https://claude.ai/artifact/UWHvcGvhKkYKYSgm6baSGB)
 파이프라인 파일은 이 프로젝트의 `kr-map/` 문서에 있다: README.md, index.tpl.html, gen.py, build_rail.py, build_hwy.py, build_edu.py, build_hagwon.py, build_pop.py, build_bld.py, build_road.py, build_shop.py, build_shop_zone.py, shop_extract.py, bld.tpl.html, osm_raw.json, muninames_kr.json, overpass_hwy.js, CHANGELOG.md

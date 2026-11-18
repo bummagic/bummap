@@ -36,7 +36,7 @@ h3{font-size:15px;margin:0 0 8px;font-weight:700}
 .fig>svg:active{cursor:grabbing}
 .seg{display:inline-flex}.seg button{border-radius:0;margin-left:-1px}.seg button:first-child{border-radius:8px 0 0 8px;margin-left:0}.seg button:last-child{border-radius:0 8px 8px 0}
 button.on{outline:2px solid var(--zB);outline-offset:-2px;font-weight:700}button:disabled{opacity:.45;cursor:default}
-#ml{position:absolute;inset:0;display:none}.fig.bm #ml{display:block}.fig.d3v>svg{display:none}.fig.d3v .zoom,.fig.d3v .jump,.fig.d3v #q{display:none}
+#ml{position:absolute;inset:0;display:none}.fig.bm #ml{display:block}#v3f{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#0d1c24}.fig.vw3 #v3f{display:block}.fig.vw3 #ml{visibility:hidden}.fig.d3v>svg{display:none}.fig.d3v .zoom,.fig.d3v .jump,.fig.d3v #q{display:none}
 .fig.bm path.d{fill:transparent}.fig.bm path.d.zA{fill:var(--fA);fill-opacity:.32}.fig.bm path.d.zB,.fig.bm path.d.zH{fill:var(--fB);fill-opacity:.32}.fig.bm .nozone path.d{fill:transparent}.fig.bm path.d{stroke:light-dark(#5b6b72,#cfdade);stroke-opacity:.7}
 .fig.sat path.d{stroke:#ffffffb3}.fig.sat text.lb,.fig.sat text.sn,.fig.sat text.ed,.fig.sat text.czl,.fig.sat text.cml,.fig.sat text.hgl{stroke:#000000aa}.fig.sat text.lb,.fig.sat text.sn,.fig.sat text.ed{fill:#fff}
 .fig.bm .hgg,.fig.bm .cmg{opacity:.32}.fig.bm .ppg{opacity:.38}.fig.bm path.fl{opacity:.45}.fig.bz rect.hg,.fig.bz rect.cm,.fig.bz rect.pp,.fig.bz path.fl{pointer-events:none}
@@ -156,6 +156,7 @@ footer{font-size:13px;color:var(--sub)}
 <div class="fig" id="fig">
 <div id="ml" aria-label="배경지도·건물"></div>
 <svg id="svg" role="img" aria-label="전국 읍면동 경계 위에 규제지역, 철도, 고속도로를 표시한 지도"><defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--ink)" stroke-width="1.2" opacity=".45"/></pattern></defs><rect width="100%" height="100%" style="fill:#000;opacity:0;mix-blend-mode:multiply;pointer-events:none" aria-hidden="true"></rect><g id="vp"></g></svg>
+<iframe id="v3f" title="브이월드 실사 3D" allow="fullscreen"></iframe>
 <div class="tools">
 <input type="search" id="q" list="names" placeholder="동탄1동, 경부고속도로, 전주대학교" aria-label="지역·노선 검색">
 <datalist id="names"></datalist>
@@ -164,7 +165,6 @@ footer{font-size:13px;color:var(--sub)}
 <button id="bbtn" disabled title="일반지도·위성에서 동 단위로 확대하면 건물이 보입니다">🏢 건물 끔</button>
 <span class="seg" role="group" aria-label="건물 보기"><button id="v2" class="on" disabled>2D</button><button id="v3" disabled>3D</button></span>
 <button id="vrot" style="display:none">↻ 45°</button>
-<button id="v3r" title="브이월드 실사 3D(건물 사진 입힌 3D)로 지금 보는 곳을 엽니다">🏙 실사 3D</button>
 </div>
 <div class="zoom"><button id="zi" aria-label="확대">+</button><button id="zo" aria-label="축소">−</button><button id="zr" aria-label="전국 보기">⟲</button></div>
 <div class="hint">휠·두 손가락으로 확대, 끌어서 이동</div>
@@ -427,7 +427,7 @@ function sty(){if(!ML)return;const sat=baseMode===2,show=!!baseMode&&bOn;
 ML.setPaintProperty('b2','fill-opacity',sat?.18:.85);ML.setPaintProperty('b2','fill-outline-color',sat?'rgba(0,0,0,0)':(isDark?'#0d1c24':'#ffffff'));
 ML.setPaintProperty('b3','fill-extrusion-opacity',sat?.82:.9);ML.setPaintProperty('sel','line-color',sat?'#ffd43b':'#13242e');
 ML.setLayoutProperty('b2','visibility',show&&!mode3?'visible':'none');ML.setLayoutProperty('b2l','visibility',show&&!mode3&&sat?'visible':'none');
-ML.setLayoutProperty('b3','visibility',show&&mode3?'visible':'none');ML.setLayoutProperty('sel','visibility',show?'visible':'none');bLoad()}
+ML.setLayoutProperty('b3','visibility',show&&mode3&&!vw3?'visible':'none');ML.setLayoutProperty('sel','visibility',show?'visible':'none');bLoad()}
 const bCache=new Map(),bBund=new Map();
 const getB=k=>{if(!bBund.has(k)){bBund.set(k,fetch('bld/'+k+'.txt').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}));if(bBund.size>12)bBund.delete(bBund.keys().next().value)}return bBund.get(k)};
 const tileOf=(lon,lat,z)=>{const n=2**z;return [Math.floor((lon+180)/360*n),Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n)]};
@@ -445,7 +445,15 @@ bst.textContent='건물 불러오는 중…';
 await Promise.all(want.filter(k=>!bCache.has(k)).map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}));
 if(bCache.size>60){for(const k of [...bCache.keys()].slice(0,bCache.size-60))if(!want.includes(k))bCache.delete(k)}
 const feats=want.flatMap(k=>bCache.get(k)||[]);ML.getSource('b').setData({type:'FeatureCollection',features:feats});bst.textContent=`건물 ${feats.length.toLocaleString()}동 · 누르면 지번·용도·층수`}
-async function setDim(v){if(!ML||!baseMode)return;mode3=v;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===(v?1:0)));fig.classList.toggle('d3v',v);document.getElementById('vrot').style.display=v?'':'none';sty();
+// 위성 + 3D = 브이월드 WebGL 3D(건물 외관 사진이 입혀진 실사 건물)를 지도 자리에 띄운다. 키·권한이 없어 못 띄우면 색 블록 3D로 대신한다.
+var vw3=false,vw3Fail=false,vw3C=null;const v3f=document.getElementById('v3f');
+addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data.v3d)return;if(e.data.v3d==='fail'&&vw3){vw3Fail=true;vw3Off();sty();ML.easeTo({pitch:55,bearing:-15,zoom:Math.max(ML.getZoom(),15.5),duration:700});document.getElementById('attr').textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
+function vw3On(c){vw3=true;vw3C=c;fig.classList.add('vw3');v3f.src=`v3d.html?embed=1&lat=${c[1].toFixed(6)}&lon=${c[0].toFixed(6)}`;document.getElementById('attr').textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
+function vw3Off(){let c=null;try{c=v3f.contentWindow.getCenter&&v3f.contentWindow.getCenter()}catch(e){}vw3=false;fig.classList.remove('vw3');v3f.src='about:blank';setBaseLayer();return c||vw3C}
+async function setDim(v){if(!ML||!baseMode)return;
+if(v&&baseMode===2&&!vw3Fail){mode3=true;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===1));fig.classList.add('d3v');document.getElementById('vrot').style.display='none';sty();vw3On(camOf(d3.zoomTransform(svg.node())).center);return}
+if(!v&&vw3){const c=vw3Off(),t=d3.zoomTransform(svg.node()),p=proj(c),k=Math.max(t.k,600);mode3=false;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===0));fig.classList.remove('d3v');sty();svg.call(zoom.transform,d3.zoomIdentity.translate(W/2-k*p[0],H/2-k*p[1]).scale(k));return}
+mode3=v;['v2','v3'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===(v?1:0)));fig.classList.toggle('d3v',v);document.getElementById('vrot').style.display=v?'':'none';sty();
 if(v){ML.easeTo({pitch:55,bearing:-15,zoom:Math.max(ML.getZoom(),15.5),duration:700})}
 else{ML.jumpTo({pitch:0,bearing:0});const c=ML.getCenter(),k=512*2**ML.getZoom()/(2*Math.PI*proj.scale()),p=proj([c.lng,c.lat]);svg.call(zoom.transform,d3.zoomIdentity.translate(W/2-k*p[0],H/2-k*p[1]).scale(k))}}
 async function setBase(m){if(m===baseMode)return;if(mode3)await setDim(false);baseMode=m;['bm0','bm1','bm2'].forEach((id,i)=>document.getElementById(id).classList.toggle('on',i===m));
@@ -454,7 +462,6 @@ fig.classList.toggle('bm',!!m);fig.classList.toggle('sat',m===2);g.TR.style('dis
 if(m){bst.textContent='배경지도 불러오는 중…';try{await ensureML()}catch(e){bst.textContent='배경지도 도구를 불러오지 못했습니다';return}ML.resize();setBaseLayer();mlSync(d3.zoomTransform(svg.node()));sty()}}
 [0,1,2].forEach(i=>document.getElementById('bm'+i).onclick=()=>setBase(i));
 document.getElementById('v2').onclick=()=>setDim(false);document.getElementById('v3').onclick=()=>setDim(true);
-document.getElementById('v3r').onclick=()=>{let c;if(ML&&mode3){const p=ML.getCenter();c=[p.lng,p.lat]}else c=camOf(d3.zoomTransform(svg.node())).center;location.href=`v3d.html?lat=${c[1].toFixed(5)}&lon=${c[0].toFixed(5)}`};
 document.getElementById('vrot').onclick=()=>ML&&ML.easeTo({bearing:ML.getBearing()+45,duration:600});
 document.getElementById('bbtn').onclick=()=>{bOn=!bOn;const b=document.getElementById('bbtn');b.classList.toggle('on',bOn);b.textContent=bOn?'🏢 건물 켜짐':'🏢 건물 꺼짐';sty()};
 {const b=document.getElementById('bbtn');b.classList.add('on');b.textContent='🏢 건물 켜짐'}

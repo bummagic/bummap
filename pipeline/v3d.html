@@ -35,14 +35,18 @@ const msg=(t,why)=>{tell('fail',why);if(emb)return;const m=document.getElementBy
 // 화면 가운데가 가리키는 땅의 경위도(2D로 돌아갈 때 위치 맞추기용)
 window.getCenter=function(){try{const C=window.ws3d&&ws3d.common,v=ws3d.viewer,cv=v.scene.canvas;const p=v.camera.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2));if(!p)return null;const g=C.Cartographic.fromCartesian(p);return [g.longitude*180/Math.PI,g.latitude*180/Math.PI]}catch(e){return null}};
 if(!VK)msg('<p><b>브이월드 인증키가 없습니다.</b></p><p>투자 지도 화면 오른쪽 패널의 ‘배경지도 설정’에 인증키를 넣고 저장한 뒤 다시 들어와 주세요.</p>','브이월드 인증키가 없습니다');
+else if(window.vworldIsValid==='false')msg('<p><b>브이월드가 이 키를 거부했습니다.</b></p><p>'+(window.vworldErrMsg||'')+'</p>','브이월드 응답: '+(window.vworldErrMsg||'키 거부'));
 else if(!window.vw)msg('<p><b>브이월드 3D 지도를 불러오지 못했습니다.</b></p><p>브이월드 ‘인증키 관리’에서 이 키의 활용 API에 <b>WebGL 3D 지도 API</b>가 들어 있는지, 서비스 URL이 <b>https://bummagic.github.io</b> 인지 확인해 주세요.</p><small>활용 API를 바꾸면 반영까지 잠시 걸릴 수 있습니다.</small>','키에 WebGL 3D 지도 API 권한이 있는지 확인해 주세요');
 else{
   // 목표 지점 남쪽 약 1km, 높이 700m에서 북쪽을 35° 내려다보는 위치
   const map=new vw.Map();
-  map.setOption({mapId:'vmap',initPosition:new vw.CameraPosition(new vw.CoordZ(lon,lat-0.009,700),new vw.Direction(0,-35,0)),logo:true,navigation:true});
+  map.setOption({mapId:'vmap',initPosition:new vw.CameraPosition(new vw.CoordZ(lon,lat-0.0065,450),new vw.Direction(0,-35,0)),logo:true,navigation:true});
   try{map.start()}catch(e){msg('<p>브이월드 3D 지도를 시작하지 못했습니다.</p>','3D 지도 시작 실패');}
-  // 10초 안에 3D 화면(캔버스)이 생기지 않으면 실패로 본다
-  setTimeout(()=>{document.querySelector('#vmap canvas')?tell('ok'):msg('<p>브이월드 3D 화면이 나타나지 않았습니다. 키의 활용 API(WebGL 3D 지도)와 서비스 URL을 확인해 주세요.</p>','3D 화면이 나타나지 않았습니다(키 권한·서비스 URL 확인)')},10000);
+  // 처음 몇 초는 화면을 계속 다시 그려 건물 모델이 끝까지 내려오게 한다(가만히 있으면 일부만 그려지고 멈추는 경우가 있음)
+  let n=0;const kick=setInterval(()=>{try{window.ws3d&&ws3d.viewer&&ws3d.viewer.scene.requestRender()}catch(e){}if(++n>60)clearInterval(kick)},500);
+  let okSent=false;const chk=setInterval(()=>{if(document.querySelector('#vmap canvas')){okSent=true;clearInterval(chk);tell('ok')}},1000);
+  // 30초 안에 3D 화면(캔버스)이 생기지 않으면 실패로 본다
+  setTimeout(()=>{clearInterval(chk);if(!okSent)msg('<p>브이월드 3D 화면이 나타나지 않았습니다. 키의 활용 API(WebGL 3D 지도)와 서비스 URL을 확인해 주세요.</p>','3D 화면이 나타나지 않았습니다(키 권한·서비스 URL 확인)')},30000);
 }
 }
 </script>

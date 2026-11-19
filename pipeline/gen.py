@@ -1,5 +1,6 @@
 import json,os,subprocess
-# usage: python3 gen.py  (run in work dir containing index.tpl.html, muninames_kr.json, data/rail.json, data/hwy.json, kr-rail-map/)
+# usage: python3 gen.py  → index.html(새 지도, ml.tpl.html), old.html(이전 D3 지도, index.tpl.html), ml.html(index.html로 넘기기), bld.html
+#  (run in work dir containing index.tpl.html, muninames_kr.json, data/rail.json, data/hwy.json, kr-rail-map/)
 def R(s):
   s=s.replace('__MUNI__',open('muninames_kr.json').read().strip())
   rail=json.load(open('data/rail.json'))
@@ -14,8 +15,11 @@ def R(s):
   s=s.replace('__BLDDATE__',bi0.get('ref',''))
   return s
 s=R(open('index.tpl.html').read())
+open('old.html','w').write(s)
+if os.path.exists('ml.tpl.html'): s=R(open('ml.tpl.html').read())
 open('index.html','w').write(s)
-print('index.html',len(s))
+open('ml.html','w').write('<!DOCTYPE html><meta charset="utf-8"><title>사이버 임장지도</title><script>location.replace("index.html"+location.search+location.hash)</script><a href="index.html">사이버 임장지도로 이동</a>')
+print('index.html(새 지도)',len(s),'old.html(이전 지도)')
 
 if os.path.exists('bld.tpl.html'):
     b=open('bld.tpl.html').read()
@@ -23,7 +27,3 @@ if os.path.exists('bld.tpl.html'):
     rr=json.load(open('data/roads_big.json'))['ref'] if os.path.exists('data/roads_big.json') else ''
     open('bld.html','w').write(b.replace('__BLDDATE__',bi.get('ref','')).replace('__ROADDATE__',f'{rr[:4]}년 {int(rr[5:7])}월 {int(rr[8:10])}일 배포판' if rr else ''))
 
-if os.path.exists('ml.tpl.html'):
-    m=R(open('ml.tpl.html').read())
-    open('ml.html','w').write(m)
-    print('ml.html',len(m))

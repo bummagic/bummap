@@ -51,6 +51,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--zB);outline-off
 #info dl{margin:0;font-size:14px;display:grid;grid-template-columns:6.5em minmax(0,1fr);gap:6px 10px}
 #info dt{color:var(--sub)}#info dd{margin:0}
 .muted{color:var(--sub);font-size:14px}
+.pl{display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px solid var(--edge);font-size:14px}.pl:first-child{border-top:0}.pl .no{flex:none;width:20px;height:20px;border-radius:50%;background:#e8590c;color:#fff;font-size:11px;display:grid;place-items:center;font-weight:700}.pl button.go{all:unset;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl button.go:hover{text-decoration:underline}.pl button.sm{height:28px;min-width:28px;padding:0 6px;font-size:12px}
+.fig.picking #map canvas{cursor:crosshair!important}
 .ln{flex:none;width:28px;height:0;margin-top:9px;border-top:3px solid}
 #rdm,#cmk{margin:2px 0 6px 36px;font:inherit;font-size:12px;padding:2px 4px;border:1px solid var(--edge);border-radius:4px;background:var(--bg,transparent);color:inherit}
 #lines summary,#lines details>summary{cursor:pointer;font-weight:700;font-size:15px;padding:4px 0}
@@ -105,6 +107,7 @@ footer{font-size:13px;color:var(--sub)}
 <datalist id="names"></datalist>
 <div class="jump" id="jump"></div>
 <span class="seg" role="group" aria-label="배경지도"><button id="bm0" class="on">단색</button><button id="bm1">일반지도</button><button id="bm2">위성</button></span>
+<button id="myb" title="지금 내 위치로 이동">📍 내 위치</button>
 <button id="bbtn" class="on" title="동 단위로 확대하면 건물이 보입니다">🏢 건물 켜짐</button>
 <span class="seg" role="group" aria-label="건물 보기"><button id="v2" class="on">2D</button><button id="v3">3D</button></span>
 <button id="vrot" style="display:none">↻ 45°</button>
@@ -114,6 +117,12 @@ footer{font-size:13px;color:var(--sub)}
 </div>
 <aside class="side">
 <p class="muted" style="margin:0;font-size:12.5px">이전 방식(D3) 지도는 <a href="old.html">여기</a>에서 볼 수 있습니다.</p>
+<div class="lay" id="plc">
+<h3>내 위치·저장한 위치</h3>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button id="pAdd" style="height:34px;font-size:13px">＋ 화면 가운데 저장</button><button id="pPick" style="height:34px;font-size:13px">＋ 지도에서 눌러 저장</button><button id="pMe" style="height:34px;font-size:13px">＋ 내 위치 저장</button></div>
+<div id="pList"></div>
+<p class="muted" style="margin:4px 0 0;font-size:12px">개수 제한 없이 필요한 만큼 추가됩니다. 이 브라우저에만 저장됩니다(다른 기기는 '내보내기'로 옮기기). <button id="pExp" style="all:unset;cursor:pointer;color:var(--zB);text-decoration:underline">내보내기</button> · <button id="pImp" style="all:unset;cursor:pointer;color:var(--zB);text-decoration:underline">가져오기</button></p>
+</div>
 <div class="lay">
 <h3>규제지역</h3>
 <label><input type="checkbox" id="L_zone" checked><span class="sw" style="background:var(--fA);border:2.4px solid var(--zA)"></span><span>3중 규제 · 10·15 대책<small>서울 25개구, 경기 12곳 · 토허 ~2026.12.31</small></span></label>
@@ -476,6 +485,42 @@ $('cmk').addEventListener('change',async()=>{$('L_cm').checked=true;await ph3App
 window._ph3Apply=ph3Apply;
 // 검색에 대학·고속도로
 
+// ── 내 위치·저장한 위치(브라우저 localStorage, 개수 제한 없음)
+S('me',EMPTY);S('pl',EMPTY);
+L({id:'meacc',type:'fill',source:'me',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':'#1c7ed6','fill-opacity':.12,'fill-outline-color':'#1c7ed6'}});
+L({id:'mept',type:'circle',source:'me',filter:['==',['geometry-type'],'Point'],paint:{'circle-color':'#1c7ed6','circle-radius':7,'circle-stroke-color':'#fff','circle-stroke-width':2.5}});
+L({id:'plc',type:'circle',source:'pl',paint:{'circle-color':'#e8590c','circle-radius':9,'circle-stroke-color':'#fff','circle-stroke-width':2}});
+L({id:'pln',type:'symbol',source:'pl',layout:{'text-field':['get','no'],'text-size':10.5,'text-font':['Noto Sans Medium'],'text-allow-overlap':true,'icon-allow-overlap':true},paint:{'text-color':'#fff'}});
+L({id:'pll',type:'symbol',source:'pl',layout:{'text-field':['get','n'],'text-size':12,'text-font':['Noto Sans Medium'],'text-anchor':'left','text-offset':[1.1,0],'text-optional':true},paint:{'text-color':'#c2410c','text-halo-color':P.land,'text-halo-width':2}});
+let PL=[];try{PL=JSON.parse(localStorage.getItem('krmap_places')||'[]')}catch(e){PL=[]}
+const plSave=()=>{try{localStorage.setItem('krmap_places',JSON.stringify(PL))}catch(e){}};
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const where=(lng,lat)=>{const f=fs.find(f=>{const b=f._b||(f._b=bbox(f.geometry));return lng>=b[0][0]&&lng<=b[1][0]&&lat>=b[0][1]&&lat<=b[1][1]&&inPoly([lng,lat],f.geometry)});return f?`${muniName(f.properties.code).trim()} ${f.properties.name}`:''};
+function inPoly(p,g){const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;return polys.some(pg=>{let c=false;const r=pg[0];for(let i=0,j=r.length-1;i<r.length;j=i++){if((r[i][1]>p[1])!==(r[j][1]>p[1])&&p[0]<(r[j][0]-r[i][0])*(p[1]-r[i][1])/(r[j][1]-r[i][1])+r[i][0])c=!c}return c})}
+function plDraw(){map.getSource('pl').setData(FC(PL.map((p,i)=>pt([p.lng,p.lat],{i,no:String(i+1),n:p.n}))));
+$('pList').innerHTML=PL.length?PL.map((p,i)=>`<div class="pl"><span class="no">${i+1}</span><button class="go" data-i="${i}" title="${esc(p.a||'')}">${esc(p.n)}</button><button class="sm" data-up="${i}" title="위로" ${i?'':'disabled'}>▲</button><button class="sm" data-ed="${i}" title="이름 바꾸기">✎</button><button class="sm" data-del="${i}" title="지우기">✕</button></div>`).join(''):'<p class="muted" style="margin:0;font-size:13px">저장한 위치가 없습니다. 위 ＋ 버튼으로 추가하세요.</p>';
+$('pList').querySelectorAll('button').forEach(b=>b.onclick=()=>{const d=b.dataset;if(d.i!==undefined)plGo(+d.i);else if(d.up!==undefined){const k=+d.up;[PL[k-1],PL[k]]=[PL[k],PL[k-1]];plSave();plDraw()}else if(d.ed!==undefined){const k=+d.ed,v=prompt('이름',PL[k].n);if(v&&v.trim()){PL[k].n=v.trim();plSave();plDraw()}}else if(d.del!==undefined){const k=+d.del;if(confirm(`'${PL[k].n}'을(를) 지울까요?`)){PL.splice(k,1);plSave();plDraw()}}})}
+function plAdd(lng,lat,def){const a=where(lng,lat),n=prompt('저장할 이름 (예: 관심 단지, 임장 예정지)',def||(a?a.split(' ').slice(-1)[0]:'')||`위치 ${PL.length+1}`);if(n===null)return;
+PL.push({n:(n.trim()||`위치 ${PL.length+1}`),lng:+lng.toFixed(6),lat:+lat.toFixed(6),z:+Math.max(map.getZoom(),14).toFixed(2),a,t:new Date().toISOString().slice(0,10)});plSave();plDraw();plShow(PL.length-1)}
+function plShow(i){const p=PL[i];setSel(null);info.innerHTML=`<h3>${esc(p.n)}</h3><div class="muted">${esc(p.a||'')}</div><span class="tag" style="background:#e8590c">저장한 위치 ${i+1}</span><dl><dt>좌표</dt><dd>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</dd><dt>저장일</dt><dd>${p.t||'—'}</dd><dt>바로가기</dt><dd><a href="https://map.kakao.com/link/map/${encodeURIComponent(p.n)},${p.lat},${p.lng}" target="_blank" rel="noopener">카카오맵</a> · <a href="https://map.naver.com/p/?c=${p.lng},${p.lat},16,0,0,0,dh" target="_blank" rel="noopener">네이버지도</a></dd></dl>`}
+function plGo(i){const p=PL[i];map.flyTo({center:[p.lng,p.lat],zoom:Math.max(map.getZoom(),p.z||15),duration:800});plShow(i)}
+let picking=false;$('pPick').onclick=()=>{picking=!picking;fig.classList.toggle('picking',picking);$('pPick').classList.toggle('on',picking);bst.textContent=picking?'저장할 곳을 지도에서 누르세요 (다시 누르면 취소)':''};
+$('pAdd').onclick=()=>{const c=map.getCenter();plAdd(c.lng,c.lat)};
+window._plPick=e=>{if(picking){picking=false;fig.classList.remove('picking');$('pPick').classList.remove('on');bst.textContent='';plAdd(e.lngLat.lng,e.lngLat.lat);return true}
+const f=map.queryRenderedFeatures([[e.point.x-8,e.point.y-8],[e.point.x+8,e.point.y+8]],{layers:['plc']})[0];if(f){plShow(f.properties.i);return true}return false};
+// 내 위치: 위치 권한을 한 번 묻고, 정확도 원과 함께 표시
+let meP=null;
+const locate=()=>new Promise((res,rej)=>{if(!navigator.geolocation){rej('이 브라우저는 위치 기능을 지원하지 않습니다');return}bst.textContent='내 위치 찾는 중…';
+navigator.geolocation.getCurrentPosition(p=>{const c=[p.coords.longitude,p.coords.latitude],acc=Math.min(p.coords.accuracy||50,5000);meP=c;
+map.getSource('me').setData(FC([{type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[ring(c,acc)]}},pt(c,{})]));bst.textContent=`내 위치 (오차 약 ${Math.round(acc)}m)`;res(c)},
+e=>{const m={1:'위치 권한이 거부됐습니다. 주소창 왼쪽 자물쇠 → 위치 → 허용으로 바꿔 주세요.',2:'위치를 찾지 못했습니다(GPS·와이파이 확인).',3:'위치 찾기가 시간 초과됐습니다. 다시 눌러 주세요.'}[e.code]||'위치를 가져오지 못했습니다';bst.textContent=m;rej(m)},{enableHighAccuracy:true,timeout:15000,maximumAge:30000})});
+$('myb').onclick=()=>locate().then(c=>{map.flyTo({center:c,zoom:Math.max(map.getZoom(),15.5),duration:800});const a=where(c[0],c[1]);info.innerHTML=`<h3>내 위치</h3><div class="muted">${esc(a)}</div><p class="muted" style="margin:8px 0 0;font-size:13px">이 동을 누르면 규제 내용이 나옵니다. ＋ 내 위치 저장으로 목록에 넣을 수 있습니다.</p>`}).catch(()=>{});
+$('pMe').onclick=()=>locate().then(c=>{map.flyTo({center:c,zoom:Math.max(map.getZoom(),15.5),duration:800});plAdd(c[0],c[1],'내 위치')}).catch(()=>{});
+// 내보내기·가져오기(다른 기기로 옮기기): 클립보드 텍스트
+$('pExp').onclick=async()=>{const t=JSON.stringify(PL);try{await navigator.clipboard.writeText(t);alert(`저장한 위치 ${PL.length}곳을 복사했습니다. 다른 기기의 '가져오기'에 붙여 넣으세요.`)}catch(e){prompt('아래 글자를 모두 복사하세요',t)}};
+$('pImp').onclick=()=>{const t=prompt('내보내기로 복사한 글자를 붙여 넣으세요');if(!t)return;try{const a=JSON.parse(t).filter(p=>p&&isFinite(p.lng)&&isFinite(p.lat)&&p.n);const key=p=>p.lng.toFixed(5)+','+p.lat.toFixed(5);const have=new Set(PL.map(key));let k=0;a.forEach(p=>{if(!have.has(key(p))){PL.push(p);k++}});plSave();plDraw();alert(`${k}곳을 추가했습니다.`)}catch(e){alert('형식이 맞지 않습니다.')}};
+plDraw();
+
 // ── 클릭·선택
 const DESC={
 A:c=>({t:'3중 규제',col:'var(--zA)',r:[['조정·투기과열',OLD4.includes(c.slice(0,5))?'10·15 대책 이전부터 지정, 유지':'2025.10.16 지정'],['토지거래허가',OLD4.includes(c.slice(0,5))?'2026.12.31까지':'2025.10.20 ~ 2026.12.31'],['허가 대상','아파트, 아파트 포함 단지 내 연립·다세대'],['실거주','허가 후 4개월 내 입주, 2년'],['LTV','무주택·처분조건부 40%'],['향후','12월 중 연장 여부 결정 예정']]}),
@@ -489,14 +534,14 @@ function jbList(c){const m=c.slice(0,5);if(m.startsWith('11'))return `<p class="
 return `<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700;font-size:14px">이 시군구 정비사업 ${L.length}곳</summary><table style="font-size:12.5px;margin-top:6px"><tr><th>구역</th><th>단계</th><th>유형</th><th>세대</th></tr>${L.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2].replace(/\(.*\)/,'')}</td><td>${r[4]?r[4].toLocaleString():'—'}</td></tr>`).join('')}</table><p class="muted" style="font-size:12px;margin:4px 0 0">국토교통부 전국 도시정비사업 통합 데이터 (${jbn.ref} 기준) · 위치 좌표가 없어 목록으로만 표시</p></details>`}
 const BUSE={1:'공동주택',2:'단독주택',3:'근린생활·판매·숙박',4:'업무시설',5:'교육연구·노유자',6:'문화·종교·의료·운동',7:'공장·창고·위험물 등',8:'기타',0:'정보 없음'},BCOL=Object.fromEntries(BCATS.map(c=>[c[0],c[2]]));
 const bDL=p=>`<div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${BUSE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년 ('+(2026-p.y)+'년 경과)':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd><dt>출처</dt><dd>국토교통부 GIS건물통합정보 (2026-11-09 기준)</dd></dl>`;
-map.on('click',e=>{if(_pick3(e,1))return;const bf=bOn?map.queryRenderedFeatures(e.point,{layers:mode3?['b3']:['b2']})[0]:null;
+map.on('click',e=>{if(_plPick(e))return;if(_pick3(e,1))return;const bf=bOn?map.queryRenderedFeatures(e.point,{layers:mode3?['b3']:['b2']})[0]:null;
 if(bf){const p=bf.properties;setSel(bf.geometry);info.innerHTML=`<h3>${p.n||BUSE[p.c]}</h3><span class="tag" style="background:${BCOL[p.c]}">${BUSE[p.c]}</span>${bDL(p)}`;return}
 const jf=onId('L_jb')&&map.queryRenderedFeatures(e.point,{layers:['jbf']})[0];
 if(jf){const z=jbD.z[jf.properties.i];setSel({type:'Polygon',coordinates:z.c[0]?[z.c[0]]:[]});const bar=JV.map((x,i)=>`<span style="display:inline-block;width:18%;height:8px;margin-right:2%;border-radius:2px;background:${i<=z.v?x[1]:'var(--edge)'}"></span>`).join('');
 info.innerHTML=`<h3>${z.n}</h3><div class="muted">${JG[z.g][0]}${TY[z.t]&&TY[z.t]!==JG[z.g][0]?' · '+TY[z.t]:''}</div><span class="tag" style="background:${JV[z.v][1]};color:${z.v<2?'#13242e':'#fff'}">${z.p||'단계 정보 없음'}</span><div style="margin:2px 0 10px">${bar}</div><dl><dt>면적</dt><dd>${z.a?z.a.toLocaleString()+'㎡ (약 '+Math.round(z.a/3.3058).toLocaleString()+'평)':'—'}</dd><dt>자료 생성</dt><dd>${z.d?z.d.slice(0,4)+'.'+z.d.slice(4,6)+'.'+z.d.slice(6,8):'—'}</dd><dt>출처</dt><dd>서울시 도시계획사업 현황(서울플랜+) ${jbD.ref} · 법적 효력 없는 참고자료</dd></dl>`;return}
 if(_pick3(e,2))return;
 const f=map.queryRenderedFeatures(e.point,{layers:['hit']})[0];if(f){const g=byCode.get(f.properties.code);if(g)selectDong(g)}});
-map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','stc','rlh','jbf','sch','uni','hp','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
+map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','rlh','jbf','sch','uni','hp','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
 
 // ── 검색·이동
 const fit=(g,maxZoom=13.5)=>{const b=bbox(g);map.fitBounds(b,{padding:{top:90,bottom:40,left:40,right:40},maxZoom,duration:700})};

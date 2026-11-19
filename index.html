@@ -143,6 +143,7 @@ footer{font-size:13px;color:var(--sub)}
 <label><input type="checkbox" id="L_m" checked><span class="ln" style="border-image:linear-gradient(90deg,#0052A4 0 25%,#00A84D 25% 50%,#EF7C1C 50% 75%,#996CAC 75%) 1"></span><span>전철·도시철도·GTX<small>노선 고유색, 확대하면 역 표시</small></span></label>
 <label><input type="checkbox" id="L_construction" checked><span class="ln" style="border-top-style:dashed"></span><span>공사 중 (긴 점선)</span></label>
 <label><input type="checkbox" id="L_planned" checked><span class="ln" style="border-top-style:dotted;border-top-width:4px"></span><span>계획 (짧은 점선)<small>착공 전 · 일부는 역을 이은 개략선</small></span></label>
+<label><input type="checkbox" id="L_bus"><span class="dot" style="flex:none;width:10px;height:10px;border-radius:50%;margin:3px 9px 0 9px;background:#0ca678;border:1.5px solid #fff;box-shadow:0 0 0 1px #0ca678"></span><span>버스정류장<small>동 단위(축척 약 300m)로 확대하면 표시 · 누르면 이름·정류장 번호 · 서울·경기·인천·대전·세종·충북·충남·전북 약 11.8만 곳</small></span></label>
 <label><input type="checkbox" id="L_st" checked><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#fff;border:2px solid #13242e"></span><span>역<small>확대하면 표시 · 누르면 지나는 노선</small></span></label>
 <label style="align-items:center"><span class="sw" style="border:2px solid #2563eb;border-radius:50%;width:16px;height:16px;margin:0 6px"></span><span>역세권 <select id="ysm" aria-label="역세권 반경" style="font:inherit;font-size:13px;margin-left:4px"><option value="0">끔</option><option value="1" selected>500m</option><option value="2">500m + 1km</option></select><small>역 중심에서 직선거리 · 걸어서 약 7분(500m)·15분(1km)</small></span></label>
 <h3 style="margin-top:14px">인구</h3>
@@ -471,8 +472,20 @@ flow:(p,f)=>{const d=window._flow,x=d.f[p.i],K={4:'서울 상위 10%',3:'상위 
 function showRd(p){const d=p.src==='b'?window._rdb:window._rdm,x=d.r[p.i];setSel({type:'MultiLineString',coordinates:x.g});info.innerHTML=`<h3>${x.n||'(이름 없음)'}</h3><div class="muted">${RK[x.k]||''}</div><span class="tag" style="background:${x.c==='x'?C3.rdx:x.c==='8'?C3.rd8:C3.rdm}">왕복 약 ${x.l}${x.l>=12?'+':''}차선</span><dl><dt>차선</dt><dd>한 방향 차로 수 × 2로 추정 (구간마다 다를 수 있음)</dd><dt>출처</dt><dd>국토교통부 전국 표준노드링크 (${d.ref})</dd></dl>`}
 // 누르기 우선순위: 점(학교·대학·학원·역) → 선(도로·고속도로·철도) → (정비구역은 기존 처리) → 칸(상권 경계·상권·학원·인구·유동인구) → 동
 window._pick3=(e,stage)=>{const P0=e.point,box=[[P0.x-6,P0.y-6],[P0.x+6,P0.y+6]];
-const ord=stage===1?['sch','uni','hp','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
+const ord=stage===1?['sch','uni','hp','bus','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
 for(const l of ord){if(!map.getLayer(l)||map.getLayoutProperty(l,'visibility')==='none')continue;const f=map.queryRenderedFeatures(stage===1?box:P0,{layers:[l]})[0];if(f){SHOW[l](f.properties,f);return true}}return false};
+// ── 버스정류장(0.1° 칸 조각 파일, 확대했을 때 화면 안 칸만)
+S('bus',EMPTY);
+LB({id:'bus',type:'circle',source:'bus',layout:{visibility:'none'},paint:{'circle-color':'#0ca678','circle-radius':['interpolate',['linear'],['zoom'],14,2.6,18,5],'circle-stroke-color':'#fff','circle-stroke-width':1.2}},'stc');
+LB({id:'busn',type:'symbol',source:'bus',minzoom:16.3,layout:{visibility:'none','text-field':['get','n'],'text-size':10.5,'text-font':['Noto Sans Regular'],'text-anchor':'top','text-offset':[0,.6],'text-optional':true},paint:{'text-color':'#087f5b','text-halo-color':P.land,'text-halo-width':1.5}},'stc');
+let busIdx=null,busSeq=0;const busCache=new Map();
+async function busLoad(){const on=onId('L_bus');vis('bus',on);vis('busn',on);if(!on)return;if(!busIdx)busIdx=await fetch('data/bus/index.json').then(r=>r.json()).catch(()=>({c:{}}));
+const z=map.getZoom(),src=map.getSource('bus');if(z<14){src.setData(EMPTY);if(z>=11)bst.textContent='버스정류장은 조금 더 확대하면 나타납니다';return}
+const b=map.getBounds(),c=map.getCenter(),ks=[];for(let a=Math.floor(Math.max(b.getSouth(),c.lat-.15)*10);a<=Math.floor(Math.min(b.getNorth(),c.lat+.15)*10);a++)for(let o=Math.floor(Math.max(b.getWest(),c.lng-.2)*10);o<=Math.floor(Math.min(b.getEast(),c.lng+.2)*10);o++){const k=a+'_'+o;if(busIdx.c[k])ks.push(k)}
+const my=++busSeq;await Promise.all(ks.filter(k=>!busCache.has(k)).map(k=>fetch('data/bus/'+k+'.json').then(r=>r.json()).then(a=>busCache.set(k,a)).catch(()=>busCache.set(k,[]))));if(my!==busSeq)return;
+const all=ks.flatMap(k=>busCache.get(k)||[]);window._busV=all;src.setData(FC(all.map((d,i)=>pt([d[2]/1e5,d[1]/1e5],{i,n:d[0]}))));bst.textContent=`버스정류장 ${all.length.toLocaleString()}곳 · 누르면 이름·번호`}
+$('L_bus').addEventListener('change',busLoad);let busT;map.on('moveend',()=>{if(onId('L_bus')){clearTimeout(busT);busT=setTimeout(busLoad,200)}});
+SHOW.bus=p=>{const d=window._busV[p.i];setSel(null);info.innerHTML=`<h3>${d[0]}</h3><div class="muted">버스정류장 · ${d[4]} 버스정보시스템 자료</div><dl>${d[3]?`<dt>정류장 번호</dt><dd>${d[3]} (모바일 단축번호)</dd>`:''}<dt>좌표</dt><dd>${(d[1]/1e5).toFixed(5)}, ${(d[2]/1e5).toFixed(5)}</dd><dt>노선·도착</dt><dd><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 정류장')}" target="_blank" rel="noopener">카카오맵에서 보기</a></dd><dt>출처</dt><dd>국토교통부 전국 버스정류장 위치정보 (2026-11-09 수집, 지자체 BIS 연계)</dd></dl>`};
 // 켜고 끄기
 const LV={L_pop:[['pop'],'pop'],L_fp:[['flow'],'flow'],L_hg:[['hg','hgln'],'hg'],L_hp:[['hp'],'hp'],L_cm:[['cm','cmln'],'cm'],L_cz:[['czf','czl1','czl2','czn'],'cz'],L_un:[['uni','unin'],'edu']};
 async function ph3Apply(){for(const [id,[ls,k]] of Object.entries(LV)){const on=onId(id);ls.forEach(l=>vis(l,on));if(on)need(k)}
@@ -541,7 +554,7 @@ if(jf){const z=jbD.z[jf.properties.i];setSel({type:'Polygon',coordinates:z.c[0]?
 info.innerHTML=`<h3>${z.n}</h3><div class="muted">${JG[z.g][0]}${TY[z.t]&&TY[z.t]!==JG[z.g][0]?' · '+TY[z.t]:''}</div><span class="tag" style="background:${JV[z.v][1]};color:${z.v<2?'#13242e':'#fff'}">${z.p||'단계 정보 없음'}</span><div style="margin:2px 0 10px">${bar}</div><dl><dt>면적</dt><dd>${z.a?z.a.toLocaleString()+'㎡ (약 '+Math.round(z.a/3.3058).toLocaleString()+'평)':'—'}</dd><dt>자료 생성</dt><dd>${z.d?z.d.slice(0,4)+'.'+z.d.slice(4,6)+'.'+z.d.slice(6,8):'—'}</dd><dt>출처</dt><dd>서울시 도시계획사업 현황(서울플랜+) ${jbD.ref} · 법적 효력 없는 참고자료</dd></dl>`;return}
 if(_pick3(e,2))return;
 const f=map.queryRenderedFeatures(e.point,{layers:['hit']})[0];if(f){const g=byCode.get(f.properties.code);if(g)selectDong(g)}});
-map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','rlh','jbf','sch','uni','hp','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
+map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','rlh','jbf','sch','uni','hp','bus','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
 
 // ── 검색·이동
 const fit=(g,maxZoom=13.5)=>{const b=bbox(g);map.fitBounds(b,{padding:{top:90,bottom:40,left:40,right:40},maxZoom,duration:700})};

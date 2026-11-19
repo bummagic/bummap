@@ -74,6 +74,10 @@
 - 정비사업(L. 반기 또는 요청 시, PC 다운로드 폴더 필요): ① 서울 경계 = 서울열린데이터광장 OA-22712 '서울시 도시계획사업 현황(서울플랜+) 공간정보'. 내장 브라우저로 https://datafile.seoul.go.kr/ 탭을 열고 `fetch('/bigfile/iot/inf/nio_download.do?&useCache=false',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'infId=OA-22712&seqNo=&seq=5&infSeq=1'})` → Blob 다운로드(seq는 데이터셋 페이지 downloadFile(n)의 최신 번호). ② 전국 목록 = 공공데이터포털 15160169 '전국 도시정비사업 통합 데이터' CSV(로그인 불필요; 페이지에서 `/tcs/dss/selectFileDataDownload.do?recommendDataYn=Y&publicDataPk=15160169&publicDataDetailPk=<uddi>` → atchFileId → `/cmm/cmm/check-limit.json` POST → `/cmm/cmm/fileDownload.do?atchFileId=..&fileDetailSn=1`). 다운로드 폴더에 GUID .tmp로 저장됨 → device_stage_files → ZIP 안 SHP(EPSG:5174) 추출 → `JBDATE="YYYY년 M월" JBNDATE=YYYY-MM-DD python3 build_jeongbi.py <SHP 경로(확장자 제외)> <national.csv> muninames_kr.json` → data/jeongbi.json(서울 경계, 지도에서 켤 때 불러옴), data/jeongbi_n.json(서울 밖 시군구별 목록, 동 정보창에 표시). 전국 경계는 브이월드 dsId=30335(로그인 필요)라 아직 미포함.
 - 기존 지도의 확대 배율 k는 `zk(k)=Z0+log2(k)`(Z0=전국 맞춤 줌)로 환산해 표시 기준을 맞춘다.
 
+## M. 버스정류장 (연 1회, 원본이 11월경 갱신, PC 다운로드 폴더 필요)
+- 원본: 공공데이터포털 15067528 '국토교통부_전국 버스정류장 위치정보'(CSV 약 22MB, 로그인 불필요, TAGO 연계 지자체 BIS 수집일 기준 연 1회). 내장 브라우저로 데이터 페이지를 열고 `fn_fileDataDown` 버튼의 uddi로 `/tcs/dss/selectFileDataDownload.do` → `/cmm/cmm/check-limit.json` → `/cmm/cmm/fileDownload.do`를 fetch, 페이지 안에서 도시명이 서울·경기·인천·대전·세종·충청북도·충청남도·전라북도(전북)인 행만 `정류장명\t위도\t경도\t모바일단축번호\t도시명\t정류장번호`로 골라 gzip Blob으로 다운로드(`krmap_busstop_8.tsv.gz`, 22MB 원본을 그대로 받으면 다운로드 폴더에 남지 않는 경우가 있었음).
+- `BUSDATE=YYYY-MM-DD(정보수집일) python3 build_bus.py krmap_busstop_8.tsv.gz` → data/bus/{위도×10}_{경도×10}.json(0.1° 칸, 2026-11-09 기준 447칸 11.8만 곳) + data/bus/index.json. 지도는 확대(z14↑)했을 때 화면 안 칸만 불러온다. 10만 곳 미만이면 기존 유지.
+
 ## D. 빌드·검증·게시
 - (GitHub 게시) gen.py는 index.html(새 지도)·old.html·ml.html·bld.html을 만든다. 커밋할 때 이 파일들을 함께 넣고, 저장소 루트의 vwkey.js(브이월드 공용 키)는 건드리지 않으며 프로젝트 문서에 내용을 옮기지 않는다.
 1. (ml.tpl.html도 함께 처리됨) `HWYDATE="(hwy 갱신 시 오늘, 아니면 기존 값: 2026년 11월 17일 조회)" python3 gen.py` → index.html

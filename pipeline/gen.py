@@ -13,6 +13,7 @@ def R(s):
   s=s.replace('__SEOULYM__',json.load(open('data/flow.json'))['seoul'] if os.path.exists('data/flow.json') else '')
   bi0=json.load(open('bld/index.json')) if os.path.exists('bld/index.json') else {}
   s=s.replace('__BLDDATE__',bi0.get('ref',''))
+  s=s.replace('__BUSDATE__',json.load(open('data/bus/index.json'))['ref'] if os.path.exists('data/bus/index.json') else '')
   return s
 s=R(open('index.tpl.html').read())
 open('old.html','w').write(s)

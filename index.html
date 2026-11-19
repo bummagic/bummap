@@ -81,6 +81,7 @@ ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
 a{color:var(--zB)}
 footer{font-size:13px;color:var(--sub)}
 .maplibregl-ctrl-scale{background:var(--panel)!important;color:var(--ink)!important;border-color:var(--sub)!important}
+@media(max-width:600px){.tools{gap:5px}.tools button{height:34px;min-width:34px;padding:0 8px;font-size:12.5px}.tools input[type=search]{height:38px;width:100%;font-size:15px}.jump{display:none}#jsel{display:inline-block!important;height:34px;font-size:12.5px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink)}}
 @media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.side{border-left:0;border-top:1px solid var(--edge);max-height:none}}
 @media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--sub)}.stack td:empty{display:none}}
 </style>
@@ -105,7 +106,7 @@ footer{font-size:13px;color:var(--sub)}
 <div class="tools">
 <input type="search" id="q" list="names" placeholder="동탄1동, 강남역, 경부고속도로, 전주대학교" aria-label="지역 검색">
 <datalist id="names"></datalist>
-<div class="jump" id="jump"></div>
+<div class="jump" id="jump"></div><select id="jsel" aria-label="지역 바로가기" style="display:none"></select>
 <span class="seg" role="group" aria-label="배경지도"><button id="bm0" class="on">단색</button><button id="bm1">일반지도</button><button id="bm2">위성</button></span>
 <button id="myb" title="지금 내 위치로 이동">📍 내 위치</button>
 <button id="bbtn" class="on" title="동 단위로 확대하면 건물이 보입니다">🏢 건물 켜짐</button>
@@ -117,6 +118,12 @@ footer{font-size:13px;color:var(--sub)}
 </div>
 <aside class="side">
 <p class="muted" style="margin:0;font-size:12.5px">이전 방식(D3) 지도는 <a href="old.html">여기</a>에서 볼 수 있습니다.</p>
+<div class="lay" id="cand">
+<h3>후보지 찾기</h3>
+<p class="muted" style="margin:0 0 8px;font-size:12.5px">조건을 고르고 '찾기'를 누르면 모든 조건에 맞는 동이 노란색으로 표시됩니다. 학원·점포 수는 동 안 250m 칸 합계, 인구는 동 안 1km 격자 평균, 역 거리는 동 중심에서 가장 가까운 역까지 직선거리입니다.</p>
+<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">범위<select id="cdA" style="font:inherit;font-size:13px;max-width:62%"><option value="cov">수도권·충청·전북</option><option value="view">지금 화면 안</option><option value="all">전국</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">규제지역<select id="cdZ" style="font:inherit;font-size:13px;max-width:62%"><option value="any">상관없음</option><option value="out">규제지역 밖만</option><option value="in">3중 규제 안만</option><option value="w">추가 지정 거론 지역만</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">가까운 역<select id="cdS" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="0.5">500m 안</option><option value="1">1km 안</option><option value="2">2km 안</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">학원(입시·교과·외국어)<select id="cdH" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="10">10곳 이상</option><option value="30">30곳 이상</option><option value="100">100곳 이상</option><option value="300">300곳 이상</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">인구밀도<select id="cdP" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="5000">1㎢당 5천 명↑</option><option value="10000">1만 명↑</option><option value="20000">2만 명↑</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">상가 점포<select id="cdC" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="200">200곳 이상</option><option value="500">500곳 이상</option><option value="1000">1,000곳 이상</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">정비사업<select id="cdJ" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="seoul">서울: 재개발·재건축·신통기획 구역이 있는 동</option><option value="any">정비사업 있음(서울 구역 + 서울 밖 시군구 목록)</option></select></label><div style="display:flex;gap:6px"><button id="cdGo" style="height:36px;flex:1;font-weight:700">찾기</button><button id="cdX" style="height:36px">지우기</button></div>
+<div id="cdR"></div>
+</div>
 <div class="lay" id="plc">
 <h3>내 위치·저장한 위치</h3>
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button id="pAdd" style="height:34px;font-size:13px">＋ 화면 가운데 저장</button><button id="pPick" style="height:34px;font-size:13px">＋ 지도에서 눌러 저장</button><button id="pMe" style="height:34px;font-size:13px">＋ 내 위치 저장</button></div>
@@ -498,6 +505,41 @@ $('cmk').addEventListener('change',async()=>{$('L_cm').checked=true;await ph3App
 window._ph3Apply=ph3Apply;
 // 검색에 대학·고속도로
 
+// ── 후보지 찾기: 조건을 겹쳐 맞는 동만 표시(동 단위로 학원·인구·상권 칸, 역 거리, 정비사업을 묶어 계산)
+S('cand',EMPTY);
+LB({id:'candf',type:'fill',source:'cand',paint:{'fill-color':'#fab005','fill-opacity':.5}},'dline');
+LB({id:'candl',type:'line',source:'cand',paint:{'line-color':'#e67700','line-width':2.2}},'rlc');
+const DB=fs.map(f=>bbox(f.geometry));const GH=new Map();
+DB.forEach((b,i)=>{for(let a=Math.floor(b[0][1]*20);a<=Math.floor(b[1][1]*20);a++)for(let o=Math.floor(b[0][0]*20);o<=Math.floor(b[1][0]*20);o++){const k=a+'_'+o;if(!GH.has(k))GH.set(k,[]);GH.get(k).push(i)}});
+const dongOf=(lng,lat)=>{const c=GH.get(Math.floor(lat*20)+'_'+Math.floor(lng*20))||[];for(const i of c){const b=DB[i];if(lng>=b[0][0]&&lng<=b[1][0]&&lat>=b[0][1]&&lat<=b[1][1]&&inPoly([lng,lat],fs[i].geometry))return i}return -1};
+const AG={};const km=(a,b)=>{const dx=(a[0]-b[0])*88.8,dy=(a[1]-b[1])*111.2;return Math.hypot(dx,dy)};
+async function agg(k){if(AG[k])return AG[k];const n=fs.length,A=new Float64Array(n);
+if(k==='st'){const ct=fs.map(f=>centroid(f.geometry));for(let i=0;i<n;i++){let m=1e9;const c=ct[i];if(c)for(const d of sts){const v=km(c,[d[1],d[2]]);if(v<m)m=v}A[i]=m}}
+else if(k==='hg'){await need('hg');const d=window._hgd,[L0,O0,DL,DO]=d.o;for(const c of d.g){const i=dongOf(O0+(c[0]+.5)*DO,L0+(c[1]+.5)*DL);if(i>=0)A[i]+=c[2]+c[3]}}
+else if(k==='cm'){await need('cm');const d=window._cmD,[L0,O0,DL,DO]=d.o;for(const c of d.g){const i=dongOf(O0+(c[0]+.5)*DO,L0+(c[1]+.5)*DL);if(i>=0)A[i]+=c[2]}}
+else if(k==='pop'){await need('pop');const d=window._pop,S2=new Float64Array(n),C=new Float64Array(n);for(const c of d.g){const i=dongOf(c[1],c[0]);if(i>=0){S2[i]+=c[2];C[i]++}}for(let i=0;i<n;i++)A[i]=C[i]?S2[i]/C[i]:-1}
+else if(k==='jb'){if(!jbD)jbD=await fetch('data/jeongbi.json').then(r=>r.json()).catch(()=>({z:[]}));for(const z of jbD.z){if(!/[rkq]/.test(z.g))continue;const c=centroid({type:'Polygon',coordinates:[z.c[0]]});if(c){const i=dongOf(c[0],c[1]);if(i>=0)A[i]++}}
+for(let i=0;i<n;i++){const m=fs[i].properties.code.slice(0,5);if(!m.startsWith('11')&&((jbn.n||{})[m]||[]).length)A[i]=Math.max(A[i],.5)}}
+return AG[k]=A}
+$('cdGo').onclick=async()=>{const b=$('cdGo');b.disabled=true;b.textContent='계산 중…';try{
+const zr=$('cdZ').value,st=+$('cdS').value,hg=+$('cdH').value,pp=+$('cdP').value,cm=+$('cdC').value,jb=$('cdJ').value,scope=$('cdA').value;
+const need2=[st&&'st',hg&&'hg',pp&&'pop',cm&&'cm',jb!=='0'&&'jb'].filter(Boolean);const G={};for(const k of need2)G[k]=await agg(k);
+const vb=map.getBounds();let hits=[];
+for(let i=0;i<fs.length;i++){const f=fs[i],z=f.properties.z;
+if(scope==='view'){const bb=DB[i];if(bb[1][0]<vb.getWest()||bb[0][0]>vb.getEast()||bb[1][1]<vb.getSouth()||bb[0][1]>vb.getNorth())continue}
+else if(scope==='cov'&&!/^(11|23|31|25|29|33|34|35)/.test(f.properties.code))continue;
+if(zr==='out'&&(z==='A'||z==='B'))continue;if(zr==='in'&&!(z==='A'||z==='B'))continue;if(zr==='w'&&z!=='W')continue;
+if(st&&!(G.st[i]<=st))continue;if(hg&&!(G.hg[i]>=hg))continue;if(pp&&!(G.pop[i]>=pp))continue;if(cm&&!(G.cm[i]>=cm))continue;
+if(jb==='seoul'&&!(G.jb[i]>=1))continue;if(jb==='any'&&!(G.jb[i]>0))continue;hits.push(i)}
+const sk=hg?'hg':cm?'cm':pp?'pop':null;if(sk)hits.sort((a,b2)=>G[sk][b2]-G[sk][a]);
+map.getSource('cand').setData(FC(hits.map(i=>fs[i])));
+const fmt=i=>[st?`역 ${G.st[i]<1?Math.round(G.st[i]*1000)+'m':G.st[i].toFixed(1)+'km'}`:'',hg?`학원 ${G.hg[i]}`:'',pp?`인구 ${Math.round(G.pop[i]).toLocaleString()}/㎢`:'',cm?`점포 ${G.cm[i].toLocaleString()}`:'',jb!=='0'?(G.jb[i]>=1?`정비구역 ${G.jb[i]}`:'시군구 정비사업 있음'):''].filter(Boolean).join(' · ');
+$('cdR').innerHTML=`<p style="margin:6px 0;font-weight:700">${hits.length.toLocaleString()}개 동이 조건에 맞습니다${hits.length?' (노란색)':''}</p>`+(hits.length?`<div style="max-height:260px;overflow:auto">${hits.slice(0,200).map(i=>`<div class="pl"><button class="go" data-c="${i}">${fs[i].properties.name} <small class="muted">${muniName(fs[i].properties.code).trim()}</small></button></div><div class="muted" style="font-size:12px;margin:-2px 0 4px 2px">${fmt(i)}</div>`).join('')}</div>${hits.length>200?'<p class="muted" style="font-size:12px">앞 200개만 표시</p>':''}`:'');
+$('cdR').querySelectorAll('button.go').forEach(x=>x.onclick=()=>{const f=fs[+x.dataset.c];fit(f.geometry);selectDong(f)});
+if(hits.length&&scope!=='view'){const bb=hits.map(i=>DB[i]);map.fitBounds([[Math.min(...bb.map(b=>b[0][0])),Math.min(...bb.map(b=>b[0][1]))],[Math.max(...bb.map(b=>b[1][0])),Math.max(...bb.map(b=>b[1][1]))]],{padding:40,maxZoom:13.5,duration:700})}
+}finally{b.disabled=false;b.textContent='찾기'}};
+$('cdX').onclick=()=>{map.getSource('cand').setData(EMPTY);$('cdR').innerHTML=''};
+
 // ── 내 위치·저장한 위치(브라우저 localStorage, 개수 제한 없음)
 S('me',EMPTY);S('pl',EMPTY);
 L({id:'meacc',type:'fill',source:'me',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':'#1c7ed6','fill-opacity':.12,'fill-outline-color':'#1c7ed6'}});
@@ -599,7 +641,7 @@ bLoad();
 
 // ── 지역 바로가기·확대 버튼
 const J=[['전국',KR],['수도권',[[126.55,37.0],[127.55,37.95]]],['서울',[[126.76,37.42],[127.19,37.71]]],['대전·세종',[[127.15,36.2],[127.55,36.65]]],['전주',[[127.0,35.75],[127.2,35.9]]],['부산·울산',[[128.8,35.0],[129.45,35.75]]],['대구',[[128.4,35.7],[128.8,36.05]]],['광주',[[126.7,35.05],[127.0,35.27]]]];
-$('jump').innerHTML=J.map((j,i)=>`<button data-i="${i}" disabled>${j[0]}</button>`).join('');
+$('jump').innerHTML=J.map((j,i)=>`<button data-i="${i}" disabled>${j[0]}</button>`).join('');$('jsel').innerHTML='<option value="">지역 이동</option>'+J.map((j,i)=>`<option value="${i}">${j[0]}</option>`).join('');$('jsel').onchange=e=>{const i=e.target.value;if(i==='')return;map.fitBounds(J[+i][1],{padding:{top:70,bottom:20,left:20,right:20},duration:800});e.target.value=''};
 document.querySelectorAll('#jump button').forEach(b=>b.onclick=()=>map.fitBounds(J[+b.dataset.i][1],{padding:{top:70,bottom:20,left:20,right:20},duration:800,bearing:mode3?map.getBearing():0}));
 $('zi').onclick=()=>map.zoomIn();$('zo').onclick=()=>map.zoomOut();$('zr').onclick=()=>map.fitBounds(KR,{padding:{top:70,bottom:20,left:20,right:20},duration:800,pitch:0,bearing:0});
 

@@ -212,7 +212,14 @@ footer{font-size:13px;color:var(--sub)}
 <details class="muted" style="font-size:13px"><summary style="cursor:pointer">배경지도 설정 (브이월드 인증키)</summary>
 <p style="margin:6px 0 0">브이월드 인증키를 넣으면 일반지도·위성을 브이월드(국토교통부)로 봅니다. 키는 이 브라우저에만 저장됩니다. 키가 없거나 막히면 OpenStreetMap·Esri 위성으로 대신 보여줍니다.</p>
 <div style="display:flex;gap:6px;margin-top:6px"><input id="vk" type="password" placeholder="브이월드 인증키" autocomplete="off" style="flex:1;min-width:0;height:36px;font:14px system-ui;padding:0 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink)"><button id="vks" style="height:36px">저장</button></div>
-<p id="vkm" style="margin:4px 0 0"></p></details>
+<p id="vkm" style="margin:4px 0 0"></p>
+<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button id="vkv" type="button" style="height:34px;font-size:13px">👁 키 보기</button><button id="vkg" type="button" style="height:34px;font-size:13px">📱 모든 기기에서 쓰기 (GitHub에 올리기)</button></div>
+<p class="muted" style="margin:4px 0 0;font-size:12px">'모든 기기에서 쓰기'를 누르면 GitHub 새 파일 화면(vwkey.js)이 이 키가 채워진 채로 열립니다. 아래 초록색 <b>Commit changes</b>를 누르면 1~2분 뒤 휴대폰 등 키를 넣지 않은 기기에서도 배경지도·실사 3D가 나옵니다.</p>
+<script>{const i=document.getElementById('vk'),m=document.getElementById('vkm');
+document.getElementById('vkv').onclick=e=>{const s=i.type==='password';i.type=s?'text':'password';e.target.textContent=s?'🙈 키 숨기기':'👁 키 보기'};
+document.getElementById('vkg').onclick=()=>{const k=(i.value||'').trim();if(!k){m.textContent='먼저 위 칸에 브이월드 인증키를 넣어 주세요.';return}
+if(!/^[A-Za-z0-9-]{20,60}$/.test(k)){m.textContent='키 모양이 이상합니다(영문·숫자·하이픈). 다시 확인해 주세요.';return}
+window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value='+encodeURIComponent("window.VWKEY_DEFAULT='"+k+"';\n"),'_blank');m.textContent='GitHub 창에서 Commit changes를 눌러 주세요. 이미 파일이 있다는 오류가 나면 github.com/bummagic/bummap/edit/main/vwkey.js 에서 한 줄을 고치면 됩니다.'}}</script></details>
 <div id="info"><p class="muted">지도에서 지역·선·역을 누르거나 검색하세요.</p></div>
 <div id="lines"><div style="font-weight:700;font-size:15px">노선별 선택</div>
 <p class="muted" style="margin:4px 0 0;font-size:13px">체크로 노선을 켜고 끄고, 이름을 누르면 그 노선만 보이면서 지도가 이동합니다.</p>

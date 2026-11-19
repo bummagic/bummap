@@ -14,11 +14,11 @@
 ## A. 규제지역 (매월)
 - WebSearch로 최근 소식 확인: "조정대상지역 지정 해제", "투기과열지구 지정", "토지거래허가구역 연장 해제", "부동산 대책" (최근 한 달). 국토교통부·정책브리핑·주요 언론으로 교차 확인.
 - 특히 서울 25개구+경기 12곳 토지거래허가구역은 **2026.12.31 만료**, 12월 중 연장 여부 결정 예정 → 결정 내용을 반드시 반영.
-- 바뀐 것이 있으면 index.tpl.html을 고친다:
+- 바뀐 것이 있으면 **ml.tpl.html(새 지도 = index.html)과 index.tpl.html(이전 지도 = old.html) 두 템플릿을 똑같이** 고친다:
   - 지역 코드 배열(2013 통계청 시군구 코드 5자리 / 읍면동 7자리): `A12`(경기 3중규제 12곳), `B5`·`DT`(2026.7.1 신규: 화성 동탄구·용인 기흥구·구리시), `W5`·`BJ`(지정 거론), `FX`(외국인 토허 제외), `OLD4`(10·15 이전부터 지정된 강남·서초·송파·용산). 서울(11xxx)은 전체가 A로 처리됨(`cat` 함수).
   - 패널 문구: `const DESC`의 A/B/W 설명, 범례 `<small>` 문구, 상단 "2026년 11월 17일 기준" 날짜와 요약 수치, 하단 출처 링크.
   - 시군구 코드는 muninames_kr.json에서 이름으로 찾는다.
-- 바뀐 것이 없으면 상단 "기준" 날짜만 이번 확인 날짜로 갱신.
+- 바뀐 것이 없으면 두 템플릿의 상단 "기준" 날짜만 이번 확인 날짜로 갱신.
 
 ## B. 철도 (매월)
 - `python3 build_rail.py` → data/rail.json, data/stations.json (kr-rail-map 최신 + osm_raw.json 수도권 공사·계획 노선)
@@ -75,6 +75,7 @@
 - 기존 지도의 확대 배율 k는 `zk(k)=Z0+log2(k)`(Z0=전국 맞춤 줌)로 환산해 표시 기준을 맞춘다.
 
 ## D. 빌드·검증·게시
+- (GitHub 게시) gen.py는 index.html(새 지도)·old.html·ml.html·bld.html을 만든다. 커밋할 때 이 파일들을 함께 넣고, 저장소 루트의 vwkey.js(브이월드 공용 키)는 건드리지 않으며 프로젝트 문서에 내용을 옮기지 않는다.
 1. (ml.tpl.html도 함께 처리됨) `HWYDATE="(hwy 갱신 시 오늘, 아니면 기존 값: 2026년 11월 17일 조회)" python3 gen.py` → index.html
 2. 검증: `python3 -c` 로 data/*.json 파싱, rail 노선 수 80개 이상, stations 1000개 이상, index.html에 `__` 자리표시자가 남지 않았는지.
 3. 게시: `mcp__claude-artifacts__get_artifact`로 현재 version 확인 → `publish_files(slug, base_version, files=[index.html, data/rail.json, data/stations.json (+ data/hwy.json, data/edu.json, data/hagwon_grid.json, data/hagwon_pts.json, data/pop.json, data/flow.json, data/roads_big.json, data/roads_main.json, data/shop.json, data/shop_zone.json, bld.html)], label="정기 업데이트 YYYY-MM-DD")`. mode는 기본 patch.

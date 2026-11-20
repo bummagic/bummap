@@ -191,6 +191,18 @@ ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
 .pl .no{flex:none;width:20px;height:20px;border-radius:50%;background:#e8590c;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
 .pl button.go{all:unset;cursor:pointer;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl button.go:hover{text-decoration:underline}
 .pl button.sm{height:28px;min-width:28px;padding:0 6px;font-size:12px}
+/* 관심 단지 비교표(내 장소 탭) */
+.cpk label{display:flex;gap:9px;align-items:center;padding:6px 0;border-top:1px solid var(--edge);font-size:13.5px;line-height:1.3;cursor:pointer}.cpk label:first-child{border-top:0}
+.cpk label small{display:inline;margin-left:6px;color:var(--sub);font-size:11.5px}.cpk label.dis{opacity:.45;cursor:default}
+.cmpw{margin-top:10px;overflow-x:auto;overscroll-behavior-x:contain}
+.cmpt{width:100%;min-width:290px;border-collapse:collapse;table-layout:fixed;font-size:12.5px}
+.cmpt col.l{width:60px}
+.cmpt th,.cmpt td{padding:6px 4px 6px 0;border-bottom:1px solid var(--edge);text-align:left;vertical-align:top;overflow-wrap:anywhere;line-height:1.3}
+.cmpt tbody th{color:var(--sub);font-weight:400;font-size:11.5px}
+.cmpt thead th{padding-bottom:8px;border-bottom:1.5px solid var(--ink)}
+.cmpt thead button{all:unset;cursor:pointer;font-weight:700;font-size:13px}.cmpt thead button:hover{text-decoration:underline}.cmpt thead button:focus-visible{outline:2px solid var(--focus)}
+.cmpt b{display:block;font-size:13.5px;letter-spacing:-.2px}.cmpt small{display:block;color:var(--sub);font-size:11px;font-weight:400}
+.cmpt thead th{word-break:keep-all}
 
 /* 안내 탭(규제 요약·표·출처) */
 .about{font-size:13.5px}
@@ -392,6 +404,12 @@ window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button id="pAdd" style="height:34px;font-size:13px">＋ 화면 가운데 저장</button><button id="pPick" style="height:34px;font-size:13px">＋ 지도에서 눌러 저장</button><button id="pMe" style="height:34px;font-size:13px">＋ 내 위치 저장</button></div>
 <div id="pList"></div>
 <p class="muted" style="margin:4px 0 0;font-size:12px">개수 제한 없이 필요한 만큼 추가됩니다. 이 브라우저에만 저장됩니다(다른 기기는 '내보내기'로 옮기기). <button id="pExp" style="all:unset;cursor:pointer;color:var(--ink);text-decoration:underline;text-underline-offset:2px">내보내기</button> · <button id="pImp" style="all:unset;cursor:pointer;color:var(--ink);text-decoration:underline;text-underline-offset:2px">가져오기</button></p>
+</div>
+<div class="lay" id="cmp"><h3>관심 단지 비교</h3>
+<p class="muted" style="margin:0 0 8px;font-size:12.5px">저장한 곳 중 아파트 단지를 2~4곳 고르면 시세·역 거리·준공 연도를 나란히 보여 줍니다. 단지 카드의 ‘내 장소에 저장’으로 넣은 곳이 여기에 나옵니다.</p>
+<div class="cpk" id="cmpPick"></div>
+<label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 0;font-size:13.5px">비교 면적<select id="cmpA" aria-label="비교 면적" style="max-width:66%"><option value="0">단지마다 84㎡에 가까운 것</option><option value="59">전용 59㎡ 안팎 (50~65㎡)</option><option value="84">전용 84㎡ 안팎 (76~90㎡)</option><option value="100">전용 95㎡ 이상</option></select></label>
+<div id="cmpR"></div>
 </div>
 </section>
 <section class="pane" data-p="about"><div class="about">
@@ -824,7 +842,8 @@ ${aptChart(d)}
 <p class="src">국토교통부 아파트 매매·전월세 실거래가(${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집). 해제된 거래는 뺐습니다. 위치는 지번으로 찾아 조금 어긋날 수 있고, 거리는 단지 중심에서 잰 직선거리입니다(걸어서 1km에 15분쯤). 변동은 3.3㎡당 중앙값을 7~12개월 전과 견준 값입니다.</p>`;
 const sv=$('aSave'),has=()=>PL.some(q=>Math.abs(q.lng-d[1])<2e-5&&Math.abs(q.lat-d[2])<2e-5),lab=()=>{sv.textContent=has()?'★ 내 장소에 저장됨':'☆ 내 장소에 저장';sv.disabled=has()};lab();
 if(!p.nopan)focusPt(d[1],d[2]);
-sv.onclick=()=>{PL.push({n:d[0],lng:+d[1].toFixed(6),lat:+d[2].toFixed(6),z:16,a:d[5],t:new Date().toISOString().slice(0,10)});plSave();plDraw();lab()}};
+sv.onclick=()=>{PL.push({n:d[0],lng:+d[1].toFixed(6),lat:+d[2].toFixed(6),z:16,a:d[5],t:new Date().toISOString().slice(0,10)});window._cmpAdd&&_cmpAdd(PL[PL.length-1]);plSave();plDraw();lab();cb()};
+const cb=()=>{if(has()&&!$('aCmp')){const b=document.createElement('button');b.id='aCmp';b.textContent='관심 단지 비교';b.onclick=()=>{window._showTab('me');_cmpDraw();setTimeout(()=>$('cmp').scrollIntoView({block:'start',behavior:'smooth'}),80)};sv.after(b)}};cb()};
 // ── 호재 역(공사·계획 노선의 역): kr-rail-map 역 + OSM 공사·계획 역
 S('fst',EMPTY);
 LB({id:'fst',type:'circle',source:'fst',minzoom:zk(3),layout:{visibility:'none'},paint:{'circle-color':'#fff','circle-stroke-color':['match',['get','s'],'c','#e8590c','#7048e8'],'circle-stroke-width':2.2,'circle-radius':['interpolate',['linear'],['zoom'],zk(3),2.6,zk(30),5.5]}},'stc');
@@ -915,7 +934,7 @@ const where=(lng,lat)=>{const f=fs.find(f=>{const b=f._b||(f._b=bbox(f.geometry)
 function inPoly(p,g){const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;return polys.some(pg=>{let c=false;const r=pg[0];for(let i=0,j=r.length-1;i<r.length;j=i++){if((r[i][1]>p[1])!==(r[j][1]>p[1])&&p[0]<(r[j][0]-r[i][0])*(p[1]-r[i][1])/(r[j][1]-r[i][1])+r[i][0])c=!c}return c})}
 function plDraw(){map.getSource('pl').setData(FC(PL.map((p,i)=>pt([p.lng,p.lat],{i,no:String(i+1),n:p.n}))));
 $('pList').innerHTML=PL.length?PL.map((p,i)=>`<div class="pl"><span class="no">${i+1}</span><button class="go" data-i="${i}" title="${esc(p.a||'')}">${esc(p.n)}</button><button class="sm" data-up="${i}" title="위로" ${i?'':'disabled'}>▲</button><button class="sm" data-ed="${i}" title="이름 바꾸기">✎</button><button class="sm" data-del="${i}" title="지우기">✕</button></div>`).join(''):'<p class="muted" style="margin:0;font-size:13px">아직 저장한 곳이 없습니다. 단지 정보의 ‘내 장소에 저장’이나 위 단추로 추가하세요.</p>';
-$('pList').querySelectorAll('button').forEach(b=>b.onclick=()=>{const d=b.dataset;if(d.i!==undefined)plGo(+d.i);else if(d.up!==undefined){const k=+d.up;[PL[k-1],PL[k]]=[PL[k],PL[k-1]];plSave();plDraw()}else if(d.ed!==undefined){const k=+d.ed,v=prompt('이름',PL[k].n);if(v&&v.trim()){PL[k].n=v.trim();plSave();plDraw()}}else if(d.del!==undefined){const k=+d.del;if(confirm(`'${PL[k].n}'을(를) 지울까요?`)){PL.splice(k,1);plSave();plDraw()}}})}
+$('pList').querySelectorAll('button').forEach(b=>b.onclick=()=>{const d=b.dataset;if(d.i!==undefined)plGo(+d.i);else if(d.up!==undefined){const k=+d.up;[PL[k-1],PL[k]]=[PL[k],PL[k-1]];plSave();plDraw()}else if(d.ed!==undefined){const k=+d.ed,v=prompt('이름',PL[k].n);if(v&&v.trim()){PL[k].n=v.trim();plSave();plDraw()}}else if(d.del!==undefined){const k=+d.del;if(confirm(`'${PL[k].n}'을(를) 지울까요?`)){PL.splice(k,1);plSave();plDraw()}}});window._cmpDraw&&_cmpDraw(true)}
 function plAdd(lng,lat,def){const a=where(lng,lat),n=prompt('저장할 이름 (예: 관심 단지, 임장 예정지)',def||(a?a.split(' ').slice(-1)[0]:'')||`위치 ${PL.length+1}`);if(n===null)return;
 PL.push({n:(n.trim()||`위치 ${PL.length+1}`),lng:+lng.toFixed(6),lat:+lat.toFixed(6),z:+Math.max(map.getZoom(),14).toFixed(2),a,t:new Date().toISOString().slice(0,10)});plSave();plDraw();plShow(PL.length-1)}
 function plShow(i){const p=PL[i];setSel(null);info.innerHTML=`<h3>${esc(p.n)}</h3><div class="muted">${esc(p.a||'')}</div><span class="tag" style="background:#e8590c">저장한 위치 ${i+1}</span><dl><dt>좌표</dt><dd>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</dd><dt>저장일</dt><dd>${p.t||'—'}</dd><dt>바로가기</dt><dd><a href="https://map.kakao.com/link/map/${encodeURIComponent(p.n)},${p.lat},${p.lng}" target="_blank" rel="noopener">카카오맵</a> · <a href="https://map.naver.com/p/?c=${p.lng},${p.lat},16,0,0,0,dh" target="_blank" rel="noopener">네이버지도</a></dd></dl>`}
@@ -936,6 +955,42 @@ $('pMe').onclick=()=>locate().then(c=>{map.flyTo({center:c,zoom:Math.max(map.get
 $('pExp').onclick=async()=>{const t=JSON.stringify(PL);try{await navigator.clipboard.writeText(t);alert(`저장한 위치 ${PL.length}곳을 복사했습니다. 다른 기기의 '가져오기'에 붙여 넣으세요.`)}catch(e){prompt('아래 글자를 모두 복사하세요',t)}};
 $('pImp').onclick=()=>{const t=prompt('내보내기로 복사한 글자를 붙여 넣으세요');if(!t)return;try{const a=JSON.parse(t).filter(p=>p&&isFinite(p.lng)&&isFinite(p.lat)&&p.n);const key=p=>p.lng.toFixed(5)+','+p.lat.toFixed(5);const have=new Set(PL.map(key));let k=0;a.forEach(p=>{if(!have.has(key(p))){PL.push(p);k++}});plSave();plDraw();alert(`${k}곳을 추가했습니다.`)}catch(e){alert('형식이 맞지 않습니다.')}};
 plDraw();
+// ── 관심 단지 비교: 저장한 곳 중 실거래가 단지와 같은 자리(또는 같은 이름 300m 안)인 곳을 2~4곳 골라 표로 비교
+const CMK2='krmap_cmp',ckey=p=>(+p.lng).toFixed(5)+','+(+p.lat).toFixed(5);
+let CSEL=null;try{CSEL=JSON.parse(localStorage.getItem(CMK2)||'null')}catch(e){CSEL=null}
+const csSave=()=>{try{localStorage.setItem(CMK2,JSON.stringify(CSEL))}catch(e){}};
+window._cmpAdd=p=>{if(!CSEL)return;const k=ckey(p);if(!CSEL.includes(k)&&CSEL.length<4){CSEL.push(k);csSave()}};
+const cmpMatch=()=>PL.map(p=>{let hit=-1,nb=-1,nd=.3;aptD.a.forEach((d,i)=>{if(hit>=0)return;if(Math.abs(d[1]-p.lng)<2e-5&&Math.abs(d[2]-p.lat)<2e-5){hit=i;return}if(d[0]===p.n){const v=km([d[1],d[2]],[p.lng,p.lat]);if(v<nd){nd=v;nb=i}}});return {p,k:ckey(p),i:hit>=0?hit:nb}}).filter(x=>x.i>=0);
+// 비교 면적: 매매나 전세가 있는 면적 중 고른 면적대(전체면 84㎡에 가장 가까운 것)에서 거래가 많은 것 하나 → 매매·전세를 같은 면적으로 견줌
+const cmpRow=(d,A)=>{const inB=a=>A==='59'?a>=50&&a<=65:A==='84'?a>=76&&a<=90:a>=95;let b=null,bs=0;for(const t of d[12]){if(!t[1]&&!t[4])continue;if(A!=='0'&&!inB(t[0]))continue;const sc=(A==='0'?Math.abs(t[0]-84)*100:0)-(t[6]+t[5]);if(!b||sc<bs){b=t;bs=sc}}return b};
+let cmpBusy=false;
+async function cmpDraw(soft){const pk=$('cmpPick'),out=$('cmpR');if(!PL.length){pk.innerHTML='';out.innerHTML='<p class="muted" style="margin:6px 0 0;font-size:13px">아직 저장한 곳이 없습니다.</p>';return}
+if(!aptD){if(soft)return;if(cmpBusy)return;cmpBusy=true;pk.innerHTML='<p class="muted" style="margin:0;font-size:13px">단지 자료 불러오는 중…</p>';const D=await aptLoad();cmpBusy=false;if(!D){pk.innerHTML='<p class="muted" style="margin:0;font-size:13px">단지 자료를 불러오지 못했습니다.</p>';return}}
+const M=cmpMatch(),ks=new Set(M.map(x=>x.k));if(!CSEL){CSEL=M.slice(0,4).map(x=>x.k);csSave()}CSEL=CSEL.filter(k=>ks.has(k));
+if(!M.length){pk.innerHTML='<p class="muted" style="margin:0;font-size:13px">저장한 곳 중 실거래가 자료가 있는 아파트 단지가 없습니다. 지도에서 단지를 눌러 ‘내 장소에 저장’을 해 주세요.</p>';out.innerHTML='';return}
+pk.innerHTML=M.map(x=>{const on=CSEL.includes(x.k),dis=!on&&CSEL.length>=4,d=aptD.a[x.i];return `<label class="${dis?'dis':''}"><input type="checkbox" data-k="${x.k}" ${on?'checked':''} ${dis?'disabled':''}><span>${esc(x.p.n)}${x.p.n!==d[0]?` <small>(${esc(d[0])})</small>`:''}<small>${esc(d[5])}</small></span></label>`}).join('');
+pk.querySelectorAll('input').forEach(c=>c.onchange=()=>{const k=c.dataset.k;CSEL=c.checked?[...CSEL,k].slice(0,4):CSEL.filter(x=>x!==k);csSave();cmpDraw()});
+const sel=CSEL.map(k=>M.find(x=>x.k===k)).filter(Boolean);
+if(sel.length<2){out.innerHTML=`<p class="muted" style="margin:8px 0 0;font-size:13px">${M.length<2?'비교하려면 단지를 하나 더 저장해 주세요.':'2곳 이상 고르면 비교표가 나옵니다.'} (최대 4곳)</p>`;return}
+const A=$('cmpA').value,Y=new Date().getFullYear(),cols=sel.map(x=>({x,d:aptD.a[x.i]})).map(c=>({...c,t:cmpRow(c.d,A)}));
+const no='<span class="muted">—</span>',fu=d=>{if(!(d.fu[0]>=0&&d.fu[1]<=3))return '<span class="muted">3km 안 없음</span>';const f=_fut.s[d.fu[0]],ln=f[3]>=0?RAIL[f[3]]:null;return `<b>${dkm(d.fu[1])}</b><small>${esc(f[0]||'이름 미정')}${f[0]&&!/역$/.test(f[0])?'역':''} · ${esc((x=>x.length>2?x.slice(0,2).join(', ')+' 외 '+(x.length-2):x.join(', '))((f[6]||(ln?ln.n:'')).split(/,\s*/)))} ${f[4]==='c'?'공사 중':'계획'}</small>`};
+const R=[['면적',c=>c.t?`<b>${c.t[0]}㎡</b><small>${(c.t[0]/3.305785).toFixed(1)}평</small>`:'<span class="muted">이 면적 거래 없음</span>'],
+['최근 매매',c=>c.t&&c.t[1]?`<b>${eok(c.t[1])}</b><small>${ymdS(c.t[2])} · ${c.t[3]}층</small>`:no],
+['전세 중앙값',c=>c.t&&c.t[4]?`<b>${eok(c.t[4])}</b><small>12개월 ${c.t[5]}건</small>`:no],
+['갭(매매−전세)',c=>c.t&&c.t[1]&&c.t[4]?`<b>${eok(c.t[1]-c.t[4])}</b>`:no],
+['전세가율',c=>c.d[8]>=0?`<b>${c.d[8]}%</b>`:no],
+['3.3㎡당',c=>c.d[6]?`<b>${eok(c.d[6])}</b>`:no],
+['3개월 변동',c=>c.d[9]>-999?`<b>${c.d[9]>0?'+':''}${c.d[9]}%</b>`:no],
+['가까운 역',c=>c.d.st[0]>=0?`<b>${dkm(c.d.st[1])}</b><small>${esc(sts[c.d.st[0]][0])}역</small>`:no],
+['호재 역',c=>fu(c.d)],
+['준공',c=>c.d[3]?`<b>${c.d[3]}년</b><small>${Y-c.d[3]}년 경과</small>`:no],
+['12개월 거래',c=>`<b>매매 ${c.d[7]}</b><small>전세 ${c.d[10]} · 월세 ${c.d[11]}</small>`]];
+out.innerHTML=`<div class="cmpw"><table class="cmpt"><colgroup><col class="l">${cols.map(()=>'<col>').join('')}</colgroup><thead><tr><th></th>${cols.map(c=>`<th><button data-i="${c.x.i}" title="지도에서 보기">${esc(c.d[0])}</button><small>${esc(c.d[5])}</small></th>`).join('')}</tr></thead><tbody>${R.map(([h,f])=>`<tr><th scope="row">${h}</th>${cols.map(c=>`<td>${f(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+<p class="src">국토교통부 아파트 매매·전월세 실거래가(${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집) 단지 요약. 최근 매매는 그 면적의 가장 최근 거래 1건, 전세는 12개월 중앙값이라 지금 호가와 다를 수 있습니다. 갭은 최근 매매 − 전세 중앙값입니다. 전세가율·3.3㎡당(매매 중앙값)·3개월 변동(3.3㎡당, 7~12개월 전 대비)은 면적과 관계없는 단지 전체 값입니다. 거리는 단지 중심에서 잰 직선거리, 호재 역은 공사·계획 노선의 역입니다. 단지 이름을 누르면 지도로 이동합니다.</p>`;
+out.querySelectorAll('thead button').forEach(b=>b.onclick=()=>goApt(+b.dataset.i))}
+window._cmpDraw=cmpDraw;$('cmpA').addEventListener('change',()=>cmpDraw());
+document.querySelector('.tabs button[data-t="me"]').addEventListener('click',()=>cmpDraw());
+if(document.querySelector('.pane[data-p="me"]').classList.contains('on'))cmpDraw();
 
 // ── 거리 재기: 버튼을 누르고 지도에서 점을 차례로 누르면 구간·총 거리(직선), 다시 누르면 끝
 S('msr',EMPTY);

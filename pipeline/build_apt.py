@@ -57,6 +57,15 @@ def gkey(c):
     if c['s'][:2] == '36': sgn = ''
     return ' '.join(x for x in [SDN[c['s'][:2]], sgn, c['u'], c['j']] if x)
 def med(a): return st.median(a) if a else None
+MS = sorted({t[0] // 100 for c in C.values() for t in c['T']} | {x[0] // 100 for c in C.values() for x in c['R']})
+MS = [m for m in MS if m >= M12]
+def ms(T12, J):   # 월별 [평당 매매 중앙값, 매매 수, 평당 전세 중앙값, 전세 수] (값 없으면 0)
+    o = []
+    for m in MS:
+        a = [t[1] / (t[2] / PY) for t in T12 if t[0] // 100 == m]; b = [x[1] / (x[3] / PY) for x in J if x[0] // 100 == m]
+        o.append([round(med(a)) if a else 0, len(a), round(med(b)) if b else 0, len(b)])
+    while o and not any(o[-1]) and False: o.pop()
+    return o
 out = []; unm = {}; nb = ng = 0
 for k, c in C.items():
     if not c['j']: continue
@@ -89,7 +98,7 @@ for k, c in C.items():
     lastd = max([t[0] for t in T12] + [x[0] for x in R if x[0] // 100 >= M12] or [0])
     if not lastd: continue
     out.append([c['n'], round(p[0], 5), round(p[1], 5), int(c['y'] or 0), c['s'], (c['u'] + ' ' + c['j']).strip(),
-                round(ppy) if ppy else 0, len(T12), jr if jr is not None else -1, g if g is not None else -999, len(J), len(W), types])
-json.dump({'ref': os.environ.get('APTDATE', ''), 'from': str(M12), 'to': last, 'a': out}, open(OUT, 'w'), ensure_ascii=False, separators=(',', ':'))
+                round(ppy) if ppy else 0, len(T12), jr if jr is not None else -1, g if g is not None else -999, len(J), len(W), types, ms(T12, J)])
+json.dump({'ref': os.environ.get('APTDATE', ''), 'from': str(M12), 'to': last, 'm': [str(m) for m in MS], 'a': out}, open(OUT, 'w'), ensure_ascii=False, separators=(',', ':'))
 print('complexes', len(C), 'out', len(out), 'bld', nb, 'geo', ng, 'unmatched', len(unm))
 if UNM: json.dump(sorted(unm), open(UNM, 'w'), ensure_ascii=False)

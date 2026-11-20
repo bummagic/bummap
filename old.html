@@ -436,7 +436,7 @@ const pop=new maplibregl.Popup({closeButton:true,maxWidth:'300px'});
 m.on('click','b3',e=>{const f=e.features[0];if(!f)return;m.getSource('sel').setData({type:'Feature',geometry:f.geometry});pop.setLngLat(e.lngLat).setHTML(`<div class="pp"><h4>${f.properties.n||BUSE[f.properties.c]}</h4>${bDL(f.properties)}</div>`).addTo(m)});
 m.on('mouseenter','b3',()=>m.getCanvas().style.cursor='pointer');m.on('mouseleave','b3',()=>m.getCanvas().style.cursor='');
 bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}));ML=m})())}
-const bDL=p=>`<div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${BUSE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd><dt>출처</dt><dd>국토교통부 GIS건물통합정보 (2026-11-09 기준)</dd></dl>`;
+const bDL=p=>`<div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${BUSE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd><dt>출처</dt><dd>국토교통부 GIS건물통합정보 (2026-11-09 기준)${p.s?' · 원본에 모양이 없어 같은 자리 도로명주소 건물 도형(브이월드)으로 채움':''}</dd></dl>`;
 function bldPick(e){if(!ML||!baseMode||mode3||!bOn)return false;const r=fig.getBoundingClientRect();const f=ML.queryRenderedFeatures([e.clientX-r.left,e.clientY-r.top],{layers:['b2']})[0];if(!f)return false;
 ML.getSource('sel').setData({type:'Feature',geometry:f.geometry});g.S.selectAll('*').remove();const p=f.properties;
 info.innerHTML=`<h3>${p.n||BUSE[p.c]}</h3><span class="tag" style="background:${BCOL[p.c]}">${BUSE[p.c]}</span>${bDL(p)}`;return true}
@@ -455,7 +455,7 @@ const bCache=new Map(),bBund=new Map();
 const getB=k=>{if(!bBund.has(k)){bBund.set(k,fetch('bld/'+k+'.txt').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}));if(bBund.size>12)bBund.delete(bBund.keys().next().value)}return bBund.get(k)};
 const tileOf=(lon,lat,z)=>{const n=2**z;return [Math.floor((lon+180)/360*n),Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n)]};
 const bDecode=j=>{const[ox,oy]=j.o;return j.r.map(r=>{const f=r[8];let x=0,y=0;const ring=[];for(let k=0;k<f.length;k+=2){x+=f[k];y+=f[k+1];ring.push([ox+x/1e5,oy+y/1e5])}ring.push(ring[0]);
-return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.d[r[4]],j:r[5],n:r[6],a:r[7]},geometry:{type:'Polygon',coordinates:[ring]}}})};
+return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.d[r[4]],j:r[5],n:r[6],a:r[7],s:r[9]?1:0},geometry:{type:'Polygon',coordinates:[ring]}}})};
 async function bLoad(){if(!ML||!bIdx)return;const z=ML.getZoom();fig.classList.toggle('bz',!!baseMode&&bOn&&z>=14);if(!baseMode||!bOn){bst.style.visibility='hidden';return}bst.style.visibility='visible';
 if(z<14){ML.getSource('b').setData(EMPTY);bst.textContent='건물은 동 단위(축척 약 200m)로 확대하면 나타납니다';return}
 const b=ML.getBounds(),Z=bIdx.z,[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y1]=tileOf(b.getEast(),b.getSouth(),Z);
@@ -463,7 +463,7 @@ const b=ML.getBounds(),Z=bIdx.z,[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y
 const cc=ML.getCenter(),[cx0,cy0]=tileOf(cc.lng,cc.lat,Z),cand=[];
 for(let x=Math.max(x0,cx0-4);x<=Math.min(x1,cx0+4);x++)for(let y=Math.max(y0,cy0-4);y<=Math.min(y1,cy0+4);y++){const k=x+'_'+y;if(bIdx.t[k])cand.push([(x-cx0)**2+(y-cy0)**2,k])}
 cand.sort((p,q)=>p[0]-q[0]);const want=cand.slice(0,16).map(c=>c[1]);
-if(!want.length){ML.getSource('b').setData(EMPTY);bst.textContent='이 지역은 건물 자료 범위 밖입니다 (경기도는 준비 중)';return}
+if(!want.length){ML.getSource('b').setData(EMPTY);bst.textContent='이 지역은 건물 자료 범위 밖입니다 (서울·경기·인천·대전·세종·충북·충남·전북만 수록)';return}
 bst.textContent='건물 불러오는 중…';
 await Promise.all(want.filter(k=>!bCache.has(k)).map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}));
 if(bCache.size>60){for(const k of [...bCache.keys()].slice(0,bCache.size-60))if(!want.includes(k))bCache.delete(k)}

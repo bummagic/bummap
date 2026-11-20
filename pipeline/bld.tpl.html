@@ -56,7 +56,7 @@ select.rs{font:14px "Noto Sans KR",system-ui,sans-serif;height:40px;padding:0 8p
 <p class="muted" style="margin:8px 0 0">위성 배경에서는 사진이 가리지 않게 2D는 용도색 테두리, 3D는 반투명 건물로 바뀝니다.</p>
 <p class="muted" style="margin:6px 0 0">도로: 주황 고속국도·도시고속도로, 보라 왕복 8차선 이상, 회색(주요도로 전체 선택 시) 국도·시도·지방도 왕복 4차선 이상. 도로를 누르면 이름·등급·차선.</p>
 <p class="muted" style="margin:6px 0 0">높이는 건축물대장 높이(없으면 지상층수×3.3m). 건물을 누르면 지번·용도·층수·사용승인일이 나옵니다.</p>
-<p class="muted" style="margin:6px 0 0">출처: 국토교통부 GIS건물통합정보(브이월드, __BLDDATE__ 기준). 강·철도는 OpenStreetMap, 도로는 국토교통부 ITS 전국 표준노드링크(__ROADDATE__).</p>
+<p class="muted" style="margin:6px 0 0">출처: 국토교통부 GIS건물통합정보(브이월드, __BLDDATE__ 기준). 원본에 모양 없이 점으로만 있는 건물 일부는 같은 자리 도로명주소 건물 도형(브이월드 LT_C_SPBD)으로 채움. 강·철도는 OpenStreetMap, 도로는 국토교통부 ITS 전국 표준노드링크(__ROADDATE__).</p>
 </div>
 <script src="lib/maplibre-gl-csp.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
@@ -157,7 +157,7 @@ const getB=bk=>{if(!bc.has(bk)){bc.set(bk,fetch('bld/'+bk+'.txt').then(r=>{if(!r
 const st=document.getElementById('status');
 function tileOf(lon,lat,z){const n=2**z;return [Math.floor((lon+180)/360*n),Math.floor((1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n)]}
 function decode(j){const[ox,oy]=j.o;return j.r.map((r,i)=>{const f=r[8];let x=0,y=0;const ring=[];for(let k=0;k<f.length;k+=2){x+=f[k];y+=f[k+1];ring.push([ox+x/1e5,oy+y/1e5])}ring.push(ring[0]);
-return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.d[r[4]],j:r[5],n:r[6],a:r[7]},geometry:{type:'Polygon',coordinates:[ring]}}})}
+return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.d[r[4]],j:r[5],n:r[6],a:r[7],s:r[9]?1:0},geometry:{type:'Polygon',coordinates:[ring]}}})}
 async function load(){if(!idx)return;const z=map.getZoom();
 if(z<14){map.getSource('b').setData({type:'FeatureCollection',features:[]});st.textContent='건물은 동 단위(축척 약 200m)로 확대하면 나타납니다';return}
 const b=map.getBounds(),Z=idx.z;const[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y1]=tileOf(b.getEast(),b.getSouth(),Z);

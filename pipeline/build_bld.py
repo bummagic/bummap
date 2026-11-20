@@ -28,6 +28,12 @@ def tile_sw(x, y):
     lat = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + 1) / n))))
     return lon, lat
 
+def area(r):
+    a = 0.0
+    for i in range(len(r)):
+        a += r[i - 1][0] * r[i][1] - r[i][0] * r[i - 1][1]
+    return abs(a) / 2
+
 def dp(pts, eps):  # Douglas-Peucker (평면 좌표, m)
     if len(pts) < 4: return pts
     a, b = pts[0], pts[-1]
@@ -40,6 +46,34 @@ def dp(pts, eps):  # Douglas-Peucker (평면 좌표, m)
     if dm > eps:
         return dp(pts[:i + 1], eps)[:-1] + dp(pts[i:], eps)
     return [a, b]
+
+# 보충 도형(도로명주소 건물 LT_C_SPBD, 이미 그려진 건물과 겹치지 않는 것만): spbd_filter.py 결과
+SP = json.load(open(os.environ['SPBD'])) if os.environ.get('SPBD') else []
+SPG = defaultdict(list); SPU = set()
+for i, (rg, nm, fl) in enumerate(SP):
+    xs = [c[0] for c in rg]; ys = [c[1] for c in rg]
+    SP[i].append((min(xs), min(ys), max(xs), max(ys)))
+    for gy in range(int(min(ys) / .001), int(max(ys) / .001) + 1):
+        for gx in range(int(min(xs) / .001), int(max(xs) / .001) + 1): SPG[(gy, gx)].append(i)
+def inpoly(x, y, r):
+    c = False
+    for i in range(len(r)):
+        (x1, y1), (x2, y2) = r[i - 1], r[i]
+        if (y2 > y) != (y1 > y) and x < (x1 - x2) * (y - y2) / (y1 - y2) + x2: c = not c
+    return c
+def sp_find(lon, lat):
+    cand = set()
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1): cand.update(SPG.get((int(lat / .001) + dy, int(lon / .001) + dx), []))
+    best = None; bd = 3e-4   # 약 30m 안
+    for i in cand:
+        if i in SPU: continue
+        rg = SP[i][0]; b = SP[i][3]
+        if inpoly(lon, lat, rg): best = i; break
+        d = max(b[0] - lon, lon - b[2], b[1] - lat, lat - b[3], 0)
+        if d < bd: best, bd = i, d
+    if best is not None: SPU.add(best)
+    return best
 
 tiles = defaultdict(lambda: {'d': [], 'r': []})
 stats = defaultdict(int)
@@ -56,14 +90,28 @@ for zp in ZIPS:
             rec, shp = sr.record, sr.shape
             if not shp.points: continue
             parts = list(shp.parts) + [len(shp.points)]
-            ring = shp.points[parts[0]:parts[1]]  # 외곽 링만
+            # 여러 조각(멀티파트·구멍)이 있으면 면적이 가장 큰 링을 건물 외곽으로 쓴다
+            # (예전엔 첫 조각만 써서, 첫 조각이 작은 건물이 점처럼 찌그러졌음)
+            rings = [shp.points[parts[i]:parts[i + 1]] for i in range(len(parts) - 1)]
+            ring = max(rings, key=area)
+            if ring and ring[0] == ring[-1]: ring = ring[:-1]
             if len(ring) > 4:
-                if ring[0] == ring[-1]: ring = ring[:-1]
                 m = len(ring) // 2
-                ring = dp(ring[:m + 1], 0.6)[:-1] + dp(ring[m:] + [ring[0]], 0.6)[:-1]
-            if len(ring) < 3: continue
-            xs, ys = zip(*ring)
-            lons, lats = T.transform(xs, ys)
+                sr2 = dp(ring[:m + 1], 0.6)[:-1] + dp(ring[m:] + [ring[0]], 0.6)[:-1]
+                if area(sr2) >= 0.8 * area(ring): ring = sr2   # 단순화로 모양이 망가지면 원본 유지
+            if len(ring) < 3 or area(ring) < 5:
+                # 원본에 모양 없이 점(면적 5㎡ 미만)으로만 있는 건물: 용도가 있으면 같은 자리 도로명주소 건물 도형으로 채움
+                if not SP or not (rec[9] or '').strip() or not ring: continue
+                px = sum(q[0] for q in ring) / len(ring); py = sum(q[1] for q in ring) / len(ring)
+                plon, plat = T.transform(px, py)
+                hit = sp_find(plon, plat)
+                if hit is None: continue
+                stats['spbd'] += 1
+                lons, lats = zip(*SP[hit][0]); fill = 1
+            else:
+                fill = 0
+                xs, ys = zip(*ring)
+                lons, lats = T.transform(xs, ys)
             cx, cy = sum(lons) / len(lons), sum(lats) / len(lats)
             tx, ty = tile(cx, cy)
             t = tiles[(tx, ty)]
@@ -82,7 +130,7 @@ for zp in ZIPS:
             dong = re.sub(r'\s+', ' ', (rec[4] or '').strip())
             if dong not in t['d']: t['d'].append(dong)
             nm = ' '.join(x for x in [(rec[24] or '').strip(), (rec[25] or '').strip()] if x)
-            t['r'].append([cat, fl, round(h * 10), yr, t['d'].index(dong), (rec[5] or '').strip(), nm, round(float(rec[14] or 0)), flat])
+            t['r'].append([cat, fl, round(h * 10), yr, t['d'].index(dong), (rec[5] or '').strip(), nm, round(float(rec[14] or 0)), flat] + ([1] if fill else []))
             stats[cat] += 1
         r.close()
         for ext in ('.shp', '.shx', '.dbf'): os.remove(os.path.join(tmpd, base + ext))

@@ -1,0 +1,29 @@
+{
+ "name": "사이버 임장지도",
+ "short_name": "임장지도",
+ "description": "아파트 실거래가·규제지역·철도 호재를 한 지도에서 보는 사이버 임장지도",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#fbfbf2",
+ "theme_color": "#14232b",
+ "lang": "ko",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}

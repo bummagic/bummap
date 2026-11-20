@@ -13,6 +13,8 @@ def R(s):
   s=s.replace('__SEOULYM__',json.load(open('data/flow.json'))['seoul'] if os.path.exists('data/flow.json') else '')
   bi0=json.load(open('bld/index.json')) if os.path.exists('bld/index.json') else {}
   s=s.replace('__BLDDATE__',bi0.get('ref',''))
+  _a=json.load(open('data/apt.json')) if os.path.exists('data/apt.json') else {'from':'','to':''}
+  s=s.replace('__APTFROM__',(_a['from'][:4]+'.'+_a['from'][4:]) if _a['from'] else '').replace('__APTTO__',(_a['to'][:4]+'.'+_a['to'][4:]) if _a['to'] else '')
   s=s.replace('__BUSDATE__',json.load(open('data/bus/index.json'))['ref'] if os.path.exists('data/bus/index.json') else '')
   return s
 s=R(open('index.tpl.html').read())

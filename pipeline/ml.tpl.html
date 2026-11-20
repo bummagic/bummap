@@ -168,6 +168,10 @@ footer{font-size:13px;color:var(--sub)}
 <label><input type="checkbox" id="L_sh" checked><span class="dot" style="background:var(--sh)"></span><span>고등학교</span></label>
 <label><input type="checkbox" id="L_sm" checked><span class="dot" style="background:var(--sm)"></span><span>중학교</span></label>
 <label><input type="checkbox" id="L_se" checked><span class="dot" style="background:var(--se)"></span><span>초등학교<small>수도권·충청·전북 · 시군 단위로 확대하면 표시</small></span></label>
+<h3 style="margin-top:14px">아파트 실거래가</h3>
+<label><input type="checkbox" id="L_apt"><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#e8590c;border:1.5px solid #fff;box-shadow:0 0 0 1px #e8590c"></span><span>단지별 시세<small>국토교통부 실거래가 최근 12개월 (__APTFROM__~__APTTO__) · 시군 단위로 확대하면 표시 · 누르면 면적별 최근 매매가·전세가</small></span></label>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="aptc" aria-label="실거래가 색 기준" style="font:inherit"><option value="p">색: 평당 매매가</option><option value="j">색: 전세가율</option><option value="g">색: 최근 3개월 변동</option><option value="y">색: 준공 연도</option></select><select id="aptf" aria-label="실거래가 보기" style="font:inherit"><option value="0">전체 단지</option><option value="5">12개월 매매 5건+</option><option value="j70">전세가율 70%+</option><option value="j80">전세가율 80%+</option><option value="old">준공 30년+</option><option value="new">준공 10년 이내</option></select></div>
+<div id="alg" class="muted" style="font-size:12.5px;margin:0 0 8px 28px"></div>
 <h3 style="margin-top:14px">정비사업 (재개발·재건축)</h3>
 <label><input type="checkbox" id="L_jb"><span class="sw" style="background:rgba(217,72,15,.25);border:2px solid #d9480f"></span><span>정비구역 경계 (서울)<small>재개발·재건축·신속통합기획·가로주택·모아타운 등 2,776곳 · 누르면 사업유형·추진단계 · 서울 밖은 동을 누르면 시군구별 사업 목록</small></span></label>
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="jbc" aria-label="정비구역 색 기준" style="font:inherit"><option value="g">색: 사업유형</option><option value="v">색: 진행 단계</option></select><select id="jbf" aria-label="정비구역 보기" style="font:inherit"><option value="all">전체</option><option value="main">재개발·재건축·신통기획</option><option value="small">소규모(가로·모아·소규모)</option><option value="early">진행 초기(조합설립 전)</option><option value="late">사업시행인가 이후</option></select></div>
@@ -479,7 +483,7 @@ flow:(p,f)=>{const d=window._flow,x=d.f[p.i],K={4:'서울 상위 10%',3:'상위 
 function showRd(p){const d=p.src==='b'?window._rdb:window._rdm,x=d.r[p.i];setSel({type:'MultiLineString',coordinates:x.g});info.innerHTML=`<h3>${x.n||'(이름 없음)'}</h3><div class="muted">${RK[x.k]||''}</div><span class="tag" style="background:${x.c==='x'?C3.rdx:x.c==='8'?C3.rd8:C3.rdm}">왕복 약 ${x.l}${x.l>=12?'+':''}차선</span><dl><dt>차선</dt><dd>한 방향 차로 수 × 2로 추정 (구간마다 다를 수 있음)</dd><dt>출처</dt><dd>국토교통부 전국 표준노드링크 (${d.ref})</dd></dl>`}
 // 누르기 우선순위: 점(학교·대학·학원·역) → 선(도로·고속도로·철도) → (정비구역은 기존 처리) → 칸(상권 경계·상권·학원·인구·유동인구) → 동
 window._pick3=(e,stage)=>{const P0=e.point,box=[[P0.x-6,P0.y-6],[P0.x+6,P0.y+6]];
-const ord=stage===1?['sch','uni','hp','bus','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
+const ord=stage===1?['apt','sch','uni','hp','bus','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
 for(const l of ord){if(!map.getLayer(l)||map.getLayoutProperty(l,'visibility')==='none')continue;const f=map.queryRenderedFeatures(stage===1?box:P0,{layers:[l]})[0];if(f){SHOW[l](f.properties,f);return true}}return false};
 // ── 버스정류장(0.1° 칸 조각 파일, 확대했을 때 화면 안 칸만)
 S('bus',EMPTY);
@@ -493,6 +497,32 @@ const my=++busSeq;await Promise.all(ks.filter(k=>!busCache.has(k)).map(k=>fetch(
 const all=ks.flatMap(k=>busCache.get(k)||[]);window._busV=all;src.setData(FC(all.map((d,i)=>pt([d[2]/1e5,d[1]/1e5],{i,n:d[0]}))));bst.textContent=`버스정류장 ${all.length.toLocaleString()}곳 · 누르면 이름·번호`}
 $('L_bus').addEventListener('change',busLoad);let busT;map.on('moveend',()=>{if(onId('L_bus')){clearTimeout(busT);busT=setTimeout(busLoad,200)}});
 SHOW.bus=p=>{const d=window._busV[p.i];setSel(null);info.innerHTML=`<h3>${d[0]}</h3><div class="muted">버스정류장 · ${d[4]} 버스정보시스템 자료</div><dl>${d[3]?`<dt>정류장 번호</dt><dd>${d[3]} (모바일 단축번호)</dd>`:''}<dt>좌표</dt><dd>${(d[1]/1e5).toFixed(5)}, ${(d[2]/1e5).toFixed(5)}</dd><dt>노선·도착</dt><dd><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 정류장')}" target="_blank" rel="noopener">카카오맵에서 보기</a></dd><dt>출처</dt><dd>국토교통부 전국 버스정류장 위치정보 (__BUSDATE__ 수집, 지자체 BIS 연계)</dd></dl>`};
+// ── 아파트 실거래가(단지별 요약, 국토교통부 실거래가 공개시스템 자료로 미리 계산)
+S('apt',EMPTY);
+const APC={p:{st:[1000,1500,2000,3000,4500,6500,1e9],c:['#4c6ef5','#15aabf','#40c057','#fab005','#fd7e14','#e8590c','#c92a2a'],lb:['~1천','1천~1.5천','1.5천~2천','2천~3천','3천~4.5천','4.5천~6.5천','6.5천만+'],u:'평당(전용 3.3㎡) 매매가 중앙값'},
+j:{st:[50,60,70,80,90,1e9],c:['#4c6ef5','#15aabf','#40c057','#fab005','#e8590c','#c92a2a'],lb:['~50%','50~60%','60~70%','70~80%','80~90%','90%+'],u:'전세가율(같은 면적 매매 대비 전세 중앙값)'},
+g:{st:[-5,-1,1,5,1e9],c:['#1c7ed6','#74c0fc','#adb5bd','#ff8787','#e03131'],lb:['-5%↓','-5~-1%','보합 ±1%','+1~5%','+5%↑'],u:'최근 3개월 평당가 ÷ 7~12개월 전'},
+y:{st:[1990,2000,2010,2020,1e9],c:['#862e9c','#ae3ec9','#da77f2','#74c0fc','#1c7ed6'],lb:['~1989','1990년대','2000년대','2010년대','2020년~'],u:'준공 연도'}};
+const aptV=(d,k)=>k==='p'?d[6]||null:k==='j'?(d[8]>=0?d[8]:null):k==='g'?(d[9]>-999?d[9]:null):(d[3]||null);
+const aptExpr=k=>{const c=APC[k],e=['step',['get','v'],c.c[0]];c.st.slice(0,-1).forEach((s,i)=>e.push(s,c.c[i+1]));return ['case',['==',['get','v'],-1e9],'#adb5bd',e]};
+LB({id:'apt',type:'circle',source:'apt',minzoom:11.3,layout:{visibility:'none','circle-sort-key':['get','n12']},paint:{'circle-color':'#adb5bd','circle-radius':['interpolate',['linear'],['zoom'],11.3,['interpolate',['linear'],['get','n12'],0,2,30,4.5],15,['interpolate',['linear'],['get','n12'],0,4,30,8],18,['interpolate',['linear'],['get','n12'],0,7,30,12]],'circle-stroke-color':'#fff','circle-stroke-width':1.2,'circle-opacity':.92}},'stc');
+LB({id:'aptn',type:'symbol',source:'apt',minzoom:15,layout:{visibility:'none','text-field':['concat',['get','nm'],'\n',['get','lb']],'text-size':10.5,'text-font':['Noto Sans Regular'],'text-anchor':'top','text-offset':[0,.9],'text-optional':true,'symbol-sort-key':['-',0,['get','n12']]},paint:{'text-color':P.ink,'text-halo-color':P.land,'text-halo-width':1.6}},'stc');
+const won=m=>{m=Math.round(m);if(!m)return '—';const e=Math.floor(m/10000),r=m%10000;return e?(e+'억'+(r?' '+r.toLocaleString()+'만':'')):r.toLocaleString()+'만'};
+const ymdS=x=>x?`${String(x).slice(2,4)}.${String(x).slice(4,6)}.${String(x).slice(6,8)}`:'';
+let aptD=null;
+async function aptApply(){const on=onId('L_apt');vis('apt',on);vis('aptn',on);if(!on){$('alg').innerHTML='';return}
+if(!aptD){bst.textContent='아파트 실거래가 불러오는 중…';aptD=await fetch('data/apt.json').then(r=>r.json()).catch(()=>null);bst.textContent='';if(!aptD){$('alg').textContent='자료를 불러오지 못했습니다';return}}
+const k=$('aptc').value,f=$('aptf').value,Y=new Date().getFullYear();
+const ok=d=>f==='0'||(f==='5'?d[7]>=5:f==='j70'?d[8]>=70:f==='j80'?d[8]>=80:f==='old'?(d[3]&&Y-d[3]>=30):f==='new'?(d[3]&&Y-d[3]<=10):1);
+map.getSource('apt').setData(FC(aptD.a.map((d,i)=>[d,i]).filter(([d])=>ok(d)).map(([d,i])=>{const v=aptV(d,k);return pt([d[1],d[2]],{i,v:v==null?-1e9:v,n12:d[7]+d[10]/2,nm:d[0],lb:k==='j'?(d[8]>=0?'전세가율 '+d[8]+'%':''):k==='g'?(d[9]>-999?(d[9]>0?'+':'')+d[9]+'%':''):k==='y'?(d[3]?d[3]+'년':''):(d[6]?'평당 '+won(d[6]):'')})})));
+map.setPaintProperty('apt','circle-color',aptExpr(k));const c=APC[k];
+$('alg').innerHTML=c.u+'<br>'+c.lb.map((l,i)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.c[i]};margin:0 3px 0 6px"></span>${l}`).join('')+'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#adb5bd;margin:0 3px 0 6px"></span>값 없음 · 점 크기 = 거래 수'}
+['L_apt','aptc','aptf'].forEach(id=>$(id).addEventListener('change',()=>{if(id!=='L_apt')$('L_apt').checked=true;aptApply()}));
+SHOW.apt=p=>{const d=aptD.a[p.i];setSel(null);const T=d[12];
+info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?' · '+d[3]+'년 준공':''}</div>${d[6]?`<span class="tag" style="background:${APC.p.c[Math.min(6,APC.p.st.findIndex(s=>d[6]<s))]}">평당 ${won(d[6])}원</span> `:''}${d[8]>=0?`<span class="tag" style="background:${APC.j.c[APC.j.st.findIndex(s=>d[8]<s)]}">전세가율 ${d[8]}%</span>`:''}
+<dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건</dd>${d[9]>-999?`<dt>최근 3개월 변동</dt><dd>${d[9]>0?'+':''}${d[9]}% (평당가 중앙값, 7~12개월 전 대비)</dd>`:''}</dl>
+<table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px"><tr style="color:var(--sub);text-align:right"><th style="text-align:left">전용</th><th>최근 매매</th><th>전세 중앙값</th><th>최근 월세</th></tr>${T.map(t=>`<tr style="text-align:right;border-top:1px solid var(--edge)"><td style="text-align:left">${t[0]}㎡<br><small class="muted">전용 ${(t[0]/3.305785).toFixed(1)}평</small></td><td>${t[1]?won(t[1])+`<br><small class="muted">${ymdS(t[2])} ${t[3]}층 · ${t[6]}건</small>`:'—'}</td><td>${t[4]?won(t[4])+`<br><small class="muted">${t[5]}건</small>`:'—'}</td><td>${t[7]?won(t[7])+'/'+t[8]:'—'}</td></tr>`).join('')}</table>
+<dl><dt>시세 더 보기</dt><dd><a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">국토부 실거래가 공개시스템</a> · <a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 아파트')}" target="_blank" rel="noopener">카카오맵</a></dd><dt>출처</dt><dd>국토교통부 아파트 매매·전월세 실거래가 (${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집) · 해제된 거래 제외 · 위치는 지번으로 찾은 값이라 일부 어긋날 수 있음</dd></dl>`};
 // 켜고 끄기
 const LV={L_pop:[['pop'],'pop'],L_fp:[['flow'],'flow'],L_hg:[['hg','hgln'],'hg'],L_hp:[['hp'],'hp'],L_cm:[['cm','cmln'],'cm'],L_cz:[['czf','czl1','czl2','czn'],'cz'],L_un:[['uni','unin'],'edu']};
 async function ph3Apply(){for(const [id,[ls,k]] of Object.entries(LV)){const on=onId(id);ls.forEach(l=>vis(l,on));if(on)need(k)}
@@ -596,7 +626,7 @@ if(jf){const z=jbD.z[jf.properties.i];setSel({type:'Polygon',coordinates:z.c[0]?
 info.innerHTML=`<h3>${z.n}</h3><div class="muted">${JG[z.g][0]}${TY[z.t]&&TY[z.t]!==JG[z.g][0]?' · '+TY[z.t]:''}</div><span class="tag" style="background:${JV[z.v][1]};color:${z.v<2?'#13242e':'#fff'}">${z.p||'단계 정보 없음'}</span><div style="margin:2px 0 10px">${bar}</div><dl><dt>면적</dt><dd>${z.a?z.a.toLocaleString()+'㎡ (약 '+Math.round(z.a/3.3058).toLocaleString()+'평)':'—'}</dd><dt>자료 생성</dt><dd>${z.d?z.d.slice(0,4)+'.'+z.d.slice(4,6)+'.'+z.d.slice(6,8):'—'}</dd><dt>출처</dt><dd>서울시 도시계획사업 현황(서울플랜+) ${jbD.ref} · 법적 효력 없는 참고자료</dd></dl>`;return}
 if(_pick3(e,2))return;
 const f=map.queryRenderedFeatures(e.point,{layers:['hit']})[0];if(f){const g=byCode.get(f.properties.code);if(g)selectDong(g)}});
-map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','rlh','jbf','sch','uni','hp','bus','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
+map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','rlh','jbf','apt','sch','uni','hp','bus','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
 
 // ── 검색·이동
 const fit=(g,maxZoom=13.5)=>{const b=bbox(g);map.fitBounds(b,{padding:{top:90,bottom:40,left:40,right:40},maxZoom,duration:700})};

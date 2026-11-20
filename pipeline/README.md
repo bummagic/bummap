@@ -78,6 +78,13 @@
 - 원본: 공공데이터포털 15067528 '국토교통부_전국 버스정류장 위치정보'(CSV 약 22MB, 로그인 불필요, TAGO 연계 지자체 BIS 수집일 기준 연 1회). 내장 브라우저로 데이터 페이지를 열고 `fn_fileDataDown` 버튼의 uddi로 `/tcs/dss/selectFileDataDownload.do` → `/cmm/cmm/check-limit.json` → `/cmm/cmm/fileDownload.do`를 fetch, 페이지 안에서 도시명이 서울·경기·인천·대전·세종·충청북도·충청남도·전라북도(전북)인 행만 `정류장명\t위도\t경도\t모바일단축번호\t도시명\t정류장번호`로 골라 gzip Blob으로 다운로드(`krmap_busstop_8.tsv.gz`, 22MB 원본을 그대로 받으면 다운로드 폴더에 남지 않는 경우가 있었음).
 - `BUSDATE=YYYY-MM-DD(정보수집일) python3 build_bus.py krmap_busstop_8.tsv.gz` → data/bus/{위도×10}_{경도×10}.json(0.1° 칸, 2026-11-09 기준 447칸 11.8만 곳) + data/bus/index.json. 지도는 확대(z14↑)했을 때 화면 안 칸만 불러온다. 10만 곳 미만이면 기존 유지.
 
+## N. 아파트 실거래가 (매월 권장, 내장 브라우저 + PC 다운로드 폴더 필요)
+- 원본: 국토교통부 아파트 매매 실거래가 상세(`RTMSDataSvcAptTradeDev`)·전월세(`RTMSDataSvcAptRent`) 오픈API(공공데이터포털, 사용자 인증키). **인증키는 저장소·페이지·프로젝트 문서 어디에도 쓰지 않는다** — 수집할 때 사용자에게 받아 브라우저 안에서만 쓴다. 컨테이너·PC 셸에서는 apis.data.go.kr에 닿지 않으므로 내장 브라우저 탭을 `https://apis.data.go.kr/`에 열어 같은 출처 fetch로 받는다.
+- 대상 시군구: 행정동 경계(vuski/admdongkor 최신판)의 sgg 코드 중 11·28·30·36·41·43·44·52 (2026-11 기준 134개 + 화성 옛 코드 41590). 최근 12개월 × 매매·전월세. 초당 호출 제한(429)이 있으므로 3개 동시·호출 간격 260ms 이상, 429면 3초 쉬고 재시도. 해제 거래(cdealType=O) 제외. 2026-11 수집: 매매 32.4만·전월세 73.9만 건, 약 50분.
+- 페이지 안에서 `{T,M}`·`{R,M}`을 gzip Blob으로 다운로드(`krmap_rt_T.json.gz`·`krmap_rt_R.json.gz`, XML 문서 페이지라 a 요소는 `createElementNS('http://www.w3.org/1999/xhtml','a')`) → device_stage_files.
+- 위치: 실거래 자료에 좌표가 없다. ① `python3 build_bld_addr.py ../bld /tmp/bld_addr.json`(건물자료의 '시도|시군구|동리|지번' → 건물 중심, 경기 제외) ② 못 찾은 주소(경기 대부분)는 브이월드 지오코더(`api.vworld.kr/req/address`, type=PARCEL, 브이월드 탭에서 vwkey.js를 fetch해 키를 씀)로 찾아 `{주소:[lon,lat]}`를 다운로드 → geo_extra.json. 주소 목록은 공개 주소뿐이라 임시 브랜치(geo-tmp)에 올려 raw.githubusercontent.com에서 브라우저로 읽는다. 브이월드는 6개 동시·무지연으로 돌리면 IP가 몇 분 막힌다 → 3개 동시·400ms 간격. 건물 매칭 검증(지오코더 대비 120곳): 중앙값 15m, 90% 70m, 최대 160m.
+- `APTDATE=YYYY-MM-DD python3 build_apt.py rt_raw.json.gz bld_addr.json sgg_codes.json geo_extra.json ../data/apt.json [unmatched.json]` → data/apt.json(단지: 이름·좌표·준공연도·시군구코드·동 지번·평당가(전용 3.3㎡, 최근 6개월 매매 중앙값, 없으면 12개월)·12개월 매매 수·전세가율(같은 면적끼리 전세 중앙값÷매매 중앙값, 건수 가중)·최근 3개월 변동(평당가 중앙값, 7~12개월 전 대비, 최근 3개월 2건 이상일 때)·전세·월세 수·면적별 [전용㎡, 최근 매매가, 날짜, 층, 전세 중앙값, 전세 수, 매매 수, 최근 월세 보증금, 월세]). gen.py가 기간(__APTFROM__·__APTTO__)을 채운다.
+
 ## D. 빌드·검증·게시
 - (GitHub 게시) gen.py는 index.html(새 지도)·old.html·ml.html·bld.html을 만든다. 커밋할 때 이 파일들을 함께 넣고, 저장소 루트의 vwkey.js(브이월드 공용 키)는 건드리지 않으며 프로젝트 문서에 내용을 옮기지 않는다.
 1. (ml.tpl.html도 함께 처리됨) `HWYDATE="(hwy 갱신 시 오늘, 아니면 기존 값: 2026년 11월 17일 조회)" python3 gen.py` → index.html

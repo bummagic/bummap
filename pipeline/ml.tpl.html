@@ -84,41 +84,173 @@ footer{font-size:13px;color:var(--sub)}
 @media(max-width:600px){.tools{gap:5px}.tools button{height:34px;min-width:34px;padding:0 8px;font-size:12.5px}.tools input[type=search]{height:38px;width:100%;font-size:15px}.jump{display:none}#jsel{display:inline-block!important;height:34px;font-size:12.5px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink)}}
 @media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.side{border-left:0;border-top:1px solid var(--edge);max-height:none}}
 @media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--sub)}.stack td:empty{display:none}}
+
+/* ── 앱 화면 구성(2026-11-21): 지도 전체 화면 + 오른쪽 탭 패널(모바일은 아래 탭 + 시트) + 지도 위 정보 카드 */
+:root{--acc:light-dark(#3b5bdb,#748ffc);--accbg:light-dark(#edf2ff,#1e2a52);--shadow:0 2px 10px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);--r:12px}
+html,body{height:100%}
+body{overflow:hidden;font-size:15px}
+.app{position:fixed;inset:0;display:grid;grid-template-columns:minmax(0,1fr) 390px}
+.fig{height:100%!important;border:0}
+.side{max-height:none!important;height:100%;padding:0!important;gap:0!important;display:flex;flex-direction:column;border-left:1px solid var(--edge);background:var(--panel);overflow:hidden!important}
+.tabs{display:flex;border-bottom:1px solid var(--edge);background:var(--panel);flex:none}
+.tabs button{flex:1;height:58px;border:0;border-radius:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:12px;color:var(--sub);outline:0!important;position:relative}
+.tabs button span{font-size:18px;line-height:1}
+.tabs button.on{color:var(--acc);font-weight:700}.tabs button.on::after{content:'';position:absolute;left:18%;right:18%;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--acc)}
+.panes{flex:1;overflow:auto;overscroll-behavior:contain}
+.pane{display:none;padding:14px 16px 28px}.pane.on{display:block}
+.ph{font-size:18px;margin:2px 0 12px}
+.grp{border:1px solid var(--edge);border-radius:var(--r);margin:0 0 10px;background:var(--panel)}
+.grp>summary{list-style:none;cursor:pointer;padding:11px 14px;font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
+.grp>summary::-webkit-details-marker{display:none}
+.grp>summary::after{content:'▾';margin-left:auto;color:var(--sub);transition:transform .15s}.grp:not([open])>summary::after{transform:rotate(-90deg)}
+.grp>.lay,.grp>#lines{padding:2px 14px 10px;border-top:1px solid var(--edge)}
+.grp #lines{border-top:1px solid var(--edge);padding-top:8px}
+.gi{width:22px;text-align:center}
+.lay h3{font-size:14px;margin:10px 0 8px}
+.pane>.lay{border:1px solid var(--edge);border-radius:var(--r);padding:12px 14px;margin:0 0 12px}
+.card2{background:var(--accbg)!important;border-color:transparent!important}
+.about{font-size:14px}.about h1{font-size:22px}.about h2{font-size:17px;margin-top:18px}.about .band{padding:0}.about section,.about footer{padding:0!important;margin:14px 0}.about .kpis{gap:8px 18px}.about .kpi b{font-size:20px}.about .cols{gap:14px}
+/* 위쪽 도구 줄 */
+.tools{top:10px;left:10px;right:10px;gap:6px}
+.tools button,.tools select,.tools input[type=search]{box-shadow:var(--shadow);border-color:transparent}
+.brand{display:flex;align-items:center;gap:6px;height:44px;padding:0 12px;border-radius:10px;background:var(--panel);box-shadow:var(--shadow);font-size:15px}
+.brand b{white-space:nowrap}
+.tools input[type=search]{width:min(320px,100%);border-radius:10px}
+.jump{display:none!important}#jsel{display:inline-block!important;height:44px;border-radius:10px;border:0;padding:0 10px;background:var(--panel);color:var(--ink);font:14px "Noto Sans KR",sans-serif;box-shadow:var(--shadow)}
+.sp{flex:1}
+.seg button{height:40px}
+button.on{outline:0!important;background:var(--accbg);color:var(--acc);font-weight:700}
+/* 오른쪽 아래 조작 버튼 */
+.zoom{right:10px;bottom:28px;gap:0;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);background:var(--panel)}
+.zoom button{border:0;border-radius:0;border-bottom:1px solid var(--edge);height:42px;width:42px;min-width:42px;padding:0;font-size:17px}
+.zoom button:last-child{border-bottom:0}
+#bst{left:50%!important;transform:translateX(-50%);bottom:12px!important;border-radius:999px;padding:4px 12px;box-shadow:var(--shadow);border:0}
+#attr{bottom:4px!important;right:62px!important;font-size:10.5px;opacity:.85}
+/* 정보 카드 */
+.card{position:absolute;left:10px;bottom:46px;width:min(380px,calc(100% - 20px));max-height:calc(100% - 130px);overflow:auto;background:var(--panel);border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:14px 16px 16px;z-index:3}
+.card[hidden]{display:none}
+.card .x{position:sticky;top:0;float:right;margin:-6px -8px 0 0;width:34px;height:34px;min-width:34px;padding:0;border:0;border-radius:50%;font-size:20px;background:var(--panel)}
+#info{border-top:0!important;padding-top:0!important}
+#info h3{font-size:19px}
+@media(max-width:900px){
+.app{grid-template-columns:minmax(0,1fr)}
+.side{position:fixed;left:0;right:0;bottom:0;height:auto;max-height:none;border-left:0;border-top:1px solid var(--edge);z-index:5;box-shadow:0 -4px 18px rgba(0,0,0,.12);border-radius:16px 16px 0 0}
+.tabs{order:2;border-bottom:0;border-top:1px solid var(--edge)}
+.tabs button{height:54px}.tabs button.on::after{top:0;bottom:auto;border-radius:0 0 3px 3px}
+.panes{order:1;max-height:0;transition:max-height .2s}
+.side.open .panes{max-height:62dvh}
+.fig{position:absolute!important;inset:0 0 55px 0;height:auto!important}
+.card{left:8px;right:8px;width:auto;bottom:10px;max-height:52%}
+.zoom{bottom:auto;top:110px}
+#bst{bottom:auto!important;top:108px}
+}
+@media(max-width:600px){.brand{display:none!important}.tools .sp{display:none}.tools input[type=search]{flex:1 1 180px;width:auto!important}.tools .seg button{height:36px;padding:0 8px;font-size:12.5px}#bbtn{height:36px;font-size:12.5px;padding:0 8px}#jsel{height:38px}.brand{height:38px}.tools input[type=search]{height:38px}}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 </head>
 <body>
-<header class="band">
-<h1>사이버 임장지도</h1>
-<p class="lead">2026년 11월 17일 기준 부동산 규제지역(조정대상지역·투기과열지구·토지거래허가구역)에 전국 철도(KTX·일반철도·전철·도시철도)와 고속도로를 겹쳤습니다. 공사 중이거나 계획된 노선은 점선으로 구분했습니다. 동 이름이나 노선 이름으로 검색하고, 지역이나 선을 누르면 자세한 내용이 나옵니다.</p>
-<div class="kpis">
-<div class="kpi"><b>40곳</b><span>3중 규제 시군구 (서울 25 · 경기 15)</span></div>
-<div class="kpi"><b>0곳</b><span>지방 규제지역</span></div>
-<div class="kpi"><b>__NRAIL__개</b><span>철도 노선 (공사·계획 포함)</span></div>
-<div class="kpi"><b>__NHWY__개</b><span>고속도로 노선</span></div>
-</div>
-</header>
-
-<section class="main">
+<div class="app">
 <div class="fig" id="fig">
 <div id="map" aria-label="전국 읍면동 경계 위에 규제지역·지형·강을 표시한 지도"></div>
 <iframe id="v3f" title="브이월드 실사 3D" allow="fullscreen"></iframe>
 <div class="tools">
+<div class="brand" title="사이버 임장지도">🏠<b>사이버 임장지도</b></div>
 <input type="search" id="q" list="names" placeholder="동탄1동, 강남역, 래미안, 경부고속도로" aria-label="지역 검색">
 <datalist id="names"></datalist>
 <div class="jump" id="jump"></div><select id="jsel" aria-label="지역 바로가기" style="display:none"></select>
-<span class="seg" role="group" aria-label="배경지도"><button id="bm0" class="on">단색</button><button id="bm1">일반지도</button><button id="bm2">위성</button></span>
-<button id="myb" title="지금 내 위치로 이동">📍 내 위치</button>
-<button id="msb" title="지도에서 점을 차례로 눌러 거리 재기">📏 거리</button>
+<span class="sp"></span><span class="seg" role="group" aria-label="배경지도"><button id="bm0" class="on">단색</button><button id="bm1">일반지도</button><button id="bm2">위성</button></span>
 <button id="bbtn" class="on" title="동 단위로 확대하면 건물이 보입니다">🏢 건물 켜짐</button>
 <span class="seg" role="group" aria-label="건물 보기"><button id="v2" class="on">2D</button><button id="v3">3D</button></span>
 <button id="vrot" style="display:none">↻ 45°</button>
 </div>
-<div class="zoom"><button id="zi" aria-label="확대">+</button><button id="zo" aria-label="축소">−</button><button id="zr" aria-label="전국 보기">⟲</button></div>
+<div class="zoom"><button id="myb" title="지금 내 위치로 이동" aria-label="내 위치">📍</button><button id="msb" title="지도에서 점을 차례로 눌러 거리 재기" aria-label="거리 재기">📏</button><button id="zi" aria-label="확대">+</button><button id="zo" aria-label="축소">−</button><button id="zr" aria-label="전국 보기">⟲</button></div>
 <div id="bst"></div><div id="attr"></div>
+<div id="infoCard" class="card" hidden><button id="infoX" class="x" aria-label="정보 닫기">×</button><div id="info"><p class="muted">지도에서 동·선·점을 누르거나 검색하세요.</p></div></div>
 </div>
-<aside class="side">
-<p class="muted" style="margin:0;font-size:12.5px">이전 방식(D3) 지도는 <a href="old.html">여기</a>에서 볼 수 있습니다.</p>
+<aside class="side" id="side">
+<nav class="tabs" role="tablist" aria-label="패널">
+<button role="tab" data-t="lay" class="on"><span>🗺</span>지도</button><button role="tab" data-t="apt"><span>🏢</span>아파트</button><button role="tab" data-t="find"><span>🔎</span>후보지</button><button role="tab" data-t="me"><span>📍</span>내 장소</button><button role="tab" data-t="about"><span>ℹ</span>안내</button>
+</nav>
+<div class="panes">
+<section class="pane on" data-p="lay"><h2 class="ph">지도에 표시할 것</h2>
+<details class="grp" open><summary><span class="gi">🏛</span>규제지역</summary><div class="lay">
+<label><input type="checkbox" id="L_zone" checked><span class="sw" style="background:var(--fA);border:2.4px solid var(--zA)"></span><span>3중 규제 · 10·15 대책<small>서울 25개구, 경기 12곳 · 토허 ~2026.12.31</small></span></label>
+<label><input type="checkbox" checked disabled><span class="sw" style="background:var(--fB);border:2.4px solid var(--zB)"></span><span>3중 규제 · 2026.7.1 신규<small>화성 동탄구, 용인 기흥구, 구리시 · 토허 ~2027.12.31</small></span></label>
+<label><input type="checkbox" checked disabled><span class="sw" style="border:2px dashed var(--zW)"></span><span>비규제 · 추가 지정 거론<small>수원 권선, 안양 만안, 군포, 부천 원미, 화성 병점구</small></span></label>
+<label><input type="checkbox" id="L_fz"><span class="sw" style="background:repeating-linear-gradient(45deg,transparent 0 3px,var(--sub) 3px 4px);border:1px solid var(--sub)"></span><span>외국인 토지거래허가구역<small>외국인 등만 대상 · ~2027.8.25</small></span></label>
+</div></details>
+<details class="grp" open><summary><span class="gi">🚇</span>교통·역세권</summary><div class="lay">
+<label><input type="checkbox" id="L_rd"><span class="ln" style="border-image:linear-gradient(90deg,var(--rdx) 0 50%,var(--rd8) 50%) 1"></span><span>도로 (국토부 표준노드링크)<small>주황 고속국도·도시고속도로, 보라 왕복 8차선 이상 · 누르면 도로명·등급·차선</small></span></label>
+<select id="rdm" aria-label="도로 보기"><option value="b">고속도로 + 8차선 이상</option><option value="x">고속도로만</option><option value="all">주요도로 전체 (국도·시도·지방도 4차선↑ 포함)</option></select>
+<label><input type="checkbox" id="L_hw" checked><span class="ln" style="border-color:var(--hw)"></span><span>고속도로<small>확대하면 노선 이름 표시, 누르면 이름·번호</small></span></label>
+<label><input type="checkbox" id="L_ktx" checked><span class="ln" style="border-color:var(--ktx)"></span><span>KTX·고속철도</span></label>
+<label><input type="checkbox" id="L_rail" checked><span class="ln" style="border-color:var(--rail);border-top-width:2px"></span><span>일반철도<small>경부선·호남선·중앙선 등</small></span></label>
+<label><input type="checkbox" id="L_m" checked><span class="ln" style="border-image:linear-gradient(90deg,#0052A4 0 25%,#00A84D 25% 50%,#EF7C1C 50% 75%,#996CAC 75%) 1"></span><span>전철·도시철도·GTX<small>노선 고유색, 확대하면 역 표시</small></span></label>
+<label><input type="checkbox" id="L_construction" checked><span class="ln" style="border-top-style:dashed"></span><span>공사 중 (긴 점선)<small>주황 테 동그라미 = 공사 중 노선의 역(호재 역)</small></span></label>
+<label><input type="checkbox" id="L_planned" checked><span class="ln" style="border-top-style:dotted;border-top-width:4px"></span><span>계획 (짧은 점선)<small>착공 전 · 일부는 역을 이은 개략선 · 보라 테 동그라미 = 계획 노선의 역</small></span></label>
+<label><input type="checkbox" id="L_bus"><span class="dot" style="flex:none;width:10px;height:10px;border-radius:50%;margin:3px 9px 0 9px;background:#0ca678;border:1.5px solid #fff;box-shadow:0 0 0 1px #0ca678"></span><span>버스정류장<small>동 단위(축척 약 300m)로 확대하면 표시 · 누르면 이름·정류장 번호 · 서울·경기·인천·대전·세종·충북·충남·전북 약 11.8만 곳</small></span></label>
+<label><input type="checkbox" id="L_st" checked><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#fff;border:2px solid #13242e"></span><span>역<small>확대하면 표시 · 누르면 지나는 노선</small></span></label>
+<label style="align-items:center"><span class="sw" style="border:2px solid #2563eb;border-radius:50%;width:16px;height:16px;margin:0 6px"></span><span>역세권 <select id="ysm" aria-label="역세권 반경" style="font:inherit;font-size:13px;margin-left:4px"><option value="0">끔</option><option value="1" selected>500m</option><option value="2">500m + 1km</option></select><small>역 중심에서 직선거리 · 걸어서 약 7분(500m)·15분(1km)</small></span></label>
+</div></details>
+<details class="grp"><summary><span class="gi">🏗</span>정비사업 (재개발·재건축)</summary><div class="lay">
+<label><input type="checkbox" id="L_jb"><span class="sw" style="background:rgba(217,72,15,.25);border:2px solid #d9480f"></span><span>정비구역 경계 (서울)<small>재개발·재건축·신속통합기획·가로주택·모아타운 등 2,776곳 · 누르면 사업유형·추진단계 · 서울 밖은 동을 누르면 시군구별 사업 목록</small></span></label>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="jbc" aria-label="정비구역 색 기준" style="font:inherit"><option value="g">색: 사업유형</option><option value="v">색: 진행 단계</option></select><select id="jbf" aria-label="정비구역 보기" style="font:inherit"><option value="all">전체</option><option value="main">재개발·재건축·신통기획</option><option value="small">소규모(가로·모아·소규모)</option><option value="early">진행 초기(조합설립 전)</option><option value="late">사업시행인가 이후</option></select></div>
+<div id="jlg" class="muted" style="font-size:12.5px;margin:0 0 8px 28px"></div>
+</div></details>
+<details class="grp"><summary><span class="gi">🏫</span>학교</summary><div class="lay">
+<label><input type="checkbox" id="L_un" checked><span class="sw" style="width:12px;height:12px;margin:3px 8px 0 8px;border-radius:2px;background:var(--un)"></span><span>대학교<small>4년제·전문대·캠퍼스 · 확대하면 이름</small></span></label>
+<label><input type="checkbox" id="L_sh" checked><span class="dot" style="background:var(--sh)"></span><span>고등학교</span></label>
+<label><input type="checkbox" id="L_sm" checked><span class="dot" style="background:var(--sm)"></span><span>중학교</span></label>
+<label><input type="checkbox" id="L_se" checked><span class="dot" style="background:var(--se)"></span><span>초등학교<small>수도권·충청·전북 · 시군 단위로 확대하면 표시</small></span></label>
+</div></details>
+<details class="grp"><summary><span class="gi">📚</span>학원</summary><div class="lay">
+<label><input type="checkbox" id="L_hg" checked><span class="sw" style="background:linear-gradient(90deg,var(--hg1),var(--hg2),var(--hg3),var(--hg4))"></span><span>학원 밀집도<small>약 250m 칸마다 입시·교과·외국어 학원 수(3~9 · 10~19 · 20~39 · 40곳+) · 주요 학원가 이름 표시</small></span></label>
+<label><input type="checkbox" id="L_hp" checked><span class="dot" style="background:var(--hg4)"></span><span>학원 위치<small>크게 확대하면 표시 · 주황 입시·교과, 청록 외국어, 분홍 예체능, 회색 컴퓨터·자격</small></span></label>
+</div></details>
+<details class="grp"><summary><span class="gi">🛍</span>상권</summary><div class="lay">
+<label><input type="checkbox" id="L_cm"><span class="sw" style="background:linear-gradient(90deg,var(--cm1),var(--cm2),var(--cm3),var(--cm4))"></span><span>점포 밀집도 (약 250m 칸)<small id="cmlg">상가 점포 수 · 진할수록 많음 · 칸을 누르면 업종별 수 · 큰 상권은 이름 표시</small></span></label>
+<select id="cmk" aria-label="상권 업종"><option value="life">생활상권 (음식·소매·서비스·의료·예체능·숙박)</option><option value="I2">음식점·카페</option><option value="G2">소매</option><option value="S2">수리·미용 등 개인서비스</option><option value="Q1">병원·약국 (보건의료)</option><option value="P1">교육 (학원 포함)</option><option value="off">사무 (부동산·전문서비스·시설관리)</option><option value="all">전체 업종</option></select>
+<label><input type="checkbox" id="L_cz"><span class="sw" style="border:2px solid var(--cmz);background:transparent"></span><span>상권 경계·이름<small>서울: 발달상권(실선)·골목상권(점선)·전통시장(갈색)·관광특구 / 그 밖: 주요상권 · 누르면 이름·종류</small></span></label>
+</div></details>
+<details class="grp"><summary><span class="gi">👥</span>인구</summary><div class="lay">
+<label><input type="checkbox" id="L_pop"><span class="sw" style="background:linear-gradient(90deg,var(--pp1),var(--pp3),var(--pp6))"></span><span>인구밀도 (1km 격자)<small>2024년 거주 인구 · 1㎢당 500·2천·5천·1만·2만 명 경계 · 칸을 누르면 학령인구·1인가구</small></span></label>
+<label><input type="checkbox" id="L_fp"><span class="sw" style="background:linear-gradient(90deg,var(--fl1),var(--fl4))"></span><span>유동인구 (서울 행정동)<small>서울 생활인구 하루 평균의 면적당 값 · 서울 안에서 상위 10·25·50% 구분</small></span></label>
+</div></details>
+<details class="grp"><summary><span class="gi">🏢</span>건물 색</summary><div class="lay">
+<label style="align-items:center"><span>건물 색 기준 <select id="bcm" aria-label="건물 색 기준" style="font:inherit;font-size:13px;margin-left:4px"><option value="use">용도별</option><option value="age">연식별 (사용승인 연도)</option><option value="old">30년 넘은 아파트만 강조</option></select></span></label>
+<div id="blg" class="muted" style="font-size:12.5px;margin:-2px 0 6px"></div>
+</div></details>
+<details class="grp"><summary><span class="gi">⛰</span>지형</summary><div class="lay">
+<label><input type="checkbox" id="L_tr" checked><span class="sw" style="background:linear-gradient(90deg,#e2eed6,#b8d5a6)"></span><span>산지<small>해발 200m·450m·800m 이상을 단계별 초록으로 · 위성 배경에서는 숨김</small></span></label>
+<label><input type="checkbox" id="L_wa" checked><span class="sw" style="background:#a9d3e6;border:1px solid #7fb6d0"></span><span>강·호수·저수지<small>위성 배경에서는 숨김</small></span></label>
+</div></details>
+<details class="grp"><summary><span class="gi">🔤</span>이름 표시</summary><div class="lay">
+<label><input type="checkbox" id="L_dong" checked><span class="sw" style="display:grid;place-items:center;font-size:11px;border:1px solid var(--edge);color:var(--sub)">동</span><span>동(읍·면) 이름<small>켜면 크게 확대했을 때 동 이름 표시</small></span></label>
+</div></details>
+<details class="grp"><summary><span class="gi">🛤</span>노선별 선택</summary><div id="lines"><div style="font-weight:700;font-size:15px">노선별 선택</div>
+<p class="muted" style="margin:4px 0 0;font-size:13px">체크로 노선을 켜고 끄고, 이름을 누르면 그 노선만 보이면서 지도가 이동합니다.</p>
+<div class="lbar"><input type="search" id="lf" placeholder="노선 이름 거르기" aria-label="노선 목록 거르기"><button id="lall">모두 켜기</button><button id="lnone">모두 끄기</button></div>
+<div id="lineList"></div></div>
+
+</details>
+<details class="grp"><summary><span class="gi">⚙</span>배경지도 설정</summary><div class="lay"><div class="muted" style="font-size:13px">
+<p style="margin:6px 0 0">브이월드 인증키를 넣으면 일반지도·위성을 브이월드(국토교통부)로 봅니다. 키는 이 브라우저에만 저장됩니다. 키가 없거나 막히면 OpenStreetMap·Esri 위성으로 대신 보여줍니다.</p>
+<div style="display:flex;gap:6px;margin-top:6px"><input id="vk" type="password" placeholder="브이월드 인증키" autocomplete="off" style="flex:1;min-width:0;height:36px;font:14px system-ui;padding:0 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink)"><button id="vks" style="height:36px">저장</button></div>
+<p id="vkm" style="margin:4px 0 0"></p>
+<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button id="vkv" type="button" style="height:34px;font-size:13px">👁 키 보기</button><button id="vkg" type="button" style="height:34px;font-size:13px">📱 모든 기기에서 쓰기 (GitHub에 올리기)</button></div>
+<p class="muted" style="margin:4px 0 0;font-size:12px">'모든 기기에서 쓰기'를 누르면 GitHub 새 파일 화면(vwkey.js)이 이 키가 채워진 채로 열립니다. 아래 초록색 <b>Commit changes</b>를 누르면 1~2분 뒤 휴대폰 등 키를 넣지 않은 기기에서도 배경지도·실사 3D가 나옵니다.</p>
+<script>{const i=document.getElementById('vk'),m=document.getElementById('vkm');
+document.getElementById('vkv').onclick=e=>{const s=i.type==='password';i.type=s?'text':'password';e.target.textContent=s?'🙈 키 숨기기':'👁 키 보기'};
+document.getElementById('vkg').onclick=()=>{const k=(i.value||'').trim();if(!k){m.textContent='먼저 위 칸에 브이월드 인증키를 넣어 주세요.';return}
+if(!/^[A-Za-z0-9-]{20,60}$/.test(k)){m.textContent='키 모양이 이상합니다(영문·숫자·하이픈). 다시 확인해 주세요.';return}
+window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value='+encodeURIComponent("window.VWKEY_DEFAULT='"+k+"';\n"),'_blank');m.textContent='GitHub 창에서 Commit changes를 눌러 주세요. 이미 파일이 있다는 오류가 나면 github.com/bummagic/bummap/edit/main/vwkey.js 에서 한 줄을 고치면 됩니다.'}}</script></div>
+</div></details>
+</section>
+<section class="pane" data-p="apt"><h2 class="ph">아파트 실거래가</h2><div class="lay card2">
+<label><input type="checkbox" id="L_apt"><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#e8590c;border:1.5px solid #fff;box-shadow:0 0 0 1px #e8590c"></span><span>단지별 시세<small>국토교통부 실거래가 최근 12개월 (__APTFROM__~__APTTO__) · 시군 단위로 확대하면 표시 · 누르면 면적별 최근 매매가·전세가</small></span></label>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="aptc" aria-label="실거래가 색 기준" style="font:inherit"><option value="p">색: 평당 매매가</option><option value="j">색: 전세가율</option><option value="g">색: 최근 3개월 변동</option><option value="y">색: 준공 연도</option><option value="f">색: 호재 역(공사·계획) 거리</option><option value="s">색: 가까운 역 거리</option></select><select id="aptf" aria-label="실거래가 보기" style="font:inherit"><option value="0">전체 단지</option><option value="5">12개월 매매 5건+</option><option value="j70">전세가율 70%+</option><option value="j80">전세가율 80%+</option><option value="old">준공 30년+</option><option value="new">준공 10년 이내</option><option value="f1">호재 역 1km 안</option><option value="s5">역 500m 안(역세권)</option></select></div>
+<div id="alg" class="muted" style="font-size:12.5px;margin:0 0 8px 28px"></div>
+</div>
 <div class="lay" id="rec">
 <h3>내 조건으로 아파트 찾기</h3>
 <p class="muted" style="margin:0 0 8px;font-size:12.5px">예산과 원하는 조건을 고르면 최근 12개월 실거래가로 맞는 단지를 골라 줍니다. 가격은 면적별 최근 매매가·전세 중앙값이라 지금 호가와 다를 수 있습니다.</p>
@@ -135,87 +267,29 @@ footer{font-size:13px;color:var(--sub)}
 <div style="display:flex;gap:6px;margin-top:8px"><button id="recGo" style="height:36px;flex:1;font-weight:700">찾기</button><button id="recX" style="height:36px">지우기</button></div>
 <div id="recR2"></div>
 </div>
-<div class="lay" id="cand">
-<h3>후보지 찾기</h3>
+</section>
+<section class="pane" data-p="find"><h2 class="ph">후보지 찾기</h2><div class="lay" id="cand">
 <p class="muted" style="margin:0 0 8px;font-size:12.5px">조건을 고르고 '찾기'를 누르면 모든 조건에 맞는 동이 노란색으로 표시됩니다. 학원·점포 수는 동 안 250m 칸 합계, 인구는 동 안 1km 격자 평균, 역 거리는 동 중심에서 가장 가까운 역까지 직선거리입니다.</p>
 <label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">범위<select id="cdA" style="font:inherit;font-size:13px;max-width:62%"><option value="cov">수도권·충청·전북</option><option value="view">지금 화면 안</option><option value="all">전국</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">규제지역<select id="cdZ" style="font:inherit;font-size:13px;max-width:62%"><option value="any">상관없음</option><option value="out">규제지역 밖만</option><option value="in">3중 규제 안만</option><option value="w">추가 지정 거론 지역만</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">가까운 역<select id="cdS" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="0.5">500m 안</option><option value="1">1km 안</option><option value="2">2km 안</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">호재 역(공사·계획)<select id="cdF" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="1">1km 안</option><option value="2">2km 안</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">학원(입시·교과·외국어)<select id="cdH" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="10">10곳 이상</option><option value="30">30곳 이상</option><option value="100">100곳 이상</option><option value="300">300곳 이상</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">인구밀도<select id="cdP" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="5000">1㎢당 5천 명↑</option><option value="10000">1만 명↑</option><option value="20000">2만 명↑</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">상가 점포<select id="cdC" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="200">200곳 이상</option><option value="500">500곳 이상</option><option value="1000">1,000곳 이상</option></select></label><label style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 6px;font-size:13.5px">정비사업<select id="cdJ" style="font:inherit;font-size:13px;max-width:62%"><option value="0">상관없음</option><option value="seoul">서울: 재개발·재건축·신통기획 구역이 있는 동</option><option value="any">정비사업 있음(서울 구역 + 서울 밖 시군구 목록)</option></select></label><div style="display:flex;gap:6px"><button id="cdGo" style="height:36px;flex:1;font-weight:700">찾기</button><button id="cdX" style="height:36px">지우기</button></div>
 <div id="cdR"></div>
 </div>
-<div class="lay" id="plc">
-<h3>내 위치·저장한 위치</h3>
+</section>
+<section class="pane" data-p="me"><h2 class="ph">내 위치·저장한 위치</h2><div class="lay" id="plc">
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button id="pAdd" style="height:34px;font-size:13px">＋ 화면 가운데 저장</button><button id="pPick" style="height:34px;font-size:13px">＋ 지도에서 눌러 저장</button><button id="pMe" style="height:34px;font-size:13px">＋ 내 위치 저장</button></div>
 <div id="pList"></div>
 <p class="muted" style="margin:4px 0 0;font-size:12px">개수 제한 없이 필요한 만큼 추가됩니다. 이 브라우저에만 저장됩니다(다른 기기는 '내보내기'로 옮기기). <button id="pExp" style="all:unset;cursor:pointer;color:var(--zB);text-decoration:underline">내보내기</button> · <button id="pImp" style="all:unset;cursor:pointer;color:var(--zB);text-decoration:underline">가져오기</button></p>
 </div>
-<div class="lay">
-<h3>규제지역</h3>
-<label><input type="checkbox" id="L_zone" checked><span class="sw" style="background:var(--fA);border:2.4px solid var(--zA)"></span><span>3중 규제 · 10·15 대책<small>서울 25개구, 경기 12곳 · 토허 ~2026.12.31</small></span></label>
-<label><input type="checkbox" checked disabled><span class="sw" style="background:var(--fB);border:2.4px solid var(--zB)"></span><span>3중 규제 · 2026.7.1 신규<small>화성 동탄구, 용인 기흥구, 구리시 · 토허 ~2027.12.31</small></span></label>
-<label><input type="checkbox" checked disabled><span class="sw" style="border:2px dashed var(--zW)"></span><span>비규제 · 추가 지정 거론<small>수원 권선, 안양 만안, 군포, 부천 원미, 화성 병점구</small></span></label>
-<label><input type="checkbox" id="L_fz"><span class="sw" style="background:repeating-linear-gradient(45deg,transparent 0 3px,var(--sub) 3px 4px);border:1px solid var(--sub)"></span><span>외국인 토지거래허가구역<small>외국인 등만 대상 · ~2027.8.25</small></span></label>
-<h3 style="margin-top:14px">지형</h3>
-<label><input type="checkbox" id="L_tr" checked><span class="sw" style="background:linear-gradient(90deg,#e2eed6,#b8d5a6)"></span><span>산지<small>해발 200m·450m·800m 이상을 단계별 초록으로 · 위성 배경에서는 숨김</small></span></label>
-<label><input type="checkbox" id="L_wa" checked><span class="sw" style="background:#a9d3e6;border:1px solid #7fb6d0"></span><span>강·호수·저수지<small>위성 배경에서는 숨김</small></span></label>
-<h3 style="margin-top:14px">이름 표시</h3>
-<label><input type="checkbox" id="L_dong" checked><span class="sw" style="display:grid;place-items:center;font-size:11px;border:1px solid var(--edge);color:var(--sub)">동</span><span>동(읍·면) 이름<small>켜면 크게 확대했을 때 동 이름 표시</small></span></label>
-<h3 style="margin-top:14px">교통·역세권</h3>
-<label><input type="checkbox" id="L_rd"><span class="ln" style="border-image:linear-gradient(90deg,var(--rdx) 0 50%,var(--rd8) 50%) 1"></span><span>도로 (국토부 표준노드링크)<small>주황 고속국도·도시고속도로, 보라 왕복 8차선 이상 · 누르면 도로명·등급·차선</small></span></label>
-<select id="rdm" aria-label="도로 보기"><option value="b">고속도로 + 8차선 이상</option><option value="x">고속도로만</option><option value="all">주요도로 전체 (국도·시도·지방도 4차선↑ 포함)</option></select>
-<label><input type="checkbox" id="L_hw" checked><span class="ln" style="border-color:var(--hw)"></span><span>고속도로<small>확대하면 노선 이름 표시, 누르면 이름·번호</small></span></label>
-<label><input type="checkbox" id="L_ktx" checked><span class="ln" style="border-color:var(--ktx)"></span><span>KTX·고속철도</span></label>
-<label><input type="checkbox" id="L_rail" checked><span class="ln" style="border-color:var(--rail);border-top-width:2px"></span><span>일반철도<small>경부선·호남선·중앙선 등</small></span></label>
-<label><input type="checkbox" id="L_m" checked><span class="ln" style="border-image:linear-gradient(90deg,#0052A4 0 25%,#00A84D 25% 50%,#EF7C1C 50% 75%,#996CAC 75%) 1"></span><span>전철·도시철도·GTX<small>노선 고유색, 확대하면 역 표시</small></span></label>
-<label><input type="checkbox" id="L_construction" checked><span class="ln" style="border-top-style:dashed"></span><span>공사 중 (긴 점선)<small>주황 테 동그라미 = 공사 중 노선의 역(호재 역)</small></span></label>
-<label><input type="checkbox" id="L_planned" checked><span class="ln" style="border-top-style:dotted;border-top-width:4px"></span><span>계획 (짧은 점선)<small>착공 전 · 일부는 역을 이은 개략선 · 보라 테 동그라미 = 계획 노선의 역</small></span></label>
-<label><input type="checkbox" id="L_bus"><span class="dot" style="flex:none;width:10px;height:10px;border-radius:50%;margin:3px 9px 0 9px;background:#0ca678;border:1.5px solid #fff;box-shadow:0 0 0 1px #0ca678"></span><span>버스정류장<small>동 단위(축척 약 300m)로 확대하면 표시 · 누르면 이름·정류장 번호 · 서울·경기·인천·대전·세종·충북·충남·전북 약 11.8만 곳</small></span></label>
-<label><input type="checkbox" id="L_st" checked><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#fff;border:2px solid #13242e"></span><span>역<small>확대하면 표시 · 누르면 지나는 노선</small></span></label>
-<label style="align-items:center"><span class="sw" style="border:2px solid #2563eb;border-radius:50%;width:16px;height:16px;margin:0 6px"></span><span>역세권 <select id="ysm" aria-label="역세권 반경" style="font:inherit;font-size:13px;margin-left:4px"><option value="0">끔</option><option value="1" selected>500m</option><option value="2">500m + 1km</option></select><small>역 중심에서 직선거리 · 걸어서 약 7분(500m)·15분(1km)</small></span></label>
-<h3 style="margin-top:14px">인구</h3>
-<label><input type="checkbox" id="L_pop"><span class="sw" style="background:linear-gradient(90deg,var(--pp1),var(--pp3),var(--pp6))"></span><span>인구밀도 (1km 격자)<small>2024년 거주 인구 · 1㎢당 500·2천·5천·1만·2만 명 경계 · 칸을 누르면 학령인구·1인가구</small></span></label>
-<label><input type="checkbox" id="L_fp"><span class="sw" style="background:linear-gradient(90deg,var(--fl1),var(--fl4))"></span><span>유동인구 (서울 행정동)<small>서울 생활인구 하루 평균의 면적당 값 · 서울 안에서 상위 10·25·50% 구분</small></span></label>
-<h3 style="margin-top:14px">학원</h3>
-<label><input type="checkbox" id="L_hg" checked><span class="sw" style="background:linear-gradient(90deg,var(--hg1),var(--hg2),var(--hg3),var(--hg4))"></span><span>학원 밀집도<small>약 250m 칸마다 입시·교과·외국어 학원 수(3~9 · 10~19 · 20~39 · 40곳+) · 주요 학원가 이름 표시</small></span></label>
-<label><input type="checkbox" id="L_hp" checked><span class="dot" style="background:var(--hg4)"></span><span>학원 위치<small>크게 확대하면 표시 · 주황 입시·교과, 청록 외국어, 분홍 예체능, 회색 컴퓨터·자격</small></span></label>
-<h3 style="margin-top:14px">상권</h3>
-<label><input type="checkbox" id="L_cm"><span class="sw" style="background:linear-gradient(90deg,var(--cm1),var(--cm2),var(--cm3),var(--cm4))"></span><span>점포 밀집도 (약 250m 칸)<small id="cmlg">상가 점포 수 · 진할수록 많음 · 칸을 누르면 업종별 수 · 큰 상권은 이름 표시</small></span></label>
-<select id="cmk" aria-label="상권 업종"><option value="life">생활상권 (음식·소매·서비스·의료·예체능·숙박)</option><option value="I2">음식점·카페</option><option value="G2">소매</option><option value="S2">수리·미용 등 개인서비스</option><option value="Q1">병원·약국 (보건의료)</option><option value="P1">교육 (학원 포함)</option><option value="off">사무 (부동산·전문서비스·시설관리)</option><option value="all">전체 업종</option></select>
-<label><input type="checkbox" id="L_cz"><span class="sw" style="border:2px solid var(--cmz);background:transparent"></span><span>상권 경계·이름<small>서울: 발달상권(실선)·골목상권(점선)·전통시장(갈색)·관광특구 / 그 밖: 주요상권 · 누르면 이름·종류</small></span></label>
-<h3 style="margin-top:14px">학교</h3>
-<label><input type="checkbox" id="L_un" checked><span class="sw" style="width:12px;height:12px;margin:3px 8px 0 8px;border-radius:2px;background:var(--un)"></span><span>대학교<small>4년제·전문대·캠퍼스 · 확대하면 이름</small></span></label>
-<label><input type="checkbox" id="L_sh" checked><span class="dot" style="background:var(--sh)"></span><span>고등학교</span></label>
-<label><input type="checkbox" id="L_sm" checked><span class="dot" style="background:var(--sm)"></span><span>중학교</span></label>
-<label><input type="checkbox" id="L_se" checked><span class="dot" style="background:var(--se)"></span><span>초등학교<small>수도권·충청·전북 · 시군 단위로 확대하면 표시</small></span></label>
-<h3 style="margin-top:14px">아파트 실거래가</h3>
-<label><input type="checkbox" id="L_apt"><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#e8590c;border:1.5px solid #fff;box-shadow:0 0 0 1px #e8590c"></span><span>단지별 시세<small>국토교통부 실거래가 최근 12개월 (__APTFROM__~__APTTO__) · 시군 단위로 확대하면 표시 · 누르면 면적별 최근 매매가·전세가</small></span></label>
-<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="aptc" aria-label="실거래가 색 기준" style="font:inherit"><option value="p">색: 평당 매매가</option><option value="j">색: 전세가율</option><option value="g">색: 최근 3개월 변동</option><option value="y">색: 준공 연도</option><option value="f">색: 호재 역(공사·계획) 거리</option><option value="s">색: 가까운 역 거리</option></select><select id="aptf" aria-label="실거래가 보기" style="font:inherit"><option value="0">전체 단지</option><option value="5">12개월 매매 5건+</option><option value="j70">전세가율 70%+</option><option value="j80">전세가율 80%+</option><option value="old">준공 30년+</option><option value="new">준공 10년 이내</option><option value="f1">호재 역 1km 안</option><option value="s5">역 500m 안(역세권)</option></select></div>
-<div id="alg" class="muted" style="font-size:12.5px;margin:0 0 8px 28px"></div>
-<h3 style="margin-top:14px">정비사업 (재개발·재건축)</h3>
-<label><input type="checkbox" id="L_jb"><span class="sw" style="background:rgba(217,72,15,.25);border:2px solid #d9480f"></span><span>정비구역 경계 (서울)<small>재개발·재건축·신속통합기획·가로주택·모아타운 등 2,776곳 · 누르면 사업유형·추진단계 · 서울 밖은 동을 누르면 시군구별 사업 목록</small></span></label>
-<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="jbc" aria-label="정비구역 색 기준" style="font:inherit"><option value="g">색: 사업유형</option><option value="v">색: 진행 단계</option></select><select id="jbf" aria-label="정비구역 보기" style="font:inherit"><option value="all">전체</option><option value="main">재개발·재건축·신통기획</option><option value="small">소규모(가로·모아·소규모)</option><option value="early">진행 초기(조합설립 전)</option><option value="late">사업시행인가 이후</option></select></div>
-<div id="jlg" class="muted" style="font-size:12.5px;margin:0 0 8px 28px"></div>
-<h3 style="margin-top:14px">건물 색</h3>
-<label style="align-items:center"><span>건물 색 기준 <select id="bcm" aria-label="건물 색 기준" style="font:inherit;font-size:13px;margin-left:4px"><option value="use">용도별</option><option value="age">연식별 (사용승인 연도)</option><option value="old">30년 넘은 아파트만 강조</option></select></span></label>
-<div id="blg" class="muted" style="font-size:12.5px;margin:-2px 0 6px"></div>
-</div>
-<details class="muted" style="font-size:13px"><summary style="cursor:pointer">배경지도 설정 (브이월드 인증키)</summary>
-<p style="margin:6px 0 0">브이월드 인증키를 넣으면 일반지도·위성을 브이월드(국토교통부)로 봅니다. 키는 이 브라우저에만 저장됩니다. 키가 없거나 막히면 OpenStreetMap·Esri 위성으로 대신 보여줍니다.</p>
-<div style="display:flex;gap:6px;margin-top:6px"><input id="vk" type="password" placeholder="브이월드 인증키" autocomplete="off" style="flex:1;min-width:0;height:36px;font:14px system-ui;padding:0 8px;border:1px solid var(--edge);border-radius:6px;background:var(--panel);color:var(--ink)"><button id="vks" style="height:36px">저장</button></div>
-<p id="vkm" style="margin:4px 0 0"></p>
-<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button id="vkv" type="button" style="height:34px;font-size:13px">👁 키 보기</button><button id="vkg" type="button" style="height:34px;font-size:13px">📱 모든 기기에서 쓰기 (GitHub에 올리기)</button></div>
-<p class="muted" style="margin:4px 0 0;font-size:12px">'모든 기기에서 쓰기'를 누르면 GitHub 새 파일 화면(vwkey.js)이 이 키가 채워진 채로 열립니다. 아래 초록색 <b>Commit changes</b>를 누르면 1~2분 뒤 휴대폰 등 키를 넣지 않은 기기에서도 배경지도·실사 3D가 나옵니다.</p>
-<script>{const i=document.getElementById('vk'),m=document.getElementById('vkm');
-document.getElementById('vkv').onclick=e=>{const s=i.type==='password';i.type=s?'text':'password';e.target.textContent=s?'🙈 키 숨기기':'👁 키 보기'};
-document.getElementById('vkg').onclick=()=>{const k=(i.value||'').trim();if(!k){m.textContent='먼저 위 칸에 브이월드 인증키를 넣어 주세요.';return}
-if(!/^[A-Za-z0-9-]{20,60}$/.test(k)){m.textContent='키 모양이 이상합니다(영문·숫자·하이픈). 다시 확인해 주세요.';return}
-window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value='+encodeURIComponent("window.VWKEY_DEFAULT='"+k+"';\n"),'_blank');m.textContent='GitHub 창에서 Commit changes를 눌러 주세요. 이미 파일이 있다는 오류가 나면 github.com/bummagic/bummap/edit/main/vwkey.js 에서 한 줄을 고치면 됩니다.'}}</script></details>
-<div id="info"><p class="muted">지도에서 동·선·점을 누르거나 검색하세요.</p></div>
-<div id="lines"><div style="font-weight:700;font-size:15px">노선별 선택</div>
-<p class="muted" style="margin:4px 0 0;font-size:13px">체크로 노선을 켜고 끄고, 이름을 누르면 그 노선만 보이면서 지도가 이동합니다.</p>
-<div class="lbar"><input type="search" id="lf" placeholder="노선 이름 거르기" aria-label="노선 목록 거르기"><button id="lall">모두 켜기</button><button id="lnone">모두 끄기</button></div>
-<div id="lineList"></div></div>
-
-</aside>
 </section>
+<section class="pane" data-p="about"><div class="about">
+<h1>사이버 임장지도</h1>
+<p class="lead">2026년 11월 17일 기준 부동산 규제지역(조정대상지역·투기과열지구·토지거래허가구역)에 전국 철도(KTX·일반철도·전철·도시철도)와 고속도로를 겹쳤습니다. 공사 중이거나 계획된 노선은 점선으로 구분했습니다. 동 이름이나 노선 이름으로 검색하고, 지역이나 선을 누르면 자세한 내용이 나옵니다.</p>
+<div class="kpis">
+<div class="kpi"><b>40곳</b><span>3중 규제 시군구 (서울 25 · 경기 15)</span></div>
+<div class="kpi"><b>0곳</b><span>지방 규제지역</span></div>
+<div class="kpi"><b>__NRAIL__개</b><span>철도 노선 (공사·계획 포함)</span></div>
+<div class="kpi"><b>__NHWY__개</b><span>고속도로 노선</span></div>
+</div>
+
 
 <section class="band">
 <h2>규제지역 지정 현황</h2>
@@ -259,6 +333,20 @@ window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value
 <p>출처: <a href="https://mobile.newsis.com/view/NISX20251015_0003363935">뉴시스(10·15 대책)</a> · <a href="https://m.seoul.co.kr/news/2025/10/16/20251016001004">서울신문</a> · <a href="https://imnews.imbc.com/news/2026/econo/article/6833827_36932.html">MBC(동탄·기흥·구리)</a> · <a href="https://www.fnnews.com/news/202508231349341303">파이낸셜뉴스(화성 4개 구)</a> · <a href="https://biz.heraldcorp.com/article/10928147">헤럴드경제</a> · <a href="https://www.mediapen.com/news/view/1136176">미디어펜</a> · <a href="https://www.newspim.com/news/view/20261113001166">뉴스핌</a> · <a href="https://www.korea.kr/news/customizedNewsView.do?newsId=148970419">정책브리핑(외국인 토허)</a> · <a href="https://www.economicpost.co.kr/181427">이코노믹포스트</a> · <a href="https://www.kyeonggi.com/article/20251015580444">경기일보</a> · 철도: <a href="https://biz.sbs.co.kr/amp/article/20000275878">SBS Biz(신안산선)</a> · <a href="https://kbthink.com/realestate/basics/blog/260805.html">KB(월판선)</a> · <a href="https://www.kyeongin.com/article/1769309">경인일보(인동선)</a> · <a href="https://www.hankyung.com/article/202506105435i">한국경제(7·9호선)</a> · <a href="https://www.kukinews.com/article/view/kuk202601080154">쿠키뉴스(도봉산옥정선)</a> · <a href="https://news.bizwatch.co.kr/article/real_estate/2025/03/26/0033">비즈워치(옥정포천선)</a> · <a href="https://v.daum.net/v/8QcQCBZvN9">세계일보(신분당선 호매실)</a> · <a href="https://www.segye.com/newsView/20260417515082">세계일보(대장홍대선)</a> · <a href="https://www.kukinews.com/article/view/kuk202512230122">쿠키뉴스(송파하남선)</a> · <a href="https://www.dailian.co.kr/news/view/1526769/">데일리안(강동하남남양주선)</a> · <a href="https://news.mtn.co.kr/news-detail/2025061022392194618">MTN(신분당선 용산~신사)</a> · <a href="https://github.com/plazalabs/kr-rail-map">kr-rail-map</a> · <a href="https://www.openstreetmap.org">OpenStreetMap</a></p>
 </footer>
 
+<p class="muted" style="margin:0;font-size:12.5px">이전 방식(D3) 지도는 <a href="old.html">여기</a>에서 볼 수 있습니다.</p>
+</div></section>
+</div>
+</aside>
+</div>
+
+<script>{const side=document.getElementById('side'),tabs=[...side.querySelectorAll('.tabs button')],panes=[...side.querySelectorAll('.pane')],mob=()=>matchMedia('(max-width:900px)').matches;
+const show=t=>{tabs.forEach(b=>b.classList.toggle('on',b.dataset.t===t));panes.forEach(p=>p.classList.toggle('on',p.dataset.p===t))};
+tabs.forEach(b=>b.onclick=()=>{const was=b.classList.contains('on');show(b.dataset.t);if(mob())side.classList.toggle('open',!(was&&side.classList.contains('open')));if(mob()&&side.classList.contains('open'))card.hidden=true});
+window._showTab=t=>{show(t);if(mob())side.classList.add('open')};
+const card=document.getElementById('infoCard'),info=document.getElementById('info');let first=true;
+new MutationObserver(()=>{if(first){first=false}card.hidden=false;card.scrollTop=0;if(mob())side.classList.remove('open')}).observe(info,{childList:true,subtree:false});
+document.getElementById('infoX').onclick=()=>{card.hidden=true};
+document.getElementById('map').addEventListener('pointerdown',()=>{if(mob())side.classList.remove('open')})}</script>
 <script src="vwkey.js"></script>
 <script src="lib/maplibre-gl-csp.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>

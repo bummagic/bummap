@@ -145,6 +145,32 @@ button.on{outline:0!important;background:var(--accbg);color:var(--acc);font-weig
 #bst{bottom:auto!important;top:108px}
 }
 @media(max-width:600px){.brand{display:none!important}.tools .sp{display:none}.tools input[type=search]{flex:1 1 180px;width:auto!important}.tools .seg button{height:36px;padding:0 8px;font-size:12.5px}#bbtn{height:36px;font-size:12.5px;padding:0 8px}#jsel{height:38px}.brand{height:38px}.tools input[type=search]{height:38px}}
+
+/* 가격 표시 막대·지역 경로·빠른 켜기(리치고식) */
+.crumb{display:inline-flex;align-items:center;height:44px;padding:0 12px;border-radius:10px;background:var(--panel);box-shadow:var(--shadow);font-size:13.5px;color:var(--sub);white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis}.crumb:empty{display:none}.crumb b{color:var(--ink);margin-left:3px}
+.abar{position:absolute;top:62px;left:10px;display:flex;gap:6px;flex-wrap:wrap;z-index:2;pointer-events:none}.abar>*{pointer-events:auto}
+.abar .seg{box-shadow:var(--shadow);border-radius:10px}.abar button{height:34px;font-size:13px;padding:0 11px;border-color:transparent}
+.abar #abOff{width:34px;min-width:34px;padding:0;box-shadow:var(--shadow);border-radius:10px;display:none}.abar.on #abOff{display:inline-block}
+.abar:not(.on) #abA{display:none}
+.rail{position:absolute;right:10px;top:62px;display:flex;flex-direction:column;gap:0;z-index:2;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);background:var(--panel)}
+.rail button{width:52px;height:50px;min-width:52px;padding:0;border:0;border-radius:0;border-bottom:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:17px;line-height:1.1}
+.rail button span{font-size:10.5px;color:var(--sub);margin-top:2px}.rail button:last-child{border-bottom:0}
+.rail button.on{background:var(--accbg)}.rail button.on span{color:var(--acc);font-weight:700}
+.zoom{top:auto}
+@media(max-width:900px){.rail{top:auto;bottom:118px;right:8px}.rail button{width:46px;min-width:46px;height:44px;font-size:15px}.zoom{top:110px!important;bottom:auto}.abar{top:100px;left:8px;right:64px}.crumb{display:none}}
+@media(max-width:600px){.abar{top:96px}.abar button{height:32px;padding:0 8px;font-size:12px}.zoom{top:146px!important}.zoom #zi,.zoom #zo{display:none}}
+
+.hero{display:flex;gap:8px;margin:8px 0 4px}.hero>div{flex:1;background:var(--accbg);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}.hero b{font-size:21px;line-height:1.2;color:var(--ink)}.hero small{font-size:11.5px;color:var(--sub)}
+/* 여백·글자 정리 */
+.pane{padding:12px 14px 24px}.ph{font-size:17px;margin:0 0 10px}.grp>summary{padding:10px 12px}.grp>.lay,.grp>#lines{padding:4px 12px 8px}
+.lay label{margin:0 0 7px;font-size:13.5px}.lay small{font-size:12px}
+#info dl{font-size:13.5px;grid-template-columns:5.6em minmax(0,1fr);gap:5px 10px}
+.card{padding:12px 14px 14px}
+
+.pill{--c:#868e96;display:flex;width:max-content;flex-direction:column;align-items:center;min-width:46px;padding:3px 8px 4px;border-radius:9px;background:var(--c);color:#fff;font:12px/1.15 "Noto Sans KR",sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.28);cursor:pointer;position:relative;white-space:nowrap;margin-bottom:6px}
+.pill::after{content:'';position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--c)}
+.pill small{font-size:10px;opacity:.9}.pill b{font-size:13.5px;font-weight:700;letter-spacing:-.2px}.pill i{font-style:normal;font-size:10.5px;max-width:110px;overflow:hidden;text-overflow:ellipsis;opacity:.95;border-bottom:1px solid rgba(255,255,255,.35);margin-bottom:1px;padding-bottom:1px}
+.pill:hover{z-index:5;filter:brightness(1.08);transform:translateY(-1px)}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
 </head>
@@ -157,11 +183,19 @@ button.on{outline:0!important;background:var(--accbg);color:var(--acc);font-weig
 <div class="brand" title="사이버 임장지도">🏠<b>사이버 임장지도</b></div>
 <input type="search" id="q" list="names" placeholder="동탄1동, 강남역, 래미안, 경부고속도로" aria-label="지역 검색">
 <datalist id="names"></datalist>
-<div class="jump" id="jump"></div><select id="jsel" aria-label="지역 바로가기" style="display:none"></select>
+<span id="crumb" class="crumb" title="지도 가운데 지역"></span><div class="jump" id="jump"></div><select id="jsel" aria-label="지역 바로가기" style="display:none"></select>
 <span class="sp"></span><span class="seg" role="group" aria-label="배경지도"><button id="bm0" class="on">단색</button><button id="bm1">일반지도</button><button id="bm2">위성</button></span>
 <button id="bbtn" class="on" title="동 단위로 확대하면 건물이 보입니다">🏢 건물 켜짐</button>
 <span class="seg" role="group" aria-label="건물 보기"><button id="v2" class="on">2D</button><button id="v3">3D</button></span>
 <button id="vrot" style="display:none">↻ 45°</button>
+</div>
+<div class="abar" id="abar" role="toolbar" aria-label="아파트 가격 표시">
+<span class="seg" id="abM"><button data-k="pm">매매</button><button data-k="jm">전세</button><button data-k="p">평당가</button><button data-k="j">전세가율</button><button data-k="g">변동</button></span>
+<span class="seg" id="abA"><button data-a="0">전체 면적</button><button data-a="59">59㎡</button><button data-a="84">84㎡</button><button data-a="100">95㎡+</button></span>
+<button id="abOff" title="아파트 가격표 끄기">✕</button>
+</div>
+<div class="rail" id="rail" aria-label="빠른 켜고 끄기">
+<button data-l="apt">🏢<span>시세</span></button><button data-l="fut">🚆<span>호재역</span></button><button data-l="ys">⭕<span>역세권</span></button><button data-l="sch">🏫<span>학교</span></button><button data-l="hg">📚<span>학원</span></button><button data-l="jb">🏗<span>정비</span></button><button data-l="bus">🚌<span>버스</span></button>
 </div>
 <div class="zoom"><button id="myb" title="지금 내 위치로 이동" aria-label="내 위치">📍</button><button id="msb" title="지도에서 점을 차례로 눌러 거리 재기" aria-label="거리 재기">📏</button><button id="zi" aria-label="확대">+</button><button id="zo" aria-label="축소">−</button><button id="zr" aria-label="전국 보기">⟲</button></div>
 <div id="bst"></div><div id="attr"></div>
@@ -199,13 +233,13 @@ button.on{outline:0!important;background:var(--accbg);color:var(--acc);font-weig
 </div></details>
 <details class="grp"><summary><span class="gi">🏫</span>학교</summary><div class="lay">
 <label><input type="checkbox" id="L_un" checked><span class="sw" style="width:12px;height:12px;margin:3px 8px 0 8px;border-radius:2px;background:var(--un)"></span><span>대학교<small>4년제·전문대·캠퍼스 · 확대하면 이름</small></span></label>
-<label><input type="checkbox" id="L_sh" checked><span class="dot" style="background:var(--sh)"></span><span>고등학교</span></label>
-<label><input type="checkbox" id="L_sm" checked><span class="dot" style="background:var(--sm)"></span><span>중학교</span></label>
-<label><input type="checkbox" id="L_se" checked><span class="dot" style="background:var(--se)"></span><span>초등학교<small>수도권·충청·전북 · 시군 단위로 확대하면 표시</small></span></label>
+<label><input type="checkbox" id="L_sh"><span class="dot" style="background:var(--sh)"></span><span>고등학교</span></label>
+<label><input type="checkbox" id="L_sm"><span class="dot" style="background:var(--sm)"></span><span>중학교</span></label>
+<label><input type="checkbox" id="L_se"><span class="dot" style="background:var(--se)"></span><span>초등학교<small>수도권·충청·전북 · 시군 단위로 확대하면 표시</small></span></label>
 </div></details>
 <details class="grp"><summary><span class="gi">📚</span>학원</summary><div class="lay">
-<label><input type="checkbox" id="L_hg" checked><span class="sw" style="background:linear-gradient(90deg,var(--hg1),var(--hg2),var(--hg3),var(--hg4))"></span><span>학원 밀집도<small>약 250m 칸마다 입시·교과·외국어 학원 수(3~9 · 10~19 · 20~39 · 40곳+) · 주요 학원가 이름 표시</small></span></label>
-<label><input type="checkbox" id="L_hp" checked><span class="dot" style="background:var(--hg4)"></span><span>학원 위치<small>크게 확대하면 표시 · 주황 입시·교과, 청록 외국어, 분홍 예체능, 회색 컴퓨터·자격</small></span></label>
+<label><input type="checkbox" id="L_hg"><span class="sw" style="background:linear-gradient(90deg,var(--hg1),var(--hg2),var(--hg3),var(--hg4))"></span><span>학원 밀집도<small>약 250m 칸마다 입시·교과·외국어 학원 수(3~9 · 10~19 · 20~39 · 40곳+) · 주요 학원가 이름 표시</small></span></label>
+<label><input type="checkbox" id="L_hp"><span class="dot" style="background:var(--hg4)"></span><span>학원 위치<small>크게 확대하면 표시 · 주황 입시·교과, 청록 외국어, 분홍 예체능, 회색 컴퓨터·자격</small></span></label>
 </div></details>
 <details class="grp"><summary><span class="gi">🛍</span>상권</summary><div class="lay">
 <label><input type="checkbox" id="L_cm"><span class="sw" style="background:linear-gradient(90deg,var(--cm1),var(--cm2),var(--cm3),var(--cm4))"></span><span>점포 밀집도 (약 250m 칸)<small id="cmlg">상가 점포 수 · 진할수록 많음 · 칸을 누르면 업종별 수 · 큰 상권은 이름 표시</small></span></label>
@@ -248,7 +282,7 @@ window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value
 </section>
 <section class="pane" data-p="apt"><h2 class="ph">아파트 실거래가</h2><div class="lay card2">
 <label><input type="checkbox" id="L_apt"><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#e8590c;border:1.5px solid #fff;box-shadow:0 0 0 1px #e8590c"></span><span>단지별 시세<small>국토교통부 실거래가 최근 12개월 (2025.12~2026.11) · 시군 단위로 확대하면 표시 · 누르면 면적별 최근 매매가·전세가</small></span></label>
-<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="aptc" aria-label="실거래가 색 기준" style="font:inherit"><option value="p">색: 평당 매매가</option><option value="j">색: 전세가율</option><option value="g">색: 최근 3개월 변동</option><option value="y">색: 준공 연도</option><option value="f">색: 호재 역(공사·계획) 거리</option><option value="s">색: 가까운 역 거리</option></select><select id="aptf" aria-label="실거래가 보기" style="font:inherit"><option value="0">전체 단지</option><option value="5">12개월 매매 5건+</option><option value="j70">전세가율 70%+</option><option value="j80">전세가율 80%+</option><option value="old">준공 30년+</option><option value="new">준공 10년 이내</option><option value="f1">호재 역 1km 안</option><option value="s5">역 500m 안(역세권)</option></select></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="aptc" aria-label="실거래가 표시 기준" style="font:inherit"><option value="pm" selected>표시: 매매가</option><option value="jm">표시: 전세가</option><option value="p">표시: 평당 매매가</option><option value="j">표시: 전세가율</option><option value="g">표시: 최근 3개월 변동</option><option value="y">표시: 준공 연도</option><option value="f">표시: 호재 역 거리</option><option value="s">표시: 가까운 역 거리</option></select><select id="aptf" aria-label="실거래가 보기" style="font:inherit"><option value="0">전체 단지</option><option value="5">12개월 매매 5건+</option><option value="j70">전세가율 70%+</option><option value="j80">전세가율 80%+</option><option value="old">준공 30년+</option><option value="new">준공 10년 이내</option><option value="f1">호재 역 1km 안</option><option value="s5">역 500m 안(역세권)</option></select></div>
 <div id="alg" class="muted" style="font-size:12.5px;margin:0 0 8px 28px"></div>
 </div>
 <div class="lay" id="rec">
@@ -574,6 +608,7 @@ const cellSel=g=>setSel(g);
 const SHOW={
 sch:p=>{const s=window._edu.s[p.i],t=s[1];setSel(null);info.innerHTML=`<h3>${sname(s)}</h3><div class="muted">${SL[t[0]]}</div><span class="tag" style="background:${C3['s'+t[0]]}">${SF(t)}${t.includes('b')?' · 분교':''}</span><dl><dt>출처</dt><dd>전국초중등학교위치표준데이터 (${window._edu.ref} 기준)</dd></dl>`},
 uni:p=>{const u=window._edu.u[p.i];setSel(null);info.innerHTML=`<h3>${u[0]}</h3><div class="muted">${u[1]==='c'?'전문대학':'대학교'}</div><span class="tag" style="background:${C3.un}">대학</span><dl><dt>위치</dt><dd>OpenStreetMap 캠퍼스 위치</dd></dl>`},
+aptb:p=>SHOW.apt(p),
 hp:p=>{const d=window._hp[p.i],HK={a:'입시·교과',f:'외국어',p:'예체능',c:'컴퓨터·자격'};setSel(null);info.innerHTML=`<h3>${d[0]}</h3><div class="muted">학원 · ${HK[d[1]]}</div><dl>${d[4]?`<dt>건물</dt><dd>${d[4]}</dd>`:''}<dt>출처</dt><dd>상가(상권)정보 (${window._hgd?window._hgd.ref:''})</dd></dl>`},
 stc:p=>showStation(sts[p.i]),
 rdb:p=>showRd(p),rdm:p=>showRd(p),
@@ -588,7 +623,7 @@ flow:(p,f)=>{const d=window._flow,x=d.f[p.i],K={4:'서울 상위 10%',3:'상위 
 function showRd(p){const d=p.src==='b'?window._rdb:window._rdm,x=d.r[p.i];setSel({type:'MultiLineString',coordinates:x.g});info.innerHTML=`<h3>${x.n||'(이름 없음)'}</h3><div class="muted">${RK[x.k]||''}</div><span class="tag" style="background:${x.c==='x'?C3.rdx:x.c==='8'?C3.rd8:C3.rdm}">왕복 약 ${x.l}${x.l>=12?'+':''}차선</span><dl><dt>차선</dt><dd>한 방향 차로 수 × 2로 추정 (구간마다 다를 수 있음)</dd><dt>출처</dt><dd>국토교통부 전국 표준노드링크 (${d.ref})</dd></dl>`}
 // 누르기 우선순위: 점(학교·대학·학원·역) → 선(도로·고속도로·철도) → (정비구역은 기존 처리) → 칸(상권 경계·상권·학원·인구·유동인구) → 동
 window._pick3=(e,stage)=>{const P0=e.point,box=[[P0.x-6,P0.y-6],[P0.x+6,P0.y+6]];
-const ord=stage===1?['fst','apt','sch','uni','hp','bus','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
+const ord=stage===1?['fst','aptb','apt','sch','uni','hp','bus','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
 for(const l of ord){if(!map.getLayer(l)||map.getLayoutProperty(l,'visibility')==='none')continue;const f=map.queryRenderedFeatures(stage===1?box:P0,{layers:[l]})[0];if(f){SHOW[l](f.properties,f);return true}}return false};
 // ── 버스정류장(0.1° 칸 조각 파일, 확대했을 때 화면 안 칸만)
 S('bus',EMPTY);
@@ -604,17 +639,26 @@ $('L_bus').addEventListener('change',busLoad);let busT;map.on('moveend',()=>{if(
 SHOW.bus=p=>{const d=window._busV[p.i];setSel(null);info.innerHTML=`<h3>${d[0]}</h3><div class="muted">버스정류장 · ${d[4]} 버스정보시스템 자료</div><dl>${d[3]?`<dt>정류장 번호</dt><dd>${d[3]} (모바일 단축번호)</dd>`:''}<dt>좌표</dt><dd>${(d[1]/1e5).toFixed(5)}, ${(d[2]/1e5).toFixed(5)}</dd><dt>노선·도착</dt><dd><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 정류장')}" target="_blank" rel="noopener">카카오맵에서 보기</a></dd><dt>출처</dt><dd>국토교통부 전국 버스정류장 위치정보 (2026-11-09 수집, 지자체 BIS 연계)</dd></dl>`};
 // ── 아파트 실거래가(단지별 요약, 국토교통부 실거래가 공개시스템 자료로 미리 계산)
 S('apt',EMPTY);
-const APC={p:{st:[1000,1500,2000,3000,4500,6500,1e9],c:['#4c6ef5','#15aabf','#40c057','#fab005','#fd7e14','#e8590c','#c92a2a'],lb:['~1천','1천~1.5천','1.5천~2천','2천~3천','3천~4.5천','4.5천~6.5천','6.5천만+'],u:'평당(전용 3.3㎡) 매매가 중앙값'},
+const APC={pm:{st:[20000,40000,60000,90000,130000,200000,1e12],c:['#4c6ef5','#15aabf','#40c057','#fab005','#fd7e14','#e8590c','#c92a2a'],lb:['~2억','2~4억','4~6억','6~9억','9~13억','13~20억','20억+'],u:'대표 면적 최근 매매가'},
+jm:{st:[10000,20000,30000,45000,60000,90000,1e12],c:['#4c6ef5','#15aabf','#40c057','#fab005','#fd7e14','#e8590c','#c92a2a'],lb:['~1억','1~2억','2~3억','3~4.5억','4.5~6억','6~9억','9억+'],u:'대표 면적 전세 중앙값'},
+p:{st:[1000,1500,2000,3000,4500,6500,1e9],c:['#4c6ef5','#15aabf','#40c057','#fab005','#fd7e14','#e8590c','#c92a2a'],lb:['~1천','1천~1.5천','1.5천~2천','2천~3천','3천~4.5천','4.5천~6.5천','6.5천만+'],u:'평당(전용 3.3㎡) 매매가 중앙값'},
 j:{st:[50,60,70,80,90,1e9],c:['#4c6ef5','#15aabf','#40c057','#fab005','#e8590c','#c92a2a'],lb:['~50%','50~60%','60~70%','70~80%','80~90%','90%+'],u:'전세가율(같은 면적 매매 대비 전세 중앙값)'},
 g:{st:[-5,-1,1,5,1e9],c:['#1c7ed6','#74c0fc','#adb5bd','#ff8787','#e03131'],lb:['-5%↓','-5~-1%','보합 ±1%','+1~5%','+5%↑'],u:'최근 3개월 평당가 ÷ 7~12개월 전'},
 y:{st:[1990,2000,2010,2020,1e9],c:['#862e9c','#ae3ec9','#da77f2','#74c0fc','#1c7ed6'],lb:['~1989','1990년대','2000년대','2010년대','2020년~'],u:'준공 연도'},
 f:{st:[.5,1,2,1e9],c:['#c92a2a','#f76707','#fab005','#ced4da'],lb:['500m 안','500m~1km','1~2km','2km 넘음'],u:'공사·계획 철도역(호재 역)까지 직선거리'},
 s:{st:[.5,1,2,1e9],c:['#1971c2','#4dabf7','#a5d8ff','#ced4da'],lb:['500m 안','500m~1km','1~2km','2km 넘음'],u:'운행 중인 가장 가까운 역까지 직선거리'}};
-const aptV=(d,k)=>k==='p'?d[6]||null:k==='j'?(d[8]>=0?d[8]:null):k==='g'?(d[9]>-999?d[9]:null):k==='f'?(d.fu[0]>=0?d.fu[1]:null):k==='s'?(d.st[0]>=0?d.st[1]:null):(d[3]||null);
+// 대표 면적: 면적 칩(전체면 84㎡에 가장 가까운 것) 중 해당 값이 있는 면적, 같으면 거래 많은 것
+let aptArea='0';const aOk2=a=>aptArea==='0'||(aptArea==='59'?a>=50&&a<=65:aptArea==='84'?a>=76&&a<=90:a>=95);
+const repT=(d,k)=>{const col=k==='jm'?4:1;let b=null;for(const t of d[12]){if(!t[col]||!aOk2(t[0]))continue;const sc=(aptArea==='0'?Math.abs(t[0]-84):0)*100-(t[6]+t[5]);if(!b||sc<b.sc)b={t,sc}}return b&&b.t};
+const eok=m=>{m=Math.round(m);if(!m)return '—';if(m<10000)return m.toLocaleString()+'만';const v=m/10000;return (v>=100?Math.round(v):v>=10?(+v.toFixed(1)):(+v.toFixed(2)))+'억'};
+const aptV=(d,k)=>k==='pm'?((repT(d,k)||[])[1]||null):k==='jm'?((repT(d,k)||[])[4]||null):k==='p'?d[6]||null:k==='j'?(d[8]>=0?d[8]:null):k==='g'?(d[9]>-999?d[9]:null):k==='f'?(d.fu[0]>=0?d.fu[1]:null):k==='s'?(d.st[0]>=0?d.st[1]:null):(d[3]||null);
 const aptExpr=k=>{const c=APC[k],e=['step',['get','v'],c.c[0]];c.st.slice(0,-1).forEach((s,i)=>e.push(s,c.c[i+1]));return ['case',['==',['get','v'],-1e9],'#adb5bd',e]};
-LB({id:'apt',type:'circle',source:'apt',minzoom:11.3,layout:{visibility:'none','circle-sort-key':['get','n12']},paint:{'circle-color':'#adb5bd','circle-radius':['interpolate',['linear'],['zoom'],11.3,['interpolate',['linear'],['get','n12'],0,2,30,4.5],15,['interpolate',['linear'],['get','n12'],0,4,30,8],18,['interpolate',['linear'],['get','n12'],0,7,30,12]],'circle-stroke-color':'#fff','circle-stroke-width':1.2,'circle-opacity':.92}},'stc');
-LB({id:'aptn',type:'symbol',source:'apt',minzoom:15,layout:{visibility:'none','text-field':['concat',['get','nm'],'\n',['get','lb']],'text-size':10.5,'text-font':['Noto Sans Regular'],'text-anchor':'top','text-offset':[0,.9],'text-optional':true,'symbol-sort-key':['-',0,['get','n12']]},paint:{'text-color':P.ink,'text-halo-color':P.land,'text-halo-width':1.6}},'stc');
-const won=m=>{m=Math.round(m);if(!m)return '—';const e=Math.floor(m/10000),r=m%10000;return e?(e+'억'+(r?' '+r.toLocaleString()+'만':'')):r.toLocaleString()+'만'};
+LB({id:'apt',type:'circle',source:'apt',minzoom:11.3,layout:{visibility:'none','circle-sort-key':['get','n12']},paint:{'circle-color':'#adb5bd','circle-radius':['interpolate',['linear'],['zoom'],11.3,['interpolate',['linear'],['get','n12'],0,2.5,30,5],15,['interpolate',['linear'],['get','n12'],0,4,30,8]],'circle-stroke-color':'#fff','circle-stroke-width':1.2,'circle-opacity':.95}},'stc');
+// 말풍선 바탕(SDF 둥근 사각형, 색은 icon-color로)
+{const W=48,H=32,R=10,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.beginPath();x.roundRect(2,2,W-4,H-4,R);x.fill();map.addImage('pill',x.getImageData(0,0,W,H),{sdf:true,stretchX:[[R+2,W-R-2]],stretchY:[[R+2,H-R-2]],content:[8,5,W-8,H-5]})}
+LB({id:'aptb',type:'symbol',source:'apt',layout:{visibility:'none','icon-image':'pill','icon-text-fit':'both','icon-allow-overlap':false,'text-allow-overlap':false,'symbol-sort-key':['-',0,['get','n12']],'text-field':['step',['zoom'],['format',['get','sub'],{'font-scale':.78},'\n',{},['get','lb'],{'font-scale':1.08}],16.3,['format',['get','nm'],{'font-scale':.74},'\n',{},['get','sub'],{'font-scale':.8},' ',{},['get','lb'],{'font-scale':1.08}]],'text-size':12,'text-font':['Noto Sans Medium'],'text-line-height':1.15,'text-padding':4},paint:{'icon-color':'#868e96','text-color':'#fff','icon-opacity':.97}},'stc');
+LB({id:'aptn',type:'symbol',source:'apt',layout:{visibility:'none','text-field':['get','nm'],'text-size':10.5,'text-font':['Noto Sans Regular'],'text-anchor':'top','text-offset':[0,1.7],'text-optional':true,'symbol-sort-key':['-',0,['get','n12']]},paint:{'text-color':P.ink,'text-halo-color':P.land,'text-halo-width':1.6}},'stc');
+const won=m=>eok(m);
 const dkm=v=>v<1?Math.round(v*1000)+'m':v.toFixed(1)+'km';
 const ymdS=x=>x?`${String(x).slice(2,4)}.${String(x).slice(4,6)}.${String(x).slice(6,8)}`:'';
 let aptD=null,aptP=null;
@@ -626,13 +670,28 @@ const fu=await fetch('data/future.json').then(r=>r.json()).catch(()=>({s:[]}));w
 const nS=nearIdx(sts,p=>p[1],p=>p[2]),nF=nearIdx(fu.s,p=>p[2],p=>p[1]),es=edu.s.filter(x=>x[1][0]==='e'),nE=nearIdx(es,p=>p[3]/1e5,p=>p[2]/1e5);
 d.a.forEach(a=>{const [si,sd]=nS(a[1],a[2]),[fi,fd]=nF(a[1],a[2]),[ei,ed]=nE(a[1],a[2],2);a.st=[si,sd];a.fu=[fi,fd];a.el=[ei>=0?es[ei]:null,ed]});
 aptD=d;return d})());
-async function aptApply(){const on=onId('L_apt');vis('apt',on);vis('aptn',on);if(!on){$('alg').innerHTML='';return}
+// 멀리서는 점, 15배율쯤부터 가격표, 더 크게는 단지 이름(줌 범위는 JS로 켜고 끔)
+// 확대하면 가격표(HTML 말풍선, 겹치면 거래 많은 단지 우선), 멀리서는 점
+let aptVis=[];const apool=[],aptMk=[];
+function aptPills(){aptMk.forEach(m=>m.remove());aptMk.length=0;const on=onId('L_apt'),z=map.getZoom();if(!on||z<14.8||!aptVis.length)return;
+const b=map.getBounds(),W=map.getCanvas().clientWidth,H=map.getCanvas().clientHeight,placed=[],col=APC[$('aptc').value];
+const cand=aptVis.filter(x=>b.contains([x.d[1],x.d[2]])).sort((a,c)=>c.n-a.n);
+for(const x of cand){if(aptMk.length>=260)break;const p=map.project([x.d[1],x.d[2]]);const w=z>=16.3?96:66,h=z>=16.3?46:36;if(placed.some(q=>Math.abs(q[0]-p.x)<w&&Math.abs(q[1]-p.y)<h))continue;placed.push([p.x,p.y]);
+let el=apool[aptMk.length];if(!el){el=document.createElement('div');el.className='pill';apool.push(el);el.addEventListener('click',e=>{e.stopPropagation();SHOW.apt({i:+el.dataset.i})})}
+const k=col.st.findIndex(s=>x.v<s),c=x.v==null?'#868e96':col.c[k<0?col.c.length-1:k];el.dataset.i=x.i;el.style.setProperty('--c',c);
+el.innerHTML=(z>=16.3?`<i>${x.nm}</i>`:'')+`<small>${x.sub}</small><b>${x.lb}</b>`;aptMk.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([x.d[1],x.d[2]]).addTo(map))}}
+const aptZ=()=>{const on=onId('L_apt'),z=map.getZoom();vis('apt',on&&z<14.8);vis('aptb',false);vis('aptn',false);aptPills()};map.on('moveend',aptZ);
+async function aptApply(){aptZ();const on=onId('L_apt');aptBarSync();if(!on){$('alg').innerHTML='';return}
 if(!aptD&&!(await aptLoad())){$('alg').textContent='자료를 불러오지 못했습니다';return}
 const k=$('aptc').value,f=$('aptf').value,Y=new Date().getFullYear();
 const ok=d=>f==='0'||(f==='5'?d[7]>=5:f==='j70'?d[8]>=70:f==='j80'?d[8]>=80:f==='old'?(d[3]&&Y-d[3]>=30):f==='new'?(d[3]&&Y-d[3]<=10):f==='f1'?d.fu[1]<=1:f==='s5'?d.st[1]<=.5:1);
-map.getSource('apt').setData(FC(aptD.a.map((d,i)=>[d,i]).filter(([d])=>ok(d)).map(([d,i])=>{const v=aptV(d,k);return pt([d[1],d[2]],{i,v:v==null?-1e9:v,n12:d[7]+d[10]/2,nm:d[0],lb:k==='j'?(d[8]>=0?'전세가율 '+d[8]+'%':''):k==='g'?(d[9]>-999?(d[9]>0?'+':'')+d[9]+'%':''):k==='y'?(d[3]?d[3]+'년':''):k==='f'?(d.fu[0]>=0?_fut.s[d.fu[0]][0]+' '+dkm(d.fu[1]):''):k==='s'?(d.st[0]>=0?sts[d.st[0]][0]+'역 '+dkm(d.st[1]):''):(d[6]?'평당 '+won(d[6]):'')})})));
+const LBF={pm:d=>{const t=repT(d,'pm');return t?[t[0]+'m²',eok(t[1])]:null},jm:d=>{const t=repT(d,'jm');return t?[t[0]+'m² 전세',eok(t[4])]:null},p:d=>d[6]?['3.3m²당',eok(d[6])]:null,j:d=>d[8]>=0?['전세가율',d[8]+'%']:null,g:d=>d[9]>-999?['3개월',(d[9]>0?'+':'')+d[9]+'%']:null,y:d=>d[3]?['준공',d[3]+'년']:null,
+f:d=>d.fu[0]>=0?[(_fut.s[d.fu[0]][0]||'호재')+'역',dkm(d.fu[1])]:null,s:d=>d.st[0]>=0?[sts[d.st[0]][0]+'역',dkm(d.st[1])]:null};
+const okA=d=>aptArea==='0'||d[12].some(t=>aOk2(t[0]));
+map.getSource('apt').setData(FC(aptD.a.map((d,i)=>[d,i]).filter(([d])=>ok(d)&&okA(d)).map(([d,i])=>{const v=aptV(d,k),l=LBF[k](d);return pt([d[1],d[2]],{i,v:v==null?-1e9:v,n12:d[7]+d[10]/2,nm:d[0],sub:l?l[0]:d[0].slice(0,8),lb:l?l[1]:'—',lbx:l?l[0]+' '+l[1]:''})})));
+aptVis=aptD.a.map((d,i)=>[d,i]).filter(([d])=>ok(d)&&okA(d)).map(([d,i])=>{const l=LBF[k](d);return {d,i,v:aptV(d,k),n:d[7]+d[10]/2,nm:d[0],sub:l?l[0].replace('m²','㎡'):'',lb:l?l[1]:'—'}}).filter(x=>x.v!=null);aptZ();
 map.setPaintProperty('apt','circle-color',aptExpr(k));const c=APC[k];
-$('alg').innerHTML=c.u+'<br>'+c.lb.map((l,i)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.c[i]};margin:0 3px 0 6px"></span>${l}`).join('')+'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#adb5bd;margin:0 3px 0 6px"></span>값 없음 · 점 크기 = 거래 수'}
+$('alg').innerHTML=c.u+'<br>'+c.lb.map((l,i)=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${c.c[i]};margin:0 3px 0 6px"></span>${l}`).join('')+'<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#adb5bd;margin:0 3px 0 6px"></span>값 없음 · 크게 확대하면 가격표, 멀리서는 점(크기 = 거래 수)'}
 ['L_apt','aptc','aptf'].forEach(id=>$(id).addEventListener('change',()=>{if(id!=='L_apt')$('L_apt').checked=true;aptApply()}));
 const futTxt=i=>{const f=_fut.s[i],ln=f[3]>=0?RAIL[f[3]]:null;return `${f[0]||'(역 이름 미정)'}${f[0]&&!/역$/.test(f[0])?'역':''} — ${f[6]||(ln?ln.n:'')} ${f[4]==='c'?'공사 중':'계획'}${ln&&ln.i?` <small class="muted">(${ln.i.replace(/^.*?개통:\s*/,'개통 ').replace(/\s*\(.*$/,'').slice(0,30)})</small>`:''}`};
 // 월별 평당 매매(진한 점·선)·전세(옅은 선) 중앙값 그림
@@ -644,7 +703,7 @@ ${[lo,(lo+hi)/2,hi].map(v=>`<line x1="${L}" x2="${W-4}" y1="${Y(v)}" y2="${Y(v)}
 ${M.map((x,i)=>x[0]?`<circle cx="${X(i)}" cy="${Y(x[0])}" r="${Math.min(5,2+x[1]*.5)}" fill="#e8590c"><title>${mm[i]} 매매 ${x[1]}건 평당 ${x[0].toLocaleString()}만</title></circle>`:'').join('')}
 ${M.map((x,i)=>i%3===0||i===M.length-1?`<text x="${X(i)}" y="${H-4}" font-size="9" text-anchor="middle" fill="var(--sub)">${(mm[i]||'').slice(2,4)}.${(mm[i]||'').slice(4)}</text>`:'').join('')}</svg>`}
 SHOW.apt=p=>{const d=aptD.a[p.i];setSel(null);const T=d[12];
-info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?' · '+d[3]+'년 준공':''}</div>${d[6]?`<span class="tag" style="background:${APC.p.c[Math.min(6,APC.p.st.findIndex(s=>d[6]<s))]}">평당 ${won(d[6])}원</span> `:''}${d[8]>=0?`<span class="tag" style="background:${APC.j.c[APC.j.st.findIndex(s=>d[8]<s)]}">전세가율 ${d[8]}%</span>`:''}
+info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?' · '+d[3]+'년 준공':''}</div>${(()=>{const t=repT(d,'pm'),u=repT(d,'jm');return t||u?`<div class="hero">${t?`<div><small>${t[0]}㎡ 최근 매매</small><b>${eok(t[1])}</b><small>${ymdS(t[2])} · ${t[3]}층</small></div>`:''}${u?`<div><small>${u[0]}㎡ 전세 중앙값</small><b>${eok(u[4])}</b><small>12개월 ${u[5]}건</small></div>`:''}</div>`:''})()}${d[6]?`<span class="tag" style="background:${APC.p.c[Math.min(6,APC.p.st.findIndex(s=>d[6]<s))]}">3.3㎡당 ${eok(d[6])}</span> `:''}${d[8]>=0?`<span class="tag" style="background:${APC.j.c[APC.j.st.findIndex(s=>d[8]<s)]}">전세가율 ${d[8]}%</span>`:''}
 <dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건</dd>${d[9]>-999?`<dt>최근 3개월 변동</dt><dd>${d[9]>0?'+':''}${d[9]}% (평당가 중앙값, 7~12개월 전 대비)</dd>`:''}
 ${d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}</dd>`:''}${d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}</dd>`:''}</dl>
 <p class="muted" style="font-size:11.5px;margin:2px 0 0">거리는 단지 중심에서 직선거리 (걸어서 1km ≈ 15분 안팎)</p>${aptChart(d)}
@@ -770,6 +829,18 @@ L({id:'msrt',type:'symbol',source:'msr',filter:['==',['geometry-type'],'Point'],
 let msOn=false,msP=[];const msDraw=()=>{let t=0;const f=msP.map((p,i)=>{if(i)t+=km(msP[i-1],p);return pt(p,{t:i?dkm(t):'시작'})});if(msP.length>1)f.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:msP}});map.getSource('msr').setData(FC(f));bst.textContent=msP.length>1?`직선거리 합계 ${dkm(t)} · 걸어서 약 ${Math.round(t*15)}분(1km≈15분) · 📏 다시 누르면 끝`:'거리를 잴 점을 지도에서 차례로 누르세요'};
 $('msb').onclick=()=>{msOn=!msOn;$('msb').classList.toggle('on',msOn);fig.classList.toggle('picking',msOn);msP=[];if(msOn)msDraw();else{map.getSource('msr').setData(EMPTY);bst.textContent=''}};
 window._msr=e=>{if(!msOn)return false;msP.push([e.lngLat.lng,e.lngLat.lat]);msDraw();return true};
+// ── 지도 위 가격 막대·빠른 켜기·지역 경로
+function aptBarSync(){const on=onId('L_apt'),k=$('aptc').value;$('abar').classList.toggle('on',on);document.querySelectorAll('#abM button').forEach(b=>b.classList.toggle('on',on&&b.dataset.k===k));document.querySelectorAll('#abA button').forEach(b=>b.classList.toggle('on',b.dataset.a===aptArea));railSync()}
+document.querySelectorAll('#abM button').forEach(b=>b.onclick=()=>{$('aptc').value=b.dataset.k;$('L_apt').checked=true;if(map.getZoom()<11.3)map.easeTo({zoom:12.5});aptApply()});
+document.querySelectorAll('#abA button').forEach(b=>b.onclick=()=>{aptArea=b.dataset.a;$('L_apt').checked=true;aptApply()});
+$('abOff').onclick=()=>{$('L_apt').checked=false;aptApply()};
+const RL={apt:['L_apt'],fut:['L_construction','L_planned'],sch:['L_se','L_sm','L_sh'],hg:['L_hg','L_hp'],jb:['L_jb'],bus:['L_bus']};
+function railSync(){document.querySelectorAll('#rail button').forEach(b=>{const l=b.dataset.l;b.classList.toggle('on',l==='ys'?$('ysm').value!=='0':RL[l].some(onId))})}
+document.querySelectorAll('#rail button').forEach(b=>b.onclick=()=>{const l=b.dataset.l;if(l==='ys'){$('ysm').value=$('ysm').value==='0'?'1':'0';$('ysm').dispatchEvent(new Event('change'))}else{const v=!RL[l].some(onId);RL[l].forEach(id=>{$(id).checked=v;$(id).dispatchEvent(new Event('change'))})}railSync()});
+document.querySelectorAll('.side input[type=checkbox],#ysm').forEach(e=>e.addEventListener('change',railSync));railSync();
+const SIDOF={'11':'서울','21':'부산','22':'대구','23':'인천','24':'광주','25':'대전','26':'울산','29':'세종','31':'경기','32':'강원','33':'충북','34':'충남','35':'전북','36':'전남','37':'경북','38':'경남','39':'제주'};
+const crumb=()=>{const c=map.getCenter(),i=map.getZoom()>=9?dongOf(c.lng,c.lat):-1;if(i<0){$('crumb').textContent='';return}const f=fs[i],cd=f.properties.code,m=MUNI[cd.slice(0,5)]||'';$('crumb').innerHTML=`${SIDOF[cd.slice(0,2)]||''} › ${m.replace(/^(\S+?시)(\S+구)$/,'$1 $2')} › <b>${f.properties.name}</b>`};
+map.on('moveend',crumb);crumb();
 // ── 클릭·선택
 const DESC={
 A:c=>({t:'3중 규제',col:'var(--zA)',r:[['조정·투기과열',OLD4.includes(c.slice(0,5))?'10·15 대책 이전부터 지정, 유지':'2025.10.16 지정'],['토지거래허가',OLD4.includes(c.slice(0,5))?'2026.12.31까지':'2025.10.20 ~ 2026.12.31'],['허가 대상','아파트, 아파트 포함 단지 내 연립·다세대'],['실거주','허가 후 4개월 내 입주, 2년'],['LTV','무주택·처분조건부 40%'],['향후','12월 중 연장 여부 결정 예정']]}),
@@ -790,7 +861,7 @@ if(jf){const z=jbD.z[jf.properties.i];setSel({type:'Polygon',coordinates:z.c[0]?
 info.innerHTML=`<h3>${z.n}</h3><div class="muted">${JG[z.g][0]}${TY[z.t]&&TY[z.t]!==JG[z.g][0]?' · '+TY[z.t]:''}</div><span class="tag" style="background:${JV[z.v][1]};color:${z.v<2?'#13242e':'#fff'}">${z.p||'단계 정보 없음'}</span><div style="margin:2px 0 10px">${bar}</div><dl><dt>면적</dt><dd>${z.a?z.a.toLocaleString()+'㎡ (약 '+Math.round(z.a/3.3058).toLocaleString()+'평)':'—'}</dd><dt>자료 생성</dt><dd>${z.d?z.d.slice(0,4)+'.'+z.d.slice(4,6)+'.'+z.d.slice(6,8):'—'}</dd><dt>출처</dt><dd>서울시 도시계획사업 현황(서울플랜+) ${jbD.ref} · 법적 효력 없는 참고자료</dd></dl>`;return}
 if(_pick3(e,2))return;
 const f=map.queryRenderedFeatures(e.point,{layers:['hit']})[0];if(f){const g=byCode.get(f.properties.code);if(g)selectDong(g)}});
-map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','fst','rlh','jbf','apt','sch','uni','hp','bus','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
+map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','fst','rlh','jbf','aptb','apt','sch','uni','hp','bus','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
 
 // ── 검색·이동
 const fit=(g,maxZoom=13.5)=>{const b=bbox(g);map.fitBounds(b,{padding:{top:90,bottom:40,left:40,right:40},maxZoom,duration:700})};

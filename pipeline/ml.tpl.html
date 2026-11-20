@@ -247,6 +247,7 @@ ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
 .mlg{left:8px;bottom:34px;max-width:calc(100% - 64px)}.mlg .rp span{min-width:38px}
 .card{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:60%}
 }
+.boot .abar,.boot .rail{opacity:.45;pointer-events:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
@@ -465,7 +466,9 @@ addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(mo.classList.contai
 $('map').addEventListener('pointerdown',()=>{mo.classList.remove('open');if(mob())side.classList.remove('open')});
 // 묶음 제목 옆에 켜진 항목 수
 window._grpSync=()=>side.querySelectorAll('.grp').forEach(g=>{const n=g.querySelectorAll(':scope>.lay input[type=checkbox]:checked').length,sm=g.querySelector(':scope>summary');let em=sm.querySelector('em');if(!em){em=document.createElement('em');sm.appendChild(em)}em.textContent=n||'';em.hidden=!n;em.title=n+'개 켜짐'});
-side.addEventListener('change',_grpSync);_grpSync()}</script>
+side.addEventListener('change',_grpSync);_grpSync();
+// 지도 자료가 다 올 때까지는 시세·빠른 켜기를 잠가 둠(눌러도 반응 없는 것처럼 보이지 않게)
+document.body.classList.add('boot');$('bst').textContent='지도 자료를 불러오는 중…'}</script>
 <script src="vwkey.js"></script>
 <script src="lib/maplibre-gl-csp.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
@@ -1024,12 +1027,13 @@ $('bcm').addEventListener('change',bcSet);bcSet();
 _applyVis();
 // 지난번에 보던 시세 표시(켜짐·값·면적)를 이어받음
 try{const u=JSON.parse(localStorage.getItem('krmap_ui')||'{}');if(u.k&&APC[u.k])$('aptc').value=u.k;if(u.a)aptArea=u.a;if(u.apt){$('L_apt').checked=true;aptApply()}}catch(e){}
+document.body.classList.remove('boot');if(bst.textContent.startsWith('지도 자료'))bst.textContent='';
 document.querySelectorAll('#jump button').forEach(b=>b.disabled=false);
 {const m=location.hash.match(/^#(-?[\d.]+),(-?[\d.]+)(?:,([\d.]+))?$/);if(m)map.jumpTo({center:[+m[2],+m[1]],zoom:m[3]?+m[3]:zk(40)})}
 map.on('moveend',()=>{const c=map.getCenter();history.replaceState(null,'',`#${c.lat.toFixed(5)},${c.lng.toFixed(5)},${map.getZoom().toFixed(2)}`)});
 {const qb=new URLSearchParams(location.search).get('base');if(qb==='map'||qb==='sat')setBase(qb==='map'?1:2)}
 bLoad();
-}).catch(err=>{info.innerHTML='<p class="muted">지도 데이터를 불러오지 못했습니다. 새로고침해 주세요.</p>';console.error(err)});
+}).catch(err=>{document.body.classList.remove('boot');bst.textContent='';info.innerHTML='<p class="muted">지도 자료를 불러오지 못했습니다. 새로고침해 주세요.</p>';console.error(err)});
 
 // ── 지역 바로가기·확대 버튼
 const J=[['전국',KR],['수도권',[[126.55,37.0],[127.55,37.95]]],['서울',[[126.76,37.42],[127.19,37.71]]],['대전·세종',[[127.15,36.2],[127.55,36.65]]],['전주',[[127.0,35.75],[127.2,35.9]]],['부산·울산',[[128.8,35.0],[129.45,35.75]]],['대구',[[128.4,35.7],[128.8,36.05]]],['광주',[[126.7,35.05],[127.0,35.27]]]];

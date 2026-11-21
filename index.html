@@ -1224,7 +1224,7 @@ if(!onId('L_apt')||!aptD){$('rkL').innerHTML='';$('rkF').textContent='아파트 
 const b=map.getBounds(),chg=k==='g'||k==='g6'||k==='g12'||!!(XM[k]&&XM[k].chg),xs=aptVis.filter(x=>b.contains([x.d[1],x.d[2]])&&(!chg||x.d[7]>=3));
 xs.sort((p,q)=>rkO==='d'?q.v-p.v:p.v-q.v);const top=xs.slice(0,20);
 $('rkL').innerHTML=top.map((x,i)=>`<li><button data-i="${x.i}"><i>${i+1}</i><span>${x.nm}<small>${x.d[5]} · ${chg?'12개월 매매 '+x.d[7]+'건':x.sub}</small></span><b style="--c:${colOf(k,x.v)}">${x.lb}</b></button></li>`).join('')||'<li style="padding:10px 12px;font-size:13px;color:var(--sub)">화면 안에 값이 있는 단지가 없습니다. 지도를 넓혀 보세요.</li>';
-$('rkF').textContent=`지금 화면 안 ${xs.length.toLocaleString()}개 단지 중 ${top.length}곳${chg?' · 12개월 매매 3건 이상만':''}${aptArea!=='0'?' · '+(aptArea==='100'?'95㎡+':aptArea+'㎡')+' 면적':''} · 국토부 실거래가 기준`;
+$('rkF').textContent=`지금 화면 안 ${xs.length.toLocaleString()}개 단지 중 ${top.length}곳${chg?' · 12개월 매매 3건 이상만':''}${aptArea!=='0'?' · '+(aptArea==='100'?'95㎡+':aptArea+'㎡')+' 면적':''} · ${k[0]==='s'&&XM[k]?'한국부동산원 지역 지수(단지는 소속 시군구 값)':k[0]==='t'&&XM[k]?'역 연결망 추정':'국토부 실거래가 기준'}`;
 $('rkL').querySelectorAll('button[data-i]').forEach(el=>el.onclick=()=>{const d=aptD.a[+el.dataset.i];map.flyTo({center:[d[1],d[2]],zoom:Math.max(map.getZoom(),15.6),duration:700});SHOW.apt({i:+el.dataset.i,nopan:true})})};
 const rkSet=o=>{$('rank').hidden=!o;$('rkB').classList.toggle('on',o);$('rkB').setAttribute('aria-pressed',o);if(o&&!onId('L_apt')){$('L_apt').checked=true;aptApply()}else _rkDraw()};
 $('rkB').onclick=()=>rkSet($('rank').hidden);$('rkT').onclick=()=>$('rank').classList.toggle('min');$('rkT').title='눌러서 목록 접기·펴기';$('rkX').onclick=()=>rkSet(false);

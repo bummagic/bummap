@@ -80,6 +80,12 @@
 - 정비사업(L. 반기 또는 요청 시, PC 다운로드 폴더 필요): ① 서울 경계 = 서울열린데이터광장 OA-22712 '서울시 도시계획사업 현황(서울플랜+) 공간정보'. 내장 브라우저로 https://datafile.seoul.go.kr/ 탭을 열고 `fetch('/bigfile/iot/inf/nio_download.do?&useCache=false',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'infId=OA-22712&seqNo=&seq=5&infSeq=1'})` → Blob 다운로드(seq는 데이터셋 페이지 downloadFile(n)의 최신 번호). ② 전국 목록 = 공공데이터포털 15160169 '전국 도시정비사업 통합 데이터' CSV(로그인 불필요; 페이지에서 `/tcs/dss/selectFileDataDownload.do?recommendDataYn=Y&publicDataPk=15160169&publicDataDetailPk=<uddi>` → atchFileId → `/cmm/cmm/check-limit.json` POST → `/cmm/cmm/fileDownload.do?atchFileId=..&fileDetailSn=1`). 다운로드 폴더에 GUID .tmp로 저장됨 → device_stage_files → ZIP 안 SHP(EPSG:5174) 추출 → `JBDATE="YYYY년 M월" JBNDATE=YYYY-MM-DD python3 build_jeongbi.py <SHP 경로(확장자 제외)> <national.csv> muninames_kr.json` → data/jeongbi.json(서울 경계, 지도에서 켤 때 불러옴), data/jeongbi_n.json(서울 밖 시군구별 목록, 동 정보창에 표시). 전국 경계는 브이월드 dsId=30335(로그인 필요)라 아직 미포함.
 - 기존 지도의 확대 배율 k는 `zk(k)=Z0+log2(k)`(Z0=전국 맞춤 줌)로 환산해 표시 기준을 맞춘다.
 
+## I-2. 모든 도로 (데이터 갱신 없음, 2026-11-22)
+- '교통·역세권'의 '모든 도로 (OpenStreetMap)'와 빠른 켜기 '도로' 단추. 켤 때 OpenFreeMap 벡터 타일(`https://tiles.openfreemap.org/planet`, OpenMapTiles 스키마, 키·가입 없음, 매주 갱신)을 원본으로 붙이고 화면에 보이는 타일만 받는다 → 저장소에 자료를 넣지 않음. source-layer `transportation`(class: motorway·trunk·primary·secondary·tertiary·minor·service·track·path·pedestrian)·`transportation_name`(name:ko/name).
+- 레이어 osrc(테두리)·osr(면)는 국토부 도로(rdm) 아래, 이름 osrn은 역(stc) 아래. 보기: 골목길까지 전부(기본) / 간선+보조간선·집산 / 간선만 / 보행로까지. 노란 길 = motorway·trunk·primary. 누르면 이름·종류·다리/터널·일방통행(차선 수는 없음 → 국토부 도로 레이어). 출처 표시: © OpenFreeMap · OpenMapTiles · OpenStreetMap contributors.
+- 컨테이너에서는 tiles.openfreemap.org에 닿지 않으므로, 시험할 때는 국토부 도로 자료로 같은 스키마의 가짜 타일을 만들어 Playwright route로 응답한다.
+- MapLibre 4.7은 line-dasharray에 데이터 식(case·match)을 못 써서 레이어 추가가 조용히 실패한다 → 쓰지 않음.
+
 ## M. 버스정류장 (연 1회, 원본이 11월경 갱신, PC 다운로드 폴더 필요)
 - 원본: 공공데이터포털 15067528 '국토교통부_전국 버스정류장 위치정보'(CSV 약 22MB, 로그인 불필요, TAGO 연계 지자체 BIS 수집일 기준 연 1회). 내장 브라우저로 데이터 페이지를 열고 `fn_fileDataDown` 버튼의 uddi로 `/tcs/dss/selectFileDataDownload.do` → `/cmm/cmm/check-limit.json` → `/cmm/cmm/fileDownload.do`를 fetch, 페이지 안에서 도시명이 서울·경기·인천·대전·세종·충청북도·충청남도·전라북도(전북)인 행만 `정류장명\t위도\t경도\t모바일단축번호\t도시명\t정류장번호`로 골라 gzip Blob으로 다운로드(`krmap_busstop_8.tsv.gz`, 22MB 원본을 그대로 받으면 다운로드 폴더에 남지 않는 경우가 있었음).
 - `BUSDATE=YYYY-MM-DD(정보수집일) python3 build_bus.py krmap_busstop_8.tsv.gz` → data/bus/{위도×10}_{경도×10}.json(0.1° 칸, 2026-11-09 기준 447칸 11.8만 곳) + data/bus/index.json. 지도는 확대(z14↑)했을 때 화면 안 칸만 불러온다. 10만 곳 미만이면 기존 유지.

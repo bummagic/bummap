@@ -86,7 +86,7 @@ ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
 .rail button:hover{background:var(--wash)}.rail button.on{background:var(--on);color:var(--onink)}
 .rail .mob{display:none}
 
-#abX{position:absolute;top:104px;left:10px;width:min(330px,calc(100% - 90px));padding:10px 12px 12px;background:var(--panel);border-radius:var(--R);box-shadow:var(--sh2);z-index:6}
+#abX{position:absolute;top:104px;left:10px;width:min(330px,calc(100% - 90px));max-height:calc(100% - 150px);overflow:auto;padding:10px 12px 12px;background:var(--panel);border-radius:var(--R);box-shadow:var(--sh2);z-index:6}
 #abX[hidden]{display:none}#abX h4{margin:8px 0 5px;font-size:12px;color:var(--sub);font-weight:500}#abX h4:first-child{margin-top:0}
 #abX .gr{display:grid;grid-template-columns:1fr 1fr;gap:5px}#abX .gr button{height:34px;border:1px solid var(--edge);border-radius:8px;background:none;font-size:13px;padding:0 6px}
 #abX .gr button.on{background:var(--on);color:var(--onink);border-color:var(--on)}#abX p{margin:8px 0 0;font-size:11.5px;color:var(--sub);line-height:1.45}
@@ -98,6 +98,7 @@ ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
 .rank li button:hover{background:var(--wash)}.rank li i{font-style:normal;width:18px;text-align:right;color:var(--sub);font-size:12px}.rank li:nth-child(-n+3) i{color:var(--ink);font-weight:700}
 .rank li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rank li small{display:block;color:var(--sub);font-size:11px}
 .rank li b{flex:none;padding:2px 7px;border-radius:6px;background:var(--c);color:#fff;font-size:12px}
+.rank.min ol,.rank.min .ft{display:none}.rank .hd b{cursor:pointer}
 .rank .ft{padding:6px 12px 9px;border-top:1px solid var(--edge);font-size:11px;color:var(--sub);line-height:1.4}
 .zoom{position:absolute;right:10px;bottom:30px;display:flex;flex-direction:column;gap:8px;z-index:3}
 .zoom .g{display:flex;flex-direction:column;gap:2px;padding:3px;background:var(--panel);border-radius:12px;box-shadow:var(--sh1)}
@@ -267,7 +268,7 @@ ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
 .mopt{top:96px;right:50px}
 .abar{top:56px;left:0;right:0;gap:6px;margin:0;padding:2px 8px 10px}
 .rail{top:104px;right:8px}
-.rank{left:8px;right:60px;top:100px;width:auto;max-height:46%}
+.rank{left:8px;right:60px;top:100px;width:auto;max-height:36%}
 #abX{top:98px;left:8px;width:auto;right:60px}
 .rail button{width:44px;height:43px}
 .zoom{right:8px;bottom:12px}.zoom .zg{display:none}
@@ -317,7 +318,10 @@ body.touring .app{grid-template-columns:minmax(0,1fr)}body.touring .fig{inset:0!
 <div id="abX" hidden role="dialog" aria-label="표시할 지표 고르기"><h4>가격</h4><div class="gr"><button data-k="pm">최근 매매가</button><button data-k="jm">전세 중앙값</button><button data-k="gap">갭(매매−전세)</button><button data-k="p">3.3㎡당 매매가</button><button data-k="pj">3.3㎡당 전세가</button><button data-k="j">전세가율</button></div>
 <h4>변동 (3.3㎡당 매매가)</h4><div class="gr"><button data-k="g">3개월</button><button data-k="g6">6개월</button><button data-k="g12">연초 대비(약 9개월)</button></div>
 <h4>단지·입지</h4><div class="gr"><button data-k="y">준공 연도(연식)</button><button data-k="s">가까운 역 거리</button><button data-k="f">호재 역 거리</button><button data-k="h">호재 점수</button></div>
-<p>국토부 실거래가 12개월 자료로 계산합니다. 6개월·연초 대비는 월별 3.3㎡당 중앙값을 거래 수로 가중 평균해 앞뒤 3개월 묶음끼리 견준 값이라, 각 묶음 매매가 2건 이상인 단지만 나옵니다.</p></div>
+<h4>저평가·거래</h4><div class="gr"><button data-k="nb">동네 대비 가격</button><button data-k="lv">입지·연식 대비</button><button data-k="vl">거래량 증감</button><button data-k="j6">전세 6개월 변동</button></div>
+<h4>통근 (지하철 추정)</h4><div class="gr"><button data-k="tGN">강남까지</button><button data-k="tYD">여의도까지</button><button data-k="tGH">광화문까지</button><button data-k="tPG">판교까지</button></div>
+<h4>시세 민감도 (지역 · 한국부동산원 지수)</h4><div class="gr"><button data-k="sdn">지난 하락기 하락폭</button><button data-k="sup">지난 상승기 상승폭</button><button data-k="sbt">하락 민감도(전국 대비)</button><button data-k="svp">전고점 대비 지금</button></div>
+<p>가격·변동·저평가는 국토부 실거래가 12개월, 통근은 운행 중 노선 역 연결망 추정, 민감도는 한국부동산원 시군구 아파트 매매지수(지난 고점·저점)로 계산합니다. 6개월·연초 대비는 월별 3.3㎡당 중앙값을 거래 수로 가중 평균해 앞뒤 3개월 묶음끼리 견준 값이라, 각 묶음 매매가 2건 이상인 단지만 나옵니다.</p></div>
 <div class="rank" id="rank" hidden role="region" aria-label="지금 화면 단지 순위"><div class="hd"><b id="rkT">순위</b><span class="seg"><button data-o="d" class="on">높은 순</button><button data-o="a">낮은 순</button></span><button class="x" id="rkX" aria-label="순위 닫기"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div><ol id="rkL"></ol><div class="ft" id="rkF"></div></div>
 <div class="rail" id="rail" role="toolbar" aria-label="빠른 켜고 끄기">
 <button class="mob" id="moptB" aria-label="배경지도·건물 보기 설정"><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg><span>지도</span></button>
@@ -412,7 +416,7 @@ window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value
 </section>
 <section class="pane" data-p="apt"><h2 class="ph">아파트 실거래가</h2><div class="lay card2">
 <label><input type="checkbox" id="L_apt"><span class="dot" style="flex:none;width:12px;height:12px;border-radius:50%;margin:3px 8px 0 8px;background:#e8590c;border:1.5px solid #fff;box-shadow:0 0 0 1px #e8590c"></span><span>단지별 시세<small>국토교통부 실거래가 최근 12개월 (2025.12~2026.11) · 멀리서는 지역 중앙값, 확대하면 단지별 가격표 · 누르면 면적별 매매·전세·월세</small></span></label>
-<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="aptc" aria-label="실거래가 표시 기준" style="font:inherit"><option value="pm" selected>표시: 매매가</option><option value="jm">표시: 전세가</option><option value="p">표시: 평당 매매가</option><option value="j">표시: 전세가율</option><option value="g">표시: 최근 3개월 변동</option><option value="g6">표시: 6개월 변동</option><option value="g12">표시: 연초 대비 변동</option><option value="gap">표시: 갭(매매−전세)</option><option value="pj">표시: 평당 전세가</option><option value="y">표시: 준공 연도</option><option value="h">표시: 호재 점수</option><option value="f">표시: 호재 역 거리</option><option value="s">표시: 가까운 역 거리</option></select><select id="aptf" aria-label="실거래가 보기" style="font:inherit"><option value="0">전체 단지</option><option value="5">12개월 매매 5건+</option><option value="j70">전세가율 70%+</option><option value="j80">전세가율 80%+</option><option value="old">준공 30년+</option><option value="new">준공 10년 이내</option><option value="f1">호재 역 1km 안</option><option value="y28">2028년까지 개통할 역 1km 안</option><option value="y31">2031년까지 개통할 역 1km 안</option><option value="h50">호재 점수 50 이상</option><option value="s5">역 500m 안(역세권)</option></select></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px 28px;font-size:13px"><select id="aptc" aria-label="실거래가 표시 기준" style="font:inherit"><option value="pm" selected>표시: 매매가</option><option value="jm">표시: 전세가</option><option value="p">표시: 평당 매매가</option><option value="j">표시: 전세가율</option><option value="g">표시: 최근 3개월 변동</option><option value="g6">표시: 6개월 변동</option><option value="g12">표시: 연초 대비 변동</option><option value="gap">표시: 갭(매매−전세)</option><option value="pj">표시: 평당 전세가</option><option value="nb">표시: 동네 대비 가격</option><option value="lv">표시: 입지·연식 대비 가격</option><option value="vl">표시: 거래량 증감</option><option value="j6">표시: 전세 6개월 변동</option><option value="tGN">표시: 강남까지(추정)</option><option value="tYD">표시: 여의도까지(추정)</option><option value="tGH">표시: 광화문까지(추정)</option><option value="tPG">표시: 판교까지(추정)</option><option value="sdn">표시: 지난 하락기 하락폭(지역)</option><option value="sup">표시: 지난 상승기 상승폭(지역)</option><option value="sbt">표시: 하락 민감도(지역)</option><option value="svp">표시: 전고점 대비 지금(지역)</option><option value="y">표시: 준공 연도</option><option value="h">표시: 호재 점수</option><option value="f">표시: 호재 역 거리</option><option value="s">표시: 가까운 역 거리</option></select><select id="aptf" aria-label="실거래가 보기" style="font:inherit"><option value="0">전체 단지</option><option value="5">12개월 매매 5건+</option><option value="j70">전세가율 70%+</option><option value="j80">전세가율 80%+</option><option value="old">준공 30년+</option><option value="new">준공 10년 이내</option><option value="f1">호재 역 1km 안</option><option value="y28">2028년까지 개통할 역 1km 안</option><option value="y31">2031년까지 개통할 역 1km 안</option><option value="h50">호재 점수 50 이상</option><option value="s5">역 500m 안(역세권)</option></select></div>
 <div id="alg" class="muted" style="font-size:12.5px;margin:0 0 8px 28px"></div>
 </div>
 <div class="lay" id="rec">
@@ -811,7 +815,7 @@ let aptArea='0';const aOk2=a=>aptArea==='0'||(aptArea==='59'?a>=50&&a<=65:aptAre
 const repT=(d,k)=>{const col=k==='jm'?4:1;let b=null;for(const t of d[12]){if(!t[col]||!aOk2(t[0]))continue;const sc=(aptArea==='0'?Math.abs(t[0]-84):0)*100-(t[6]+t[5]);if(!b||sc<b.sc)b={t,sc}}return b&&b.t};
 const eok=m=>{m=Math.round(m);if(!m)return '—';if(m<10000)return m.toLocaleString()+'만';const v=m/10000;return (v>=100?Math.round(v):v>=10?(+v.toFixed(1)):(+v.toFixed(2)))+'억'};
 const gapT=d=>{let b=null;for(const t of d[12]){if(!t[1]||!t[4]||!aOk2(t[0]))continue;const sc=(aptArea==='0'?Math.abs(t[0]-84):0)*100-(t[6]+t[5]);if(!b||sc<b.sc)b={t,sc}}return b&&b.t};
-const aptV=(d,k)=>k==='gap'?((t=>t?t[1]-t[4]:null)(gapT(d))):k==='pj'?d.pj:k==='g6'?d.g6:k==='g12'?d.g12:k==='h'?(d.hs||null):k==='pm'?((repT(d,k)||[])[1]||null):k==='jm'?((repT(d,k)||[])[4]||null):k==='p'?d[6]||null:k==='j'?(d[8]>=0?d[8]:null):k==='g'?(d[9]>-999?d[9]:null):k==='f'?(d.fu[0]>=0?d.fu[1]:null):k==='s'?(d.st[0]>=0?d.st[1]:null):(d[3]||null);
+const aptV=(d,k)=>XM[k]?(v=>v==null?null:v)(XM[k].v(d)):k==='gap'?((t=>t?t[1]-t[4]:null)(gapT(d))):k==='pj'?d.pj:k==='g6'?d.g6:k==='g12'?d.g12:k==='h'?(d.hs||null):k==='pm'?((repT(d,k)||[])[1]||null):k==='jm'?((repT(d,k)||[])[4]||null):k==='p'?d[6]||null:k==='j'?(d[8]>=0?d[8]:null):k==='g'?(d[9]>-999?d[9]:null):k==='f'?(d.fu[0]>=0?d.fu[1]:null):k==='s'?(d.st[0]>=0?d.st[1]:null):(d[3]||null);
 const aptExpr=k=>{const c=APC[k],e=['step',['get','v'],c.c[0]];c.st.slice(0,-1).forEach((s,i)=>e.push(s,c.c[i+1]));return ['case',['==',['get','v'],-1e9],'#aab3b8',e]};
 LB({id:'apt',type:'circle',source:'apt',minzoom:11.3,layout:{visibility:'none','circle-sort-key':['get','n12']},paint:{'circle-color':'#adb5bd','circle-radius':['interpolate',['linear'],['zoom'],11.3,['interpolate',['linear'],['get','n12'],0,2.5,30,5],15,['interpolate',['linear'],['get','n12'],0,4,30,8]],'circle-stroke-color':'#fff','circle-stroke-width':1.2,'circle-opacity':.95}},'stc');
 const won=m=>eok(m);
@@ -834,12 +838,58 @@ d.a.forEach(a=>{const a0=Math.floor(a[2]/.02),o0=Math.floor(a[1]/.02),c=new Map(
 for(let x=a0-2;x<=a0+2;x++)for(let y=o0-2;y<=o0+2;y++)for(const i of G.get(x+'_'+y)||[]){const f=fu.s[i],dk=km([a[1],a[2]],[f[2],f[1]]);if(dk>1.5)continue;
 const v=(dk<=.5?1:dk<=1?.6:.3)*futW(f)*(f[9]||.7)*(f[7]?.8:1),ln=f[0]||f[6]||String(f[3]);if(!c.has(ln)||c.get(ln)[0]<v)c.set(ln,[v,i,dk]);if(dk<=1&&f[8]&&(!fy||f[8]<fy))fy=f[8]}
 const L=[...c.values()].sort((x,y)=>y[0]-x[0]);a.hs=L.length?Math.round(100*Math.min(1,L[0][0]+.3*L.slice(1,3).reduce((t,x)=>t+x[0],0))):0;a.hl=L.slice(0,3);a.fy=fy})}
+// ── 추가 지표: 통근 시간(역 연결망 추정)·지역 시세 민감도(한국부동산원 지수)·동네 대비 가격·입지·연식 대비 가격·거래량 증감·전세 6개월 변동
+const [cmt,sen,hgd]=await Promise.all([fetch('data/commute.json').then(r=>r.json()).catch(()=>null),fetch('data/sens.json').then(r=>r.json()).catch(()=>null),getJ('hg','data/hagwon_grid.json')]);
+window._cmt=cmt;window._sen=sen;
+{const SG=new Map();sts.forEach((s,i)=>{const k=Math.floor(s[2]/.02)+'_'+Math.floor(s[1]/.02);if(!SG.has(k))SG.set(k,[]);SG.get(k).push(i)});
+const HG=new Map();if(hgd)hgd.g.forEach(c=>HG.set(c[0]+'_'+c[1],c));
+const hgCnt=(lng,lat)=>{if(!hgd)return null;const [L0,O0,DL,DO]=hgd.o,ix=Math.floor((lng-O0)/DO),iy=Math.floor((lat-L0)/DL);let n=0;for(let x=ix-5;x<=ix+5;x++)for(let y=iy-5;y<=iy+5;y++){const c=HG.get(x+'_'+y);if(!c)continue;if(Math.hypot((O0+(x+.5)*DO-lng)*88.8,(L0+(y+.5)*DL-lat)*111.2)<=1)n+=c[2]+c[3]}return n};
+const NAT=sen&&sen.r['00000'],SR=c=>{if(!sen)return null;const al=sen.alias[c],r=sen.r[c]&&sen.r[c][7]!=null?[c,0]:al&&sen.r[al]?[al,1]:sen.r[c]?[c,0]:sen.r[c.slice(0,4)+'0']?[c.slice(0,4)+'0',2]:sen.r[c.slice(0,2)+'000']?[c.slice(0,2)+'000',3]:null;return r};
+const SC=new Map(),sObj=c=>{if(SC.has(c))return SC.get(c);const m=SR(c);let o=null;if(m){const x=sen.r[m[0]],now=x[7]!=null?x[7]:x[25];
+const sd=m[0].slice(2)==='000'?null:sen.r[m[0].slice(0,2)+'000'],ct=x[1]?sen.r[m[0].slice(0,4)+'0']:null;
+o={code:m[0],how:m[1],nm:[sd&&sd[0],ct&&ct[0],x[1]||x[0]].filter(Boolean).join(' '),x,now,up:x[6]?Math.round((x[3]/x[6]-1)*1000)/10:null,dn:Math.round((x[5]/x[3]-1)*1000)/10,rb:Math.round((now/x[5]-1)*1000)/10,vp:Math.round((now/x[3]-1)*1000)/10,jdn:x[9]?Math.round((x[11]/x[9]-1)*1000)/10:null,
+end:x[7]==null};o.bt=NAT?Math.round(o.dn/((NAT[5]/NAT[3]-1)*100)*10)/10:null;o.ubt=NAT&&o.up!=null?Math.round(o.up/((NAT[3]/NAT[6]-1)*100)*10)/10:null}SC.set(c,o);return o};
+const AG2=new Map();d.a.forEach((a,i)=>{const k=Math.floor(a[2]/.01)+'_'+Math.floor(a[1]/.01);if(!AG2.has(k))AG2.set(k,[]);AG2.get(k).push(i)});
+const med=v=>{v=v.slice().sort((x,y)=>x-y);const n=v.length;return n%2?v[(n-1)/2]:(v[n/2-1]+v[n/2])/2};
+const L=d.m.length-1;
+d.a.forEach(a=>{
+// 통근: 2km 안 역마다 걷기(직선 1km≈15분) + 역에서 목적지까지(추정) 중 가장 짧은 것
+if(cmt){const t=[1e9,1e9,1e9,1e9],a0=Math.floor(a[2]/.02),o0=Math.floor(a[1]/.02);for(let x=a0-1;x<=a0+1;x++)for(let y=o0-2;y<=o0+2;y++)for(const i of SG.get(x+'_'+y)||[]){const dk=km([a[1],a[2]],[sts[i][1],sts[i][2]]);if(dk>2)continue;const r=cmt.t[i];if(!r)continue;r.forEach((v,j)=>{if(v>=0&&v+dk*15<t[j])t[j]=Math.round(v+dk*15)})}a.tm=t.map(v=>v<1e9?v:null)}
+a.sr=sObj(a[4]);a.hg1=hgCnt(a[1],a[2]);
+// 동네 대비: 1km 안, 준공 ±10년 단지들의 3.3㎡당 중앙값과 견줌(3곳 이상)
+if(a[6]){const v=[],a0=Math.floor(a[2]/.01),o0=Math.floor(a[1]/.01);for(let x=a0-1;x<=a0+1;x++)for(let y=o0-1;y<=o0+1;y++)for(const j of AG2.get(x+'_'+y)||[]){const b=d.a[j];if(b===a||!b[6]||(a[3]&&b[3]&&Math.abs(a[3]-b[3])>10))continue;if(km([a[1],a[2]],[b[1],b[2]])<=1)v.push(b[6])}a.nbn=v.length;a.nb=v.length>=3?Math.round((a[6]/med(v)-1)*100):null}
+// 거래량 증감: 신고가 다 찬 최근 3개월 월평균 ÷ 그 앞 달들 월평균(합계 6건 이상)
+const M=a[13]||[];let r3=0,p3=0;for(let i=L-4;i<=L-2;i++)r3+=(M[i]||[0,0])[1];for(let i=0;i<=L-5;i++)p3+=(M[i]||[0,0])[1];a.vl=r3+p3>=6&&p3>0?Math.round((r3/3)/(p3/(L-4))*100-100):null;
+const blk=(i0,i1)=>{let s=0,w=0;for(let i=i0;i<=i1&&i<M.length;i++){if(M[i]&&M[i][2]){s+=M[i][2]*M[i][3];w+=M[i][3]}}return [w?s/w:0,w]},j4=blk(L-2,L),j2=blk(L-8,L-6);a.j6=j4[1]>=2&&j2[1]>=2?Math.round((j4[0]/j2[0]-1)*1000)/10:null});
+// 입지·연식 대비 가격: 같은 시군구 안에서 입지 점수(역·초등학교 거리, 학원 1km, 호재 점수, 연식) 순위와 3.3㎡당 가격 순위의 차이(백분위 점수)
+const GR=new Map();d.a.forEach(a=>{if(!a[6])return;if(!GR.has(a[4]))GR.set(a[4],[]);GR.get(a[4]).push(a)});const Y=new Date().getFullYear();
+GR.forEach(g=>{if(g.length<8)return;const f=[a=>-Math.min(a.st[0]>=0?a.st[1]:3,3),a=>-Math.min(a.el[0]?a.el[1]:2,2),a=>Math.log1p(a.hg1||0),a=>(a.hs||0)/100,a=>-(a[3]?Math.min(Y-a[3],50):30)],W=[1,.5,.7,.5,.8];
+const Z=f.map(fn=>{const v=g.map(fn),m=v.reduce((x,y)=>x+y,0)/v.length,sd=Math.sqrt(v.reduce((x,y)=>x+(y-m)**2,0)/v.length)||1;return v.map(x=>(x-m)/sd)});
+const ls=g.map((a,i)=>Z.reduce((t,z,k)=>t+z[i]*W[k],0)),pr=(arr)=>{const o=arr.map((v,i)=>[v,i]).sort((x,y)=>x[0]-y[0]),p=new Array(arr.length);o.forEach(([v,i],r)=>p[i]=r/(arr.length-1));return p};
+const pL=pr(ls),pP=pr(g.map(a=>a[6]));g.forEach((a,i)=>a.lv=Math.round((pL[i]-pP[i])*100))})}
 aptD=d;window._aptD=d;return d})());
+// 추가 지표 정의(가격표·범례·지역 말풍선·순위가 함께 씀)
+const PCT=v=>(v>0?'+':'')+(+v.toFixed(1))+'%',BR=['#1864ab','#4c8fd0','#7d8a92','#e0625f','#c92a2a'],RB=BR.slice().reverse();
+const TMC=['#1864ab','#3f8fd0','#b08a00','#e8590c','#c92a2a'],TMS=[30,45,60,75,1e9],TML=['30분 안','30~45분','45~60분','60~75분','75분 넘음'];
+const XM={
+nb:{t:'동네 대비 가격',sub:()=>'동네 대비',v:d=>d.nb,fmt:PCT,apc:{st:[-15,-5,5,15,1e9],c:BR,lb:['15%↓ 쌈','5~15% 쌈','비슷','5~15% 비쌈','15%↑ 비쌈'],u:'동네 대비 가격: 1km 안·준공 ±10년 단지들의 3.3㎡당 중앙값과 견줌(이웃 3곳 이상)'}},
+lv:{t:'입지·연식 대비 가격',sub:()=>'입지 대비',v:d=>d.lv,fmt:v=>(v>0?'+':'')+v,apc:{st:[-30,-10,10,30,1e9],c:RB,lb:['가격이 높은 편','조금 높음','비슷','조금 쌈','입지보다 쌈'],u:'입지·연식 대비 가격: 같은 시군구 안 입지 점수 순위 − 3.3㎡당 가격 순위(백분위, +면 입지에 비해 쌈)'}},
+vl:{t:'거래량 증감',sub:()=>'거래량',v:d=>d.vl,fmt:v=>(v>0?'+':'')+v+'%',chg:1,apc:{st:[-40,-15,15,40,1e9],c:BR,lb:['40%↓','15~40%↓','±15% 안','15~40%↑','40%↑'],u:'거래량 증감: 신고가 다 찬 최근 3개월 월평균 매매 건수 ÷ 그 앞 달들 월평균(합계 6건 이상)'}},
+j6:{t:'전세 6개월 변동',sub:()=>'전세 6개월',v:d=>d.j6,fmt:PCT,chg:1,apc:{st:[-5,-1,1,5,1e9],c:BR,lb:['-5% 아래','-5~-1%','±1% 안','+1~5%','+5% 위'],u:'전세 6개월 변동: 최근 3개월 ÷ 6~8개월 전 3개월(3.3㎡당 전세, 각 묶음 2건+)'}},
+tGN:{low:1,t:'강남까지',sub:()=>'강남까지',v:d=>d.tm&&d.tm[0],fmt:v=>v+'분',rg:1,apc:{st:TMS,c:TMC,lb:TML,u:'강남역까지 지하철 추정 시간(걷기 포함, 운행 중 노선 기준 · 시간표·급행 반영 안 됨)'}},
+tYD:{low:1,t:'여의도까지',sub:()=>'여의도까지',v:d=>d.tm&&d.tm[1],fmt:v=>v+'분',rg:1,apc:{st:TMS,c:TMC,lb:TML,u:'여의도역까지 지하철 추정 시간(걷기 포함)'}},
+tGH:{low:1,t:'광화문까지',sub:()=>'광화문까지',v:d=>d.tm&&d.tm[2],fmt:v=>v+'분',rg:1,apc:{st:TMS,c:TMC,lb:TML,u:'광화문역까지 지하철 추정 시간(걷기 포함)'}},
+tPG:{low:1,t:'판교까지',sub:()=>'판교까지',v:d=>d.tm&&d.tm[3],fmt:v=>v+'분',rg:1,apc:{st:TMS,c:TMC,lb:TML,u:'판교역까지 지하철 추정 시간(걷기 포함)'}},
+sdn:{t:'지난 하락기 하락폭',sub:()=>'지난 하락폭',v:d=>d.sr&&d.sr.dn,fmt:PCT,rg:1,apc:{st:[-25,-18,-12,-6,1e9],c:['#c92a2a','#e8590c','#b08a00','#4c8fd0','#1864ab'],lb:['25%↑ 하락','18~25%','12~18%','6~12%','6% 미만'],u:'지역 아파트 매매지수 고점(2020~22) → 저점(~2025.6) 하락률 · 한국부동산원'}},
+sup:{t:'지난 상승기 상승폭',sub:()=>'지난 상승폭',v:d=>d.sr&&d.sr.up,fmt:PCT,rg:1,apc:{st:[15,30,45,60,1e9],c:['#1864ab','#4c8fd0','#b08a00','#e8590c','#c92a2a'],lb:['15% 미만','15~30%','30~45%','45~60%','60%↑'],u:'지역 아파트 매매지수 2019.1 → 고점 상승률 · 한국부동산원'}},
+sbt:{t:'하락 민감도',sub:()=>'하락 민감도',v:d=>d.sr&&d.sr.bt,fmt:v=>v.toFixed(1)+'배',rg:1,apc:{st:[.6,.9,1.2,1.6,1e9],c:['#1864ab','#4c8fd0','#7d8a92','#e8590c','#c92a2a'],lb:['0.6배 미만','0.6~0.9배','0.9~1.2배','1.2~1.6배','1.6배↑'],u:'하락 민감도: 지난 하락기 지역 하락률 ÷ 전국 하락률 · 한국부동산원'}},
+svp:{t:'전고점 대비 지금',sub:()=>'전고점 대비',v:d=>d.sr&&d.sr.vp,fmt:PCT,rg:1,apc:{st:[-20,-10,-3,3,1e9],c:['#1864ab','#4c8fd0','#7d8a92','#e0625f','#c92a2a'],lb:['20%↓','10~20%↓','3~10%↓','고점 근처','고점 넘음'],u:'지역 아파트 매매지수 지금 ÷ 2020~22 고점 · 한국부동산원'}}};
+Object.entries(XM).forEach(([k,m])=>APC[k]=m.apc);
 // 시세 표시 단계: 멀리서는 시군구 → 동 중앙값, 가까워지면 단지 점 → 단지 가격표(겹치면 거래 많은 곳 먼저)
-let aptVis=[],aptReg={s:[],m:[],d:[]},aptSel=-1;const apool=[],aptMk=[],RGK=new Set(['pm','jm','p','j','g','h','gap','pj','g6','g12']);
-const MLT={h:'호재 점수',gap:'갭(매매−전세)',pj:'3.3㎡당 전세가',g6:'6개월 변동',g12:'연초 대비 변동',pm:'최근 매매가',jm:'전세 중앙값',p:'3.3㎡당 매매가',j:'전세가율',g:'최근 3개월 변동',y:'준공 연도',f:'호재 역까지 거리',s:'가까운 역까지 거리'};
+let aptVis=[],aptReg={s:[],m:[],d:[]},aptSel=-1;const apool=[],aptMk=[],RGK=new Set(['pm','jm','p','j','g','h','gap','pj','g6','g12','tGN','tYD','tGH','tPG','sdn','sup','sbt','svp']);
+const MLT={nb:'동네 대비 가격',lv:'입지·연식 대비 가격',vl:'거래량 증감',j6:'전세 6개월 변동',tGN:'강남까지(추정)',tYD:'여의도까지(추정)',tGH:'광화문까지(추정)',tPG:'판교까지(추정)',sdn:'지난 하락기 하락폭(지역)',sup:'지난 상승기 상승폭(지역)',sbt:'하락 민감도(지역)',svp:'전고점 대비 지금(지역)',h:'호재 점수',gap:'갭(매매−전세)',pj:'3.3㎡당 전세가',g6:'6개월 변동',g12:'연초 대비 변동',pm:'최근 매매가',jm:'전세 중앙값',p:'3.3㎡당 매매가',j:'전세가율',g:'최근 3개월 변동',y:'준공 연도',f:'호재 역까지 거리',s:'가까운 역까지 거리'};
 const aptTier=()=>{if(!onId('L_apt'))return '';const z=map.getZoom(),rg=RGK.has($('aptc').value);return rg&&z<8.3?'s':rg&&z<10.8?'m':rg&&z<13.4?'d':z<14.8?'dot':'pill'};
-const fmtV=(k,v)=>k==='h'?String(Math.round(v)):k==='j'?Math.round(v)+'%':k==='y'?v+'년':k==='f'||k==='s'?dkm(v):k[0]==='g'&&k!=='gap'?(v>0?'+':'')+(+v.toFixed(1))+'%':eok(v);
+const fmtV=(k,v)=>XM[k]?XM[k].fmt(v):k==='h'?String(Math.round(v)):k==='j'?Math.round(v)+'%':k==='y'?v+'년':k==='f'||k==='s'?dkm(v):k[0]==='g'&&k!=='gap'?(v>0?'+':'')+(+v.toFixed(1))+'%':eok(v);
 const colOf=(k,v)=>{const c=APC[k],i=c.st.findIndex(s=>v<s);return c.c[i<0?c.c.length-1:i]};
 const bandOf=()=>aptArea==='0'?'84':aptArea;
 function aptPills(){aptMk.forEach(m=>m.remove());aptMk.length=0;const t=aptTier(),k=$('aptc').value;vis('apt',t==='dot');
@@ -864,6 +914,7 @@ const k=$('aptc').value,f=$('aptf').value,Y=new Date().getFullYear(),c=APC[k];
 const ok=d=>f==='0'||(f==='5'?d[7]>=5:f==='j70'?d[8]>=70:f==='j80'?d[8]>=80:f==='old'?(d[3]&&Y-d[3]>=30):f==='new'?(d[3]&&Y-d[3]<=10):f==='f1'?d.fu[1]<=1:f==='y28'?(d.fy&&d.fy<=2028):f==='y31'?(d.fy&&d.fy<=2031):f==='h50'?d.hs>=50:f==='s5'?d.st[1]<=.5:1);
 const LBF={h:d=>d.hs?['호재 점수',String(d.hs)]:null,gap:d=>{const t=gapT(d);return t?[t[0]+'㎡ 갭',eok(t[1]-t[4])]:null},pj:d=>d.pj?['3.3㎡당 전세',eok(d.pj)]:null,g6:d=>d.g6!=null?['6개월',(d.g6>0?'+':'')+d.g6+'%']:null,g12:d=>d.g12!=null?['연초 대비',(d.g12>0?'+':'')+d.g12+'%']:null,pm:d=>{const t=repT(d,'pm');return t?[t[0]+'㎡',eok(t[1])]:null},jm:d=>{const t=repT(d,'jm');return t?[t[0]+'㎡ 전세',eok(t[4])]:null},p:d=>d[6]?['3.3㎡당',eok(d[6])]:null,j:d=>d[8]>=0?['전세가율',d[8]+'%']:null,g:d=>d[9]>-999?['3개월',(d[9]>0?'+':'')+d[9]+'%']:null,y:d=>d[3]?['준공',d[3]+'년']:null,
 f:d=>d.fu[0]>=0?[(_fut.s[d.fu[0]][0]||'호재')+'역',dkm(d.fu[1])]:null,s:d=>d.st[0]>=0?[sts[d.st[0]][0]+'역',dkm(d.st[1])]:null};
+for(const x in XM)LBF[x]=d=>{const v=XM[x].v(d);return v==null?null:[XM[x].sub(d),XM[x].fmt(v)]};
 const okA=d=>aptArea==='0'||d[12].some(t=>aOk2(t[0]));
 const list=aptD.a.map((d,i)=>({d,i})).filter(x=>ok(x.d)&&okA(x.d));
 map.getSource('apt').setData(FC(list.map(({d,i})=>{const v=aptV(d,k);return pt([d[1],d[2]],{i,v:v==null?-1e9:v,n12:d[7]+d[10]/2})})));
@@ -878,7 +929,7 @@ if(RGK.has(k))for(const {d} of list){if(d.dg<0)continue;const v=rv(d);if(v==null
 add(G.m,hs?(DT.includes(cd)?'hsD':BJ.includes(cd)?'hsB':'hs'):m,hs?(DT.includes(cd)?'동탄구':BJ.includes(cd)?'병점구':'화성시'):shortMuni(m),d,v,w);add(G.d,d.dg,fs[d.dg].properties.name,d,v,w);add(G.s,cd.slice(0,2),SIDO[cd.slice(0,2)],d,v,w)}
 const fin=(M,min)=>[...M.values()].filter(g=>g.v.length>=min).map(g=>({nm:g.nm,v:med(g.v),x:g.x/g.w,y:g.y/g.w,n:g.w})).sort((a,b)=>b.n-a.n);
 aptReg={s:fin(G.s,5).sort((a,b)=>b.v-a.v),m:fin(G.m,3),d:fin(G.d,2)};
-const tk=v=>k==='h'?v:k==='j'?v+'%':(k==='g'||k==='g6'||k==='g12')?(v>0?'+':'')+v+'%':k==='y'?v:k==='f'||k==='s'?dkm(v):eok(v);
+const tk=v=>XM[k]?XM[k].fmt(v):k==='h'?v:k==='j'?v+'%':(k==='g'||k==='g6'||k==='g12')?(v>0?'+':'')+v+'%':k==='y'?v:k==='f'||k==='s'?dkm(v):eok(v);
 $('mlg').querySelector('.rp').innerHTML=c.c.map((cl,i)=>`<span style="--c:${cl}">${i?`<em>${tk(c.st[i-1])}</em>`:''}</span>`).join('');
 $('alg').textContent='지금 표시: '+c.u;
 aptPills()}
@@ -894,13 +945,47 @@ ${M.map((x,i)=>x[0]?`<circle cx="${X(i)}" cy="${Y(x[0])}" r="${Math.min(5,2+x[1]
 ${M.map((x,i)=>i%3===0||i===M.length-1?`<text x="${X(i)}" y="${H-4}" font-size="9" text-anchor="middle" fill="var(--sub)">${(mm[i]||'').slice(2,4)}.${(mm[i]||'').slice(4)}</text>`:'').join('')}</svg>`}
 const isMob=()=>matchMedia('(max-width:900px)').matches;
 const focusPt=(lng,lat)=>{const q=map.project([lng,lat]),W=map.getCanvas().clientWidth,H=map.getCanvas().clientHeight;if(isMob()){if(q.y>H*.34)map.easeTo({center:[lng,lat],offset:[0,-H*.28],duration:350})}else if(q.x<400&&q.y>100)map.easeTo({center:[lng,lat],offset:[Math.min(200,W/4),0],duration:350})};
+// 단지 한눈에: 자료에서 바로 읽히는 강점·약점만(판단 기준은 이 지도 기준)
+function aptSum(d){const Y=new Date().getFullYear(),P=[],N=[];
+if(d.st[0]>=0&&d.st[1]<=.5)P.push(`역 ${dkm(d.st[1])}`);else if(d.st[0]<0||d.st[1]>1.5)N.push(`역 ${d.st[0]>=0?dkm(d.st[1]):'멂'}`);
+if(d.el[0]&&d.el[1]<=.4)P.push(`초등학교 ${dkm(d.el[1])}`);
+if(d.hg1>=300)P.push(`학원 1km ${d.hg1.toLocaleString()}곳`);
+if(d.hs>=50)P.push(`호재 점수 ${d.hs}`);
+if(d.tm&&d.tm[0]!=null&&d.tm[0]<=40)P.push(`강남 ${d.tm[0]}분`);else if(d.tm&&d.tm[0]!=null&&d.tm[0]>75)N.push(`강남 ${d.tm[0]}분`);
+if(d.nb!=null&&d.nb<=-10)P.push(`동네 대비 ${d.nb}%`);else if(d.nb!=null&&d.nb>=15)N.push(`동네 대비 +${d.nb}%`);
+if(d.lv!=null&&d.lv>=25)P.push(`입지 대비 +${d.lv}점`);else if(d.lv!=null&&d.lv<=-25)N.push(`입지 대비 ${d.lv}점`);
+if(d[3]&&Y-d[3]<=10)P.push(`${Y-d[3]}년차 신축급`);else if(d[3]&&Y-d[3]>=30)N.push(`${Y-d[3]}년차(재건축 여부 따로 확인)`);
+if(d[8]>=0&&d[8]<45)N.push(`전세가율 ${d[8]}%(갭 큼)`);else if(d[8]>=75)N.push(`전세가율 ${d[8]}%(깡통전세 주의)`);
+if(d[7]>=20)P.push(`12개월 매매 ${d[7]}건`);else if(d[7]<3)N.push(`매매 ${d[7]}건(시세 참고 약함)`);
+if(d.sr&&d.sr.bt!=null){if(d.sr.bt<=.8)P.push(`지역 하락 민감도 ${d.sr.bt}배`);else if(d.sr.bt>=1.4)N.push(`지역 하락 민감도 ${d.sr.bt}배`)}
+if(!P.length&&!N.length)return '';
+const li=(a,c)=>a.map(x=>`<span style="display:inline-block;margin:3px 4px 0 0;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid ${c};color:${c}">${x}</span>`).join('');
+return `<div style="margin-top:10px;padding:9px 11px;border-radius:var(--r);background:var(--wash)"><div style="font-size:12px;color:var(--sub)">한눈에 (이 지도 기준)</div>${P.length?`<div><b style="font-size:12px">강점</b> ${li(P,'#2f7d4f')}</div>`:''}${N.length?`<div style="margin-top:2px"><b style="font-size:12px">살필 점</b> ${li(N,'#b8410c')}</div>`:''}</div>`}
+// 지역 시세 민감도: 한국부동산원 시군구 아파트 매매지수로 지난 상승기·하락기·회복 보기
+function sensBox(d){const s=d.sr;if(!s)return '';const x=s.x,yr=_sen.yrs,N=_sen.r['00000'],nd=Math.round((N[5]/N[3]-1)*1000)/10,nu=Math.round((N[3]/N[6]-1)*1000)/10;
+const ym=t=>`20${t.slice(0,2)}.${+t.slice(2)}`,ser=x.slice(14,26).map((v,i)=>[yr[i]+'.1',v]).concat([[_sen.ym,s.now]]).filter(p=>p[1]!=null);
+const W=300,H=96,L=30,B=16,vs=ser.map(p=>p[1]).concat([x[3],x[5]]),lo=Math.min(...vs)*.97,hi=Math.max(...vs)*1.02,X=i=>L+i*(W-L-6)/(ser.length-1),Yp=v=>4+(H-B-4)*(1-(v-lo)/(hi-lo||1));
+const path=ser.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+','+Yp(p[1]).toFixed(1)).join('');
+const how=['',' (2026년 새로 생긴 구라 옛 구 지수)',' (구 지수가 없어 시 전체 지수)',' (군·시 지수가 없어 시도 전체 지수)'][s.how];
+return `<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--edge)"><div style="font-weight:700;font-size:14px">지역 시세 민감도 <small class="muted" style="font-weight:400">${esc(s.nm)}${how}</small></div>
+<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:340px;height:auto;margin-top:6px" role="img" aria-label="지역 아파트 매매지수 추이"><path d="${path}" fill="none" stroke="#e8590c" stroke-width="1.8"/>${ser.map((p,i)=>i%2===0||i===ser.length-1?`<text x="${X(i)}" y="${H-3}" font-size="9" text-anchor="middle" fill="var(--sub)">${String(p[0]).slice(2,4)}</text>`:'').join('')}<text x="${L-3}" y="${Yp(hi/1.02)+3}" font-size="9" text-anchor="end" fill="var(--sub)">${(hi/1.02/10).toFixed(0)}</text><text x="${L-3}" y="${Yp(lo/.97)+3}" font-size="9" text-anchor="end" fill="var(--sub)">${(lo/.97/10).toFixed(0)}</text></svg>
+<dl style="margin-top:4px"><dt>지난 상승기</dt><dd>${s.up!=null?`2019.1 → 고점(${ym(x[2])}) <b>${PCT(s.up)}</b> <small class="muted">전국 ${PCT(nu)}${s.ubt!=null?` · ${s.ubt}배`:''}</small>`:'—'}</dd>
+<dt>지난 하락기</dt><dd>고점 → 저점(${ym(x[4])}) <b>${PCT(s.dn)}</b> <small class="muted">전국 ${PCT(nd)} · 민감도 ${s.bt}배</small></dd>
+<dt>저점 이후</dt><dd><b>${PCT(s.rb)}</b> · 전고점 대비 ${PCT(s.vp)}${s.end?' <small class="muted">(이 구 지수는 2026.6까지라 2026.1 기준)</small>':''}</dd>
+${s.jdn!=null?`<dt>전세 하락기</dt><dd>${ym(x[8])} → ${ym(x[10])} ${PCT(s.jdn)}</dd>`:''}</dl>
+<p class="src">한국부동산원 전국주택가격동향조사 시군구 아파트 매매·전세가격지수(월간, ${_sen.ym}까지, 2026.6=100) · 단지 값이 아니라 그 지역 표본 단지들의 평균적인 움직임입니다. 민감도 = 지역 하락률 ÷ 전국 하락률.</p></div>`}
+// 단지 → 초등학교 직선이 왕복 8차선 이상 큰길(국토부 표준노드링크)을 건너는지
+let rbP=null;const bigRoad=async(a,b)=>{rbP=rbP||getJ('rdb','data/roads_big.json');const R=await rbP;if(!R)return null;
+const cr=(p,q,r,s)=>{const d=(q[0]-p[0])*(s[1]-r[1])-(q[1]-p[1])*(s[0]-r[0]);if(!d)return false;const t=((r[0]-p[0])*(s[1]-r[1])-(r[1]-p[1])*(s[0]-r[0]))/d,u=((r[0]-p[0])*(q[1]-p[1])-(r[1]-p[1])*(q[0]-p[0]))/d;return t>0&&t<1&&u>0&&u<1};
+const x0=Math.min(a[0],b[0]),x1=Math.max(a[0],b[0]),y0=Math.min(a[1],b[1]),y1=Math.max(a[1],b[1]);
+for(const r of R.r){if(r.c!=='x'&&r.c!=='8')continue;for(const ln of r.g){for(let i=1;i<ln.length;i++){const p=ln[i-1],q=ln[i];if(Math.max(p[0],q[0])<x0||Math.min(p[0],q[0])>x1||Math.max(p[1],q[1])<y0||Math.min(p[1],q[1])>y1)continue;if(cr(a,b,p,q))return r.n||'이름 없는 큰길'}}}return ''};
 SHOW.apt=p=>{const d=aptD.a[p.i];setSel(null);aptSel=p.i;aptPills();const T=d[12],t=repT(d,'pm'),u=repT(d,'jm'),Y=new Date().getFullYear();
 info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년 경과)`:''}</div>
 ${t||u?`<div class="hero">${t?`<div><small>${t[0]}㎡ 최근 매매</small><b>${eok(t[1])}</b><small>${ymdS(t[2])} · ${t[3]}층</small></div>`:''}${u?`<div><small>${u[0]}㎡ 전세 중앙값</small><b>${eok(u[4])}</b><small>12개월 ${u[5]}건</small></div>`:''}</div>`:''}
 <div>${d[6]?`<span class="tag" style="background:${colOf('p',d[6])}">3.3㎡당 ${eok(d[6])}</span>`:''}${d[8]>=0?`<span class="tag" style="background:${colOf('j',d[8])}">전세가율 ${d[8]}%</span>`:''}${d[9]>-999?`<span class="tag" style="background:${colOf('g',d[9])}">3개월 ${d[9]>0?'+':''}${d[9]}%</span>`:''}${d.g6!=null?`<span class="tag" style="background:${colOf('g6',d.g6)}">6개월 ${d.g6>0?'+':''}${d.g6}%</span>`:''}${d.g12!=null?`<span class="tag" style="background:${colOf('g12',d.g12)}">연초 대비 ${d.g12>0?'+':''}${d.g12}%</span>`:''}${d.pj?`<span class="tag" style="background:${colOf('pj',d.pj)}">3.3㎡당 전세 ${eok(d.pj)}</span>`:''}${(t=>t?`<span class="tag" style="background:${colOf('gap',t[1]-t[4])}">${t[0]}㎡ 갭 ${eok(t[1]-t[4])}</span>`:'')(gapT(d))}</div>
-<dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건</dd>
-${d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}</dd>`:''}${d.hs?`<dt>호재 점수</dt><dd><b>${d.hs}</b> <small class="muted">/ 100 · 이 지도 기준</small>${d.hl.map(h=>{const f=_fut.s[h[1]];return `<br>${f[0]||'(이름 미정)'}역 ${dkm(h[2])} · ${f[11]||(f[6]||'').split(',')[0]} ${f[8]?f[8]+'년 목표':'개통 미정'}`}).join('')}</dd>`:d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}</dd>`:''}<dt>주변 학원</dt><dd id="aHg" class="muted">세는 중…</dd></dl>
-${aptChart(d)}
+${aptSum(d)}<dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건${d.vl!=null?` · 최근 3개월 거래량 ${d.vl>0?'+':''}${d.vl}%`:''}</dd>${d.tm&&d.tm.some(v=>v!=null)?`<dt>통근(추정)</dt><dd>${['강남','여의도','광화문','판교'].map((n,j)=>d.tm[j]!=null?`${n} ${d.tm[j]}분`:'').filter(Boolean).join(' · ')}<small class="muted" style="display:block">걷기(직선 1km≈15분)+지하철, 운행 중 노선 기준 추정</small></dd>`:''}${d.nb!=null?`<dt>동네 대비</dt><dd>3.3㎡당 ${d.nb>0?'+':''}${d.nb}% <small class="muted">(1km 안 비슷한 연식 ${d.nbn}곳 중앙값 대비)</small></dd>`:''}${d.lv!=null?`<dt>입지·연식 대비</dt><dd>${d.lv>0?'+':''}${d.lv}점 <small class="muted">(같은 시군구 안 입지 순위 − 가격 순위, +면 입지에 비해 쌈)</small></dd>`:''}
+${d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}</dd>`:''}${d.hs?`<dt>호재 점수</dt><dd><b>${d.hs}</b> <small class="muted">/ 100 · 이 지도 기준</small>${d.hl.map(h=>{const f=_fut.s[h[1]];return `<br>${f[0]||'(이름 미정)'}역 ${dkm(h[2])} · ${f[11]||(f[6]||'').split(',')[0]} ${f[8]?f[8]+'년 목표':'개통 미정'}`}).join('')}</dd>`:d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}<small class="muted" id="aRd" style="display:block">큰길 확인 중…</small></dd>`:''}<dt>주변 학원</dt><dd id="aHg" class="muted">세는 중…</dd></dl>
+${aptChart(d)}${sensBox(d)}
 <div class="at"><div class="r h"><span>전용</span><span>최근 매매</span><span>전세 중앙값</span><span>최근 월세</span></div>${T.map(x=>`<div class="r"><span><b>${x[0]}㎡</b><small>${(x[0]/3.305785).toFixed(1)}평</small></span><span>${x[1]?`<b>${eok(x[1])}</b><small>${ymdS(x[2])} · ${x[3]}층 · ${x[6]}건</small>`:'—'}</span><span>${x[4]?`<b>${eok(x[4])}</b><small>${x[5]}건</small>`:'—'}</span><span>${x[7]?`<b>${eok(x[7])}/${x[8]}</b>`:'—'}</span></div>`).join('')}</div>
 <div class="acts"><button id="aTour" title="동네 → 단지 → 가까운 역 → 초등학교 → 호재 역 순서로 자막과 함께 자동으로 둘러봅니다(화면 녹화용)">▶ 임장 코스</button><button id="aSave"></button><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 아파트')}" target="_blank" rel="noopener">카카오맵</a><a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">실거래가 공개시스템</a></div>
 <p class="src">국토교통부 아파트 매매·전월세 실거래가(${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집). 해제된 거래는 뺐습니다. 위치는 지번으로 찾아 조금 어긋날 수 있고, 거리는 단지 중심에서 잰 직선거리입니다(걸어서 1km에 15분쯤). 변동은 3.3㎡당 중앙값을 7~12개월 전과 견준 값입니다.</p>`;
@@ -909,6 +994,7 @@ const sv=$('aSave'),has=()=>PL.some(q=>Math.abs(q.lng-d[1])<2e-5&&Math.abs(q.lat
 if(!p.nopan)focusPt(d[1],d[2]);
 sv.onclick=()=>{PL.push({n:d[0],lng:+d[1].toFixed(6),lat:+d[2].toFixed(6),z:16,a:d[5],t:new Date().toISOString().slice(0,10)});window._cmpAdd&&_cmpAdd(PL[PL.length-1]);plSave();plDraw();lab();cb()};
 $('aTour').onclick=()=>tourStart(p.i);
+if(d.el[0])bigRoad([d[1],d[2]],xy(d.el[0])).then(x=>{const el=$('aRd');if(el&&x!=null)el.innerHTML=x?`<span style="color:#c92a2a">직선으로 이으면 왕복 8차선 이상 큰길(${esc(x)})을 건넘</span>`:'직선상 왕복 8차선 이상 큰길을 건너지 않음';});
 const cb=()=>{if(has()&&!$('aCmp')){const b=document.createElement('button');b.id='aCmp';b.textContent='관심 단지 비교';b.onclick=()=>{window._showTab('me');_cmpDraw();setTimeout(()=>$('cmp').scrollIntoView({block:'start',behavior:'smooth'}),80)};sv.after(b)}};cb()};
 // ── 임장 코스 자동 재생: 동네 → 단지(돌며 보기) → 가까운 역 → 초등학교 → 호재 역 → 정리. 틀을 숨기고 자막·경로만 보여 화면 녹화로 임장 영상을 만들 수 있게
 S('tour',EMPTY);
@@ -1133,15 +1219,15 @@ $('abMore').onclick=e=>{e.stopPropagation();const o=$('abX').hidden;$('abX').hid
 document.addEventListener('click',e=>{if(!$('abX').hidden&&!$('abX').contains(e.target)&&e.target!==$('abMore'))$('abX').hidden=true});
 // ── 순위 보드: 지금 화면 안 단지를 고른 지표로 줄 세움(리치고 '랭킹 보드' 참고)
 let rkO='d';const rkLow=new Set(['f','s']);
-window._rkDraw=()=>{const box=$('rank');if(box.hidden)return;const k=$('aptc').value;$('rkT').textContent=MLT[k]+' 순위';
+let rkK='';window._rkDraw=()=>{const box=$('rank');if(box.hidden)return;const k=$('aptc').value;if(k!==rkK){rkK=k;rkO=(XM[k]&&XM[k].low)||k==='s'||k==='f'?'a':'d';document.querySelectorAll('#rank .seg button').forEach(x=>x.classList.toggle('on',x.dataset.o===rkO))}$('rkT').textContent=MLT[k]+' 순위';
 if(!onId('L_apt')||!aptD){$('rkL').innerHTML='';$('rkF').textContent='아파트 시세를 켜면 나옵니다';return}
-const b=map.getBounds(),chg=k==='g'||k==='g6'||k==='g12',xs=aptVis.filter(x=>b.contains([x.d[1],x.d[2]])&&(!chg||x.d[7]>=3));
+const b=map.getBounds(),chg=k==='g'||k==='g6'||k==='g12'||!!(XM[k]&&XM[k].chg),xs=aptVis.filter(x=>b.contains([x.d[1],x.d[2]])&&(!chg||x.d[7]>=3));
 xs.sort((p,q)=>rkO==='d'?q.v-p.v:p.v-q.v);const top=xs.slice(0,20);
 $('rkL').innerHTML=top.map((x,i)=>`<li><button data-i="${x.i}"><i>${i+1}</i><span>${x.nm}<small>${x.d[5]} · ${chg?'12개월 매매 '+x.d[7]+'건':x.sub}</small></span><b style="--c:${colOf(k,x.v)}">${x.lb}</b></button></li>`).join('')||'<li style="padding:10px 12px;font-size:13px;color:var(--sub)">화면 안에 값이 있는 단지가 없습니다. 지도를 넓혀 보세요.</li>';
 $('rkF').textContent=`지금 화면 안 ${xs.length.toLocaleString()}개 단지 중 ${top.length}곳${chg?' · 12개월 매매 3건 이상만':''}${aptArea!=='0'?' · '+(aptArea==='100'?'95㎡+':aptArea+'㎡')+' 면적':''} · 국토부 실거래가 기준`;
 $('rkL').querySelectorAll('button[data-i]').forEach(el=>el.onclick=()=>{const d=aptD.a[+el.dataset.i];map.flyTo({center:[d[1],d[2]],zoom:Math.max(map.getZoom(),15.6),duration:700});SHOW.apt({i:+el.dataset.i,nopan:true})})};
 const rkSet=o=>{$('rank').hidden=!o;$('rkB').classList.toggle('on',o);$('rkB').setAttribute('aria-pressed',o);if(o&&!onId('L_apt')){$('L_apt').checked=true;aptApply()}else _rkDraw()};
-$('rkB').onclick=()=>rkSet($('rank').hidden);$('rkX').onclick=()=>rkSet(false);
+$('rkB').onclick=()=>rkSet($('rank').hidden);$('rkT').onclick=()=>$('rank').classList.toggle('min');$('rkT').title='눌러서 목록 접기·펴기';$('rkX').onclick=()=>rkSet(false);
 document.querySelectorAll('#rank .seg button').forEach(b=>b.onclick=()=>{rkO=b.dataset.o;document.querySelectorAll('#rank .seg button').forEach(x=>x.classList.toggle('on',x===b));_rkDraw()});
 map.on('moveend',()=>window._rkDraw&&_rkDraw());
 document.querySelectorAll('#abA button').forEach(b=>b.onclick=()=>{aptArea=b.dataset.a;$('L_apt').checked=true;aptApply()});

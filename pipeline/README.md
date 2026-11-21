@@ -125,6 +125,14 @@
 - 보조지표·순위(2026-11-22, 리치고 참고): 시세 막대 끝 '지표 더보기'(#abX 팝업, 키 gap·pj·g6·g12 + y·s·f·h)와 빠른 켜기 맨 위 '순위'(#rank, _rkDraw가 moveend·지표 변경 때 aptVis에서 화면 안 단지를 줄 세움, 변동 지표는 12개월 매매 3건+). g6·g12·pj는 aptLoad에서 a[13] 월별 값(월별 3.3㎡당 중앙값을 거래 수 가중 평균, 앞뒤 3개월 묶음 매매 각 2건+)으로 계산 → 자료 파일 변경 없음. 임장 코스 재생 중에는 둘 다 숨김.
 - 그 밖: 단지 카드의 '내 장소에 저장', 시세 표시 상태 기억(localStorage 'krmap_ui'), Esc로 카드·팝업 닫기, 홈 화면에 추가용 파일(저장소 루트 manifest.json·icon.svg·icon-180/192/512.png — gen.py가 만들지 않는 고정 파일).
 
+## R. 추가 지표·통근·시세 민감도 (2026-11-22)
+- 지표 더보기(#abX)에 묶음 3개를 더함. 공통 정의는 ml.tpl.html의 `XM`(값·표시·색 단계·지역 말풍선 여부·순위 기본 정렬)에 있고 aptV·LBF·MLT·fmtV·범례·순위가 모두 이걸 씀. 새 지표는 XM과 #abX 단추, #aptc option 세 곳에 넣는다.
+- 저평가·거래(apt.json만 사용, aptLoad에서 계산): 동네 대비 가격(nb, 1km 안·준공 ±10년 단지 3곳 이상의 3.3㎡당 중앙값 대비 %) · 입지·연식 대비 가격(lv, 같은 시군구 8단지 이상에서 입지 점수 = 역 거리 1·초등 거리 0.5·학원 1km(log) 0.7·호재 점수 0.5·연식 0.8 가중 표준점수 → 입지 백분위 − 가격 백분위, +면 입지에 비해 쌈) · 거래량 증감(vl, 신고가 다 찬 최근 3개월(수집 월 −1·−2·−3)의 월평균 ÷ 그 앞 달들 월평균, 합계 6건+) · 전세 6개월 변동(j6, g6와 같은 방식으로 전세).
+- 통근(추정): `python3 pipeline/build_commute.py data/rail.json data/stations.json data/commute.json` → 역마다 강남·여의도·광화문·판교역까지 분. 운행 중 전철·도시철도·GTX·일반철도(KTX 제외) 선형을 따라가는 그래프(노선별 표정속도, 환승 5분, 첫 대기 4분, 같은 이름 노선은 역 목록 공유). 단지 값 = 2km 안 역 중 (직선 거리×15분 + 역 시간) 최솟값. 철도(B) 갱신 때 같이 다시 돌린다. 시간표·급행 반영 안 됨 → 화면에 '추정' 표시.
+- 시세 민감도(지역): 한국부동산원 R-ONE 공표보고서 '전국주택가격동향조사(월간) 시계열 통계표'(https://www.reb.or.kr/r-one/portal/bbs/rpt/selectBulletinPage.do?bbCd=RPT&seq=3267, 매월 갱신, 로그인 불필요)의 '시계열(신).xlsx'(약 43MB, 다운로드는 `/r-one/portal/bbs/rpt/downloadAttachFile.do?fileSeq=…&seq=3267`) '매매_아파트'(rId11)·'전세_아파트'(rId15) 시트. 컨테이너에서는 reb.or.kr에 닿지 않으므로 내장 브라우저 탭에서 fetch → 페이지 안에서 zip(DecompressionStream deflate-raw)·시트 XML을 읽어 지역마다 [고점(2020.1~2022.12 최대)·저점(고점~2025.6 최소)·2019.1·최신, 전세도 같게, 2015~2026년 1월 값]을 계산한 줄(코드|이름|구|…27칸)만 꺼내 `pipeline/reb_sens.txt`로 저장(합계 검산). `python3 pipeline/build_sens.py pipeline/reb_sens.txt data/sens.json 2026.10` → data/sens.json. 지표: 지난 상승기 상승폭(sup)·하락기 하락폭(sdn)·하락 민감도(sbt = 지역 하락률 ÷ 전국 하락률)·전고점 대비 지금(svp). 단지는 시군구 코드로 연결(구 없으면 시, 군은 시도 평균, 2026년 새 인천 구는 옛 구: build_sens.py ALIAS). 단지 카드 '지역 시세 민감도'에 연도별 그림.
+- 단지 카드: '한눈에'(강점·살필 점, aptSum의 기준은 이 지도 기준), 통근, 동네 대비, 입지·연식 대비, 초등학교까지 직선이 왕복 8차선 이상 큰길(roads_big.json c=x·8)을 건너는지(카드를 열 때 계산).
+- 좁은 화면 순위 창은 높이 36%, 제목을 누르면 접힘. 통근·역 거리 지표는 순위 기본이 낮은 순.
+
 ## D. 빌드·검증·게시
 - (GitHub 게시) gen.py는 index.html(새 지도)·old.html·ml.html·bld.html을 만든다. 커밋할 때 이 파일들을 함께 넣고, 저장소 루트의 vwkey.js(브이월드 공용 키)는 건드리지 않으며 프로젝트 문서에 내용을 옮기지 않는다.
 1. (ml.tpl.html도 함께 처리됨) `HWYDATE="(hwy 갱신 시 오늘, 아니면 기존 값: 2026년 11월 17일 조회)" python3 gen.py` → index.html

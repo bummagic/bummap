@@ -63,3 +63,5 @@ json.dump({'o': [LAT0, LON0, DLAT, DLON], 'g': grid, 'L': labels, 'ref': REF, 'n
 json.dump([[n, k, la, lo, b] for n, k, la, lo, b, dn in rows], open('data/hagwon_pts.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 print('rows', len(rows), 'cells', len(grid), 'clusters', len(labels))
 for l in labels[:25]: print(l)
+# 학년(이름 기준)·학원가별 종류 집계 덧붙이기
+import hagwon_lv; hagwon_lv.augment('data/hagwon_grid.json', 'data/hagwon_pts.json')

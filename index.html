@@ -330,7 +330,7 @@ ul{margin:0;padding-left:1.2em}li{margin:0 0 6px}
 <label><input type="checkbox" id="L_se"><span class="dot" style="background:var(--se)"></span><span>초등학교<small>수도권·충청·전북 · 시군 단위로 확대하면 표시</small></span></label>
 </div></details>
 <details class="grp"><summary><span class="gt">학원</span></summary><div class="lay">
-<label><input type="checkbox" id="L_hg"><span class="sw" style="background:linear-gradient(90deg,var(--hg1),var(--hg2),var(--hg3),var(--hg4))"></span><span>학원 밀집도<small>약 250m 칸마다 입시·교과·외국어 학원 수(3~9 · 10~19 · 20~39 · 40곳+) · 주요 학원가 이름 표시</small></span></label>
+<label><input type="checkbox" id="L_hg"><span class="sw" style="background:linear-gradient(90deg,var(--hg1),var(--hg2),var(--hg3),var(--hg4))"></span><span>학원 밀집도<small>약 250m 칸마다 입시·교과·외국어 학원 수(3~9 · 10~19 · 20~39 · 40곳+) · 주요 학원가 이름과 학원 수 표시, 누르면 종류·학년(이름 기준)별 수</small></span></label>
 <label><input type="checkbox" id="L_hp"><span class="dot" style="background:var(--hg4)"></span><span>학원 위치<small>크게 확대하면 표시 · 주황 입시·교과, 청록 외국어, 분홍 예체능, 회색 컴퓨터·자격</small></span></label>
 </div></details>
 <details class="grp"><summary><span class="gt">상권</span></summary><div class="lay">
@@ -619,6 +619,16 @@ const LB=(o,b)=>map.addLayer(o,b);
 const lazy={};const getJ=(k,u)=>lazy[k]||(lazy[k]=fetch(u).then(r=>r.json()).catch(()=>null));
 const rect=(x0,y0,x1,y1)=>({type:'Polygon',coordinates:[[[x0,y0],[x1,y0],[x1,y1],[x0,y1],[x0,y0]]]});
 const stepCl=(v,t)=>t.findIndex(x=>v<x);
+// 학원 학년(이름 기준): 원본에 대상 학년 항목이 없어 이름에 학년 낱말이 있는 곳만 셈 (pipeline/hagwon_lv.py와 같은 규칙)
+const HLVR=[/초등|초중|키즈|주니어/,/중등|중학|초중|중고/,/고등|고교|중고|입시|수능|재수|대입|기숙/],HLVN=['초등','중등','고등·입시'];
+const hlvOf=n=>HLVR.map(r=>r.test(n));
+const hlvTxt=(e,m,h,u)=>`초등 ${e} · 중등 ${m} · 고등·입시 ${h}<small style="display:block;color:var(--sub)">나머지 ${u.toLocaleString()}곳은 이름에 학년 표시 없음</small>`;
+const HLNOTE='상가(상권)정보와 나이스 학원교습소정보에는 대상 학년 항목이 없어, 입시·교과·외국어 학원 이름에 ‘초등·중등·고등·입시’ 같은 말이 들어간 곳만 학년으로 셉니다(한 곳이 여러 학년에 들 수 있음).';
+// 지점 주변 학원 수(250m 칸 중심이 반경 안인 칸 합계) → [입시·교과, 외국어, 예체능, 컴퓨터·자격, 초등, 중등, 고등, 표시 없음]
+let hgIx=null;const hgNear=async(lng,lat,R=1)=>{const d=await getJ('hg','data/hagwon_grid.json');if(!d)return null;const [L0,O0,DL,DO]=d.o;
+if(!hgIx){hgIx=new Map();d.g.forEach(c=>hgIx.set(c[0]+'_'+c[1],c))}const ix=Math.floor((lng-O0)/DO),iy=Math.floor((lat-L0)/DL),n=Math.ceil(R/.22)+1,S=[0,0,0,0,0,0,0,0];
+for(let x=ix-n;x<=ix+n;x++)for(let y=iy-n;y<=iy+n;y++){const c=hgIx.get(x+'_'+y);if(!c)continue;const dx=(O0+(x+.5)*DO-lng)*88.8,dy=(L0+(y+.5)*DL-lat)*111.2;if(Math.hypot(dx,dy)>R)continue;for(let k=0;k<8;k++)S[k]+=c[2+k]||0}return {S,ref:d.ref}};
+window._hgNear=hgNear;
 // 인구밀도 1km
 ['pop','flow','hg','hgl','cm','cml','cz','czl','hp','rdb','rdm','sch','uni'].forEach(id=>S(id,EMPTY));
 LB({id:'pop',type:'fill',source:'pop',layout:{visibility:'none'},paint:{'fill-color':['match',['get','k'],...C3.pp.flatMap((c,i)=>[i+1,c]),'#ccc'],'fill-opacity':.82}},BEF);
@@ -649,7 +659,7 @@ LB({id:'uni',type:'circle',source:'uni',minzoom:zk(1.6),layout:{visibility:'none
 LB({id:'unin',type:'symbol',source:'uni',minzoom:zk(10),layout:{visibility:'none','text-field':['get','n'],'text-size':11,'text-font':['Noto Sans Medium'],'text-anchor':'left','text-offset':[.7,0],'text-optional':true},paint:{'text-color':C3.un,'text-halo-color':P.land,'text-halo-width':1.6}},'stc');
 LB({id:'hp',type:'circle',source:'hp',minzoom:zk(30),layout:{visibility:'none'},paint:{'circle-color':['match',['get','k'],'a',C3.hg[3],'f','#1f8a8a','p','#c2127a','#6b7a80'],'circle-radius':['interpolate',['linear'],['zoom'],zk(30),2.4,zk(200),4],'circle-stroke-color':P.land,'circle-stroke-width':.6}},'stc');
 // 이름표(학원가·상권·상권 경계): 큰 곳부터 보이도록 값 기준 단계 표시
-LB({id:'hgln',type:'symbol',source:'hgl',maxzoom:zk(60),filter:['any',['all',['>=',['get','t'],200],['>=',['zoom'],zk(3)]],['all',['>=',['get','t'],100],['>=',['zoom'],zk(8)]],['>=',['zoom'],zk(16)]],layout:{visibility:'none','text-field':['get','n'],'text-size':12,'text-font':['Noto Sans Medium'],'symbol-sort-key':['-',0,['get','t']]},paint:{'text-color':C3.hg[3],'text-halo-color':P.land,'text-halo-width':2}},'stc');
+LB({id:'hgln',type:'symbol',source:'hgl',maxzoom:zk(60),filter:['any',['all',['>=',['get','t'],200],['>=',['zoom'],zk(3)]],['all',['>=',['get','t'],100],['>=',['zoom'],zk(8)]],['>=',['zoom'],zk(16)]],layout:{visibility:'none','text-field':['format',['get','n'],{},'\n',{},['concat',['number-format',['get','t'],{}],'곳'],{'font-scale':.85}],'text-size':12,'text-font':['Noto Sans Medium'],'symbol-sort-key':['-',0,['get','t']]},paint:{'text-color':C3.hg[3],'text-halo-color':P.land,'text-halo-width':2}},'stc');
 LB({id:'cmln',type:'symbol',source:'cml',maxzoom:zk(40),filter:['any',['all',['>=',['get','t'],3000],['>=',['zoom'],zk(4)]],['all',['>=',['get','t'],1500],['>=',['zoom'],zk(10)]],['>=',['zoom'],zk(18)]],layout:{visibility:'none','text-field':['get','n'],'text-size':12,'text-font':['Noto Sans Medium'],'symbol-sort-key':['-',0,['get','t']]},paint:{'text-color':C3.cm[3],'text-halo-color':P.land,'text-halo-width':2}},'stc');
 LB({id:'czn',type:'symbol',source:'czl',filter:['>=',['zoom'],['match',['get','t'],'전통시장',zk(70),zk(26)]],layout:{visibility:'none','text-field':['get','n'],'text-size':10.5,'text-font':['Noto Sans Medium']},paint:{'text-color':C3.cmz,'text-halo-color':P.land,'text-halo-width':1.6}},'stc');
 
@@ -659,7 +669,7 @@ pop:async()=>{const d=await getJ('pop','data/pop.json');if(!d)return;window._pop
 flow:async()=>{const d=await getJ('flow','data/flow.json');if(!d)return;window._flow=d;map.getSource('flow').setData(FC(d.f.map((f,i)=>({type:'Feature',properties:{i,k:f.k},geometry:{type:f.t,coordinates:f.c}}))))},
 hg:async()=>{const d=await getJ('hg','data/hagwon_grid.json');if(!d)return;window._hgd=d;const [L0,O0,DL,DO]=d.o;
 map.getSource('hg').setData(FC(d.g.filter(c=>c[2]+c[3]>=3).map(c=>{const n=c[2]+c[3];return {type:'Feature',properties:{ix:c[0],iy:c[1],k:n>=40?4:n>=20?3:n>=10?2:1},geometry:rect(O0+c[0]*DO,L0+c[1]*DL,O0+(c[0]+1)*DO,L0+(c[1]+1)*DL)}})));
-map.getSource('hgl').setData(FC(d.L.map(l=>pt([l[3],l[2]],{n:l[0],t:l[1]}))))},
+map.getSource('hgl').setData(FC(d.L.map((l,i)=>pt([l[3],l[2]],{i,n:l[0],t:l[1]}))))},
 hp:async()=>{const d=await getJ('hp','data/hagwon_pts.json');if(!d)return;window._hp=d;map.getSource('hp').setData(FC(d.map((x,i)=>pt(xy(x),{i,k:x[1]}))))},
 cm:async()=>{const d=await getJ('cm','data/shop.json');if(!d)return;window._cmD=d;const [L0,O0,DL,DO]=d.o;
 window._cmFC=FC(d.g.map((c,i)=>({type:'Feature',properties:{i,v:0},geometry:rect(O0+c[0]*DO,L0+c[1]*DL,O0+(c[0]+1)*DO,L0+(c[1]+1)*DL)})));map.getSource('cm').setData(window._cmFC);
@@ -714,7 +724,7 @@ const cellSel=g=>setSel(g);
 const SHOW={
 sch:p=>{const s=window._edu.s[p.i],t=s[1];setSel(null);info.innerHTML=`<h3>${sname(s)}</h3><div class="muted">${SL[t[0]]}</div><span class="tag" style="background:${C3['s'+t[0]]}">${SF(t)}${t.includes('b')?' · 분교':''}</span><dl><dt>출처</dt><dd>전국초중등학교위치표준데이터 (${window._edu.ref} 기준)</dd></dl>`},
 uni:p=>{const u=window._edu.u[p.i];setSel(null);info.innerHTML=`<h3>${u[0]}</h3><div class="muted">${u[1]==='c'?'전문대학':'대학교'}</div><span class="tag" style="background:${C3.un}">대학</span><dl><dt>위치</dt><dd>OpenStreetMap 캠퍼스 위치</dd></dl>`},
-hp:p=>{const d=window._hp[p.i],HK={a:'입시·교과',f:'외국어',p:'예체능',c:'컴퓨터·자격'};setSel(null);info.innerHTML=`<h3>${d[0]}</h3><div class="muted">학원 · ${HK[d[1]]}</div><dl>${d[4]?`<dt>건물</dt><dd>${d[4]}</dd>`:''}<dt>출처</dt><dd>상가(상권)정보 (${window._hgd?window._hgd.ref:''})</dd></dl>`},
+hp:p=>{const d=window._hp[p.i],HK={a:'입시·교과',f:'외국어',p:'예체능',c:'컴퓨터·자격'};setSel(null);info.innerHTML=`<h3>${d[0]}</h3><div class="muted">학원 · ${HK[d[1]]}</div><dl>${d[4]?`<dt>건물</dt><dd>${d[4]}</dd>`:''}${'af'.includes(d[1])?`<dt>학년</dt><dd>${(v=>v.some(Boolean)?HLVN.filter((x,i)=>v[i]).join('·')+' <small class="muted">(이름 기준)</small>':'<span class="muted">이름에 학년 표시 없음</span>')(hlvOf(d[0]))}</dd>`:''}<dt>출처</dt><dd>상가(상권)정보 (${window._hgd?window._hgd.ref:''})</dd></dl>`},
 stc:p=>showStation(sts[p.i]),
 rdb:p=>showRd(p),rdm:p=>showRd(p),
 hwh:p=>showHwy(HWY[p.i]),
@@ -722,13 +732,14 @@ rlh:p=>showLine(RAIL[p.i]),
 czf:p=>{const z=window._czD.z[p.i],R=window._czD.ref;setSel({type:'Polygon',coordinates:[z.c]});info.innerHTML=`<h3>${z.n}</h3><div class="muted">${z.s}</div><span class="tag" style="background:${C3.cmz}">${z.t}</span><dl><dt>출처</dt><dd>${z.t==='주요상권'?`소상공인시장진흥공단 주요상권현황 (${R.major} 기준)`:`서울시 상권분석서비스 영역-상권 (${R.seoul})`}</dd></dl>`},
 cm:(p,f)=>{const d=window._cmD,c=d.g[p.i];cellSel(f.geometry);const rows=d.k.map((k,i)=>[CMN[k],c[3+i]]).filter(r=>r[1]>0).sort((x,y)=>y[1]-x[1]);
 info.innerHTML=`<h3>점포 ${c[2].toLocaleString()}곳</h3><div class="muted">약 250m × 250m 칸</div><span class="tag" style="background:${C3.cm[3]}">선택 업종 ${cmVal(c).toLocaleString()}곳</span><dl>${rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1].toLocaleString()}곳</dd>`).join('')}<dt>출처</dt><dd>소상공인시장진흥공단 상가(상권)정보 (${d.ref} 기준, 사업자등록 기반)</dd></dl>`},
-hg:(p,f)=>{const d=window._hgd,c=d.g.find(x=>x[0]===p.ix&&x[1]===p.iy);cellSel(f.geometry);info.innerHTML=`<h3>학원 밀집 칸</h3><div class="muted">약 250m × 250m</div><span class="tag" style="background:${C3.hg[3]}">입시·교과·외국어 ${c[2]+c[3]}곳</span><dl><dt>입시·교과</dt><dd>${c[2]}곳</dd><dt>외국어</dt><dd>${c[3]}곳</dd><dt>예체능</dt><dd>${c[4]}곳</dd><dt>컴퓨터·자격</dt><dd>${c[5]}곳</dd><dt>출처</dt><dd>소상공인시장진흥공단 상가(상권)정보 (${d.ref})</dd></dl>`},
+hg:(p,f)=>{const d=window._hgd,c=d.g.find(x=>x[0]===p.ix&&x[1]===p.iy);cellSel(f.geometry);info.innerHTML=`<h3>학원 밀집 칸</h3><div class="muted">약 250m × 250m</div><span class="tag" style="background:${C3.hg[3]}">입시·교과·외국어 ${c[2]+c[3]}곳</span><dl><dt>입시·교과</dt><dd>${c[2]}곳</dd><dt>외국어</dt><dd>${c[3]}곳</dd><dt>예체능</dt><dd>${c[4]}곳</dd><dt>컴퓨터·자격</dt><dd>${c[5]}곳</dd>${c.length>6?`<dt>학년(이름 기준)</dt><dd>${hlvTxt(c[6],c[7],c[8],c[9])}</dd>`:''}<dt>출처</dt><dd>소상공인시장진흥공단 상가(상권)정보 (${d.ref})</dd></dl>${c.length>6?`<p class="src">${HLNOTE}</p>`:''}`},
+hgln:p=>{const d=window._hgd,l=d.L[p.i];setSel(null);info.innerHTML=`<h3>${l[0]}</h3><div class="muted">250m 칸 ${l[4]}개를 이은 학원 밀집 지역 · ${d.ref} 기준</div><span class="tag" style="background:${C3.hg[3]}">입시·교과·외국어 ${l[1].toLocaleString()}곳</span>${l.length>5?`<dl><dt>입시·교과</dt><dd>${l[5].toLocaleString()}곳</dd><dt>외국어</dt><dd>${l[6].toLocaleString()}곳</dd><dt>예체능</dt><dd>${l[7].toLocaleString()}곳</dd><dt>컴퓨터·자격</dt><dd>${l[8].toLocaleString()}곳</dd><dt>학년(이름 기준)</dt><dd>${hlvTxt(l[9],l[10],l[11],l[12])}</dd><dt>출처</dt><dd>소상공인시장진흥공단 상가(상권)정보 (사업자등록 기반)</dd></dl><p class="src">${HLNOTE} 학원가 범위는 입시·교과·외국어 학원이 10곳 이상인 칸을 이웃끼리 이은 것입니다.</p>`:''}`;map.flyTo({center:[l[3],l[2]],zoom:Math.max(map.getZoom(),14),duration:600})},
 pop:(p,f)=>{const d=window._pop,c=d.g[p.i],pc=(x,y)=>y>0?Math.round(x/y*100)+'%':'—';cellSel(f.geometry);info.innerHTML=`<h3>인구 ${c[2].toLocaleString()}명</h3><div class="muted">1km × 1km 격자 · ${d.ref}</div><span class="tag" style="background:${C3.pp[4]}">1㎢당 ${c[2].toLocaleString()}명</span><dl><dt>5~19세</dt><dd>${c[3].toLocaleString()}명 (${pc(c[3],c[2])})</dd><dt>가구</dt><dd>${c[4].toLocaleString()}가구</dd><dt>1인가구</dt><dd>${c[5].toLocaleString()}가구 (${pc(c[5],c[4])})</dd><dt>출처</dt><dd>국가데이터처 SGIS 격자 통계 (개인정보 보호용 잡음 포함)</dd></dl>`},
 flow:(p,f)=>{const d=window._flow,x=d.f[p.i],K={4:'서울 상위 10%',3:'상위 10~25%',2:'상위 25~50%',1:'하위 50%'};setSel({type:x.t,coordinates:x.c});info.innerHTML=`<h3>${x.n}</h3><div class="muted">서울 생활인구 · ${d.seoul}</div><span class="tag" style="background:${C3.fl[3]}">면적당 유동인구 ${K[x.k]}</span><dl><dt>하루 평균</dt><dd>${x.v.toLocaleString()}명 (그 시각에 동 안에 있는 사람 수)</dd><dt>낮 9~18시</dt><dd>${x.x[0].toLocaleString()}명</dd><dt>밤 19~6시</dt><dd>${x.x[1].toLocaleString()}명</dd><dt>면적</dt><dd>${x.a}㎢ · 1㎢당 ${x.d.toLocaleString()}명</dd><dt>출처</dt><dd>서울시 행정동 생활인구(KT 통신데이터 기반 추계)</dd></dl>`}};
 function showRd(p){const d=p.src==='b'?window._rdb:window._rdm,x=d.r[p.i];setSel({type:'MultiLineString',coordinates:x.g});info.innerHTML=`<h3>${x.n||'(이름 없음)'}</h3><div class="muted">${RK[x.k]||''}</div><span class="tag" style="background:${x.c==='x'?C3.rdx:x.c==='8'?C3.rd8:C3.rdm}">왕복 약 ${x.l}${x.l>=12?'+':''}차선</span><dl><dt>차선</dt><dd>한 방향 차로 수 × 2로 추정 (구간마다 다를 수 있음)</dd><dt>출처</dt><dd>국토교통부 전국 표준노드링크 (${d.ref})</dd></dl>`}
 // 누르기 우선순위: 점(학교·대학·학원·역) → 선(도로·고속도로·철도) → (정비구역은 기존 처리) → 칸(상권 경계·상권·학원·인구·유동인구) → 동
 window._pick3=(e,stage)=>{const P0=e.point,box=[[P0.x-6,P0.y-6],[P0.x+6,P0.y+6]];
-const ord=stage===1?['fst','apt','sch','uni','hp','bus','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
+const ord=stage===1?['fst','apt','hgln','sch','uni','hp','bus','stc','rdb','rdm','hwh','rlh']:['czf','cm','hg','flow','pop'];
 for(const l of ord){if(!map.getLayer(l)||map.getLayoutProperty(l,'visibility')==='none')continue;const f=map.queryRenderedFeatures(stage===1?box:P0,{layers:[l]})[0];if(f){SHOW[l](f.properties,f);return true}}return false};
 // ── 버스정류장(0.1° 칸 조각 파일, 확대했을 때 화면 안 칸만)
 S('bus',EMPTY);
@@ -835,11 +846,12 @@ info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?` · ${d[3]}년
 ${t||u?`<div class="hero">${t?`<div><small>${t[0]}㎡ 최근 매매</small><b>${eok(t[1])}</b><small>${ymdS(t[2])} · ${t[3]}층</small></div>`:''}${u?`<div><small>${u[0]}㎡ 전세 중앙값</small><b>${eok(u[4])}</b><small>12개월 ${u[5]}건</small></div>`:''}</div>`:''}
 <div>${d[6]?`<span class="tag" style="background:${colOf('p',d[6])}">3.3㎡당 ${eok(d[6])}</span>`:''}${d[8]>=0?`<span class="tag" style="background:${colOf('j',d[8])}">전세가율 ${d[8]}%</span>`:''}${d[9]>-999?`<span class="tag" style="background:${colOf('g',d[9])}">3개월 ${d[9]>0?'+':''}${d[9]}%</span>`:''}</div>
 <dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건</dd>
-${d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}</dd>`:''}${d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}</dd>`:''}</dl>
+${d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}</dd>`:''}${d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}</dd>`:''}<dt>주변 학원</dt><dd id="aHg" class="muted">세는 중…</dd></dl>
 ${aptChart(d)}
 <div class="at"><div class="r h"><span>전용</span><span>최근 매매</span><span>전세 중앙값</span><span>최근 월세</span></div>${T.map(x=>`<div class="r"><span><b>${x[0]}㎡</b><small>${(x[0]/3.305785).toFixed(1)}평</small></span><span>${x[1]?`<b>${eok(x[1])}</b><small>${ymdS(x[2])} · ${x[3]}층 · ${x[6]}건</small>`:'—'}</span><span>${x[4]?`<b>${eok(x[4])}</b><small>${x[5]}건</small>`:'—'}</span><span>${x[7]?`<b>${eok(x[7])}/${x[8]}</b>`:'—'}</span></div>`).join('')}</div>
 <div class="acts"><button id="aSave"></button><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 아파트')}" target="_blank" rel="noopener">카카오맵</a><a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">실거래가 공개시스템</a></div>
 <p class="src">국토교통부 아파트 매매·전월세 실거래가(${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집). 해제된 거래는 뺐습니다. 위치는 지번으로 찾아 조금 어긋날 수 있고, 거리는 단지 중심에서 잰 직선거리입니다(걸어서 1km에 15분쯤). 변동은 3.3㎡당 중앙값을 7~12개월 전과 견준 값입니다.</p>`;
+hgNear(d[1],d[2],1).then(r=>{const el=$('aHg');if(!el)return;if(!r){el.textContent='—';return}const S=r.S;el.classList.remove('muted');el.innerHTML=`1km 안 입시·교과·외국어 <b>${(S[0]+S[1]).toLocaleString()}곳</b><small class="muted" style="display:block">이름 기준 ${hlvTxt(S[4],S[5],S[6],S[7]).replace(/<small[^>]*>/,' · ').replace('</small>','')} · 예체능 ${S[2]} · 250m 칸 기준 대략값(${r.ref})</small>`});
 const sv=$('aSave'),has=()=>PL.some(q=>Math.abs(q.lng-d[1])<2e-5&&Math.abs(q.lat-d[2])<2e-5),lab=()=>{sv.textContent=has()?'★ 내 장소에 저장됨':'☆ 내 장소에 저장';sv.disabled=has()};lab();
 if(!p.nopan)focusPt(d[1],d[2]);
 sv.onclick=()=>{PL.push({n:d[0],lng:+d[1].toFixed(6),lat:+d[2].toFixed(6),z:16,a:d[5],t:new Date().toISOString().slice(0,10)});window._cmpAdd&&_cmpAdd(PL[PL.length-1]);plSave();plDraw();lab();cb()};
@@ -973,6 +985,7 @@ pk.querySelectorAll('input').forEach(c=>c.onchange=()=>{const k=c.dataset.k;CSEL
 const sel=CSEL.map(k=>M.find(x=>x.k===k)).filter(Boolean);
 if(sel.length<2){out.innerHTML=`<p class="muted" style="margin:8px 0 0;font-size:13px">${M.length<2?'비교하려면 단지를 하나 더 저장해 주세요.':'2곳 이상 고르면 비교표가 나옵니다.'} (최대 4곳)</p>`;return}
 const A=$('cmpA').value,Y=new Date().getFullYear(),cols=sel.map(x=>({x,d:aptD.a[x.i]})).map(c=>({...c,t:cmpRow(c.d,A)}));
+for(const c of cols)c.hg=await hgNear(c.d[1],c.d[2],1);
 const no='<span class="muted">—</span>',fu=d=>{if(!(d.fu[0]>=0&&d.fu[1]<=3))return '<span class="muted">3km 안 없음</span>';const f=_fut.s[d.fu[0]],ln=f[3]>=0?RAIL[f[3]]:null;return `<b>${dkm(d.fu[1])}</b><small>${esc(f[0]||'이름 미정')}${f[0]&&!/역$/.test(f[0])?'역':''} · ${esc((x=>x.length>2?x.slice(0,2).join(', ')+' 외 '+(x.length-2):x.join(', '))((f[6]||(ln?ln.n:'')).split(/,\s*/)))} ${f[4]==='c'?'공사 중':'계획'}</small>`};
 const R=[['면적',c=>c.t?`<b>${c.t[0]}㎡</b><small>${(c.t[0]/3.305785).toFixed(1)}평</small>`:'<span class="muted">이 면적 거래 없음</span>'],
 ['최근 매매',c=>c.t&&c.t[1]?`<b>${eok(c.t[1])}</b><small>${ymdS(c.t[2])} · ${c.t[3]}층</small>`:no],
@@ -984,9 +997,10 @@ const R=[['면적',c=>c.t?`<b>${c.t[0]}㎡</b><small>${(c.t[0]/3.305785).toFixed
 ['가까운 역',c=>c.d.st[0]>=0?`<b>${dkm(c.d.st[1])}</b><small>${esc(sts[c.d.st[0]][0])}역</small>`:no],
 ['호재 역',c=>fu(c.d)],
 ['준공',c=>c.d[3]?`<b>${c.d[3]}년</b><small>${Y-c.d[3]}년 경과</small>`:no],
+['학원 1km',c=>c.hg?`<b>${(c.hg.S[0]+c.hg.S[1]).toLocaleString()}곳</b><small>입시·교과·외국어 · 이름 기준 초 ${c.hg.S[4]}·중 ${c.hg.S[5]}·고 ${c.hg.S[6]}</small>`:no],
 ['12개월 거래',c=>`<b>매매 ${c.d[7]}</b><small>전세 ${c.d[10]} · 월세 ${c.d[11]}</small>`]];
 out.innerHTML=`<div class="cmpw"><table class="cmpt"><colgroup><col class="l">${cols.map(()=>'<col>').join('')}</colgroup><thead><tr><th></th>${cols.map(c=>`<th><button data-i="${c.x.i}" title="지도에서 보기">${esc(c.d[0])}</button><small>${esc(c.d[5])}</small></th>`).join('')}</tr></thead><tbody>${R.map(([h,f])=>`<tr><th scope="row">${h}</th>${cols.map(c=>`<td>${f(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-<p class="src">국토교통부 아파트 매매·전월세 실거래가(${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집) 단지 요약. 최근 매매는 그 면적의 가장 최근 거래 1건, 전세는 12개월 중앙값이라 지금 호가와 다를 수 있습니다. 갭은 최근 매매 − 전세 중앙값입니다. 전세가율·3.3㎡당(매매 중앙값)·3개월 변동(3.3㎡당, 7~12개월 전 대비)은 면적과 관계없는 단지 전체 값입니다. 거리는 단지 중심에서 잰 직선거리, 호재 역은 공사·계획 노선의 역입니다. 단지 이름을 누르면 지도로 이동합니다.</p>`;
+<p class="src">국토교통부 아파트 매매·전월세 실거래가(${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집) 단지 요약. 최근 매매는 그 면적의 가장 최근 거래 1건, 전세는 12개월 중앙값이라 지금 호가와 다를 수 있습니다. 갭은 최근 매매 − 전세 중앙값입니다. 전세가율·3.3㎡당(매매 중앙값)·3개월 변동(3.3㎡당, 7~12개월 전 대비)은 면적과 관계없는 단지 전체 값입니다. 거리는 단지 중심에서 잰 직선거리, 호재 역은 공사·계획 노선의 역입니다. 학원 1km는 상가(상권)정보 250m 칸 기준 대략값이고, 초·중·고는 원본에 학년 항목이 없어 학원 이름에 학년 표시가 있는 곳만 센 것입니다. 단지 이름을 누르면 지도로 이동합니다.</p>`;
 out.querySelectorAll('thead button').forEach(b=>b.onclick=()=>goApt(+b.dataset.i))}
 window._cmpDraw=cmpDraw;$('cmpA').addEventListener('change',()=>cmpDraw());
 document.querySelector('.tabs button[data-t="me"]').addEventListener('click',()=>cmpDraw());
@@ -1035,7 +1049,7 @@ if(jf){const z=jbD.z[jf.properties.i];setSel({type:'Polygon',coordinates:z.c[0]?
 info.innerHTML=`<h3>${z.n}</h3><div class="muted">${JG[z.g][0]}${TY[z.t]&&TY[z.t]!==JG[z.g][0]?' · '+TY[z.t]:''}</div><span class="tag" style="background:${JV[z.v][1]};color:${z.v<2?'#13242e':'#fff'}">${z.p||'단계 정보 없음'}</span><div style="margin:2px 0 10px">${bar}</div><dl><dt>면적</dt><dd>${z.a?z.a.toLocaleString()+'㎡ (약 '+Math.round(z.a/3.3058).toLocaleString()+'평)':'—'}</dd><dt>자료 생성</dt><dd>${z.d?z.d.slice(0,4)+'.'+z.d.slice(4,6)+'.'+z.d.slice(6,8):'—'}</dd><dt>출처</dt><dd>서울시 도시계획사업 현황(서울플랜+) ${jbD.ref} · 법적 효력 없는 참고자료</dd></dl>`;return}
 if(_pick3(e,2))return;
 const f=map.queryRenderedFeatures(e.point,{layers:['hit']})[0];if(f){const g=byCode.get(f.properties.code);if(g)selectDong(g)}});
-map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','fst','rlh','jbf','apt','sch','uni','hp','bus','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
+map.on('mousemove',e=>{map.getCanvas().style.cursor=map.queryRenderedFeatures(e.point,{layers:['hit','plc','stc','fst','rlh','jbf','apt','sch','uni','hp','hgln','bus','rdb','rdm','hwh','czf','cm','hg','flow','pop'].filter(l=>map.getLayoutProperty(l,'visibility')!=='none')}).length?'pointer':''});
 
 // ── 검색·이동
 const fit=(g,maxZoom=13.5)=>{const b=bbox(g);map.fitBounds(b,{padding:{top:90,bottom:40,left:40,right:40},maxZoom,duration:700})};
@@ -1079,6 +1093,8 @@ const sw=(c,t)=>`<span style="display:inline-block;width:10px;height:10px;backgr
 const bcSet=()=>{const m0=$('bcm').value,m=m0==='use'&&onId('L_apt')?'mute':m0,c=bcol(m);['b2','b2l'].forEach(l=>map.setPaintProperty(l,l==='b2'?'fill-color':'line-color',c));map.setPaintProperty('b3','fill-extrusion-color',c);
 $('blg').innerHTML=m==='age'?AGE.map(a=>sw(a[1],a[0])).join(''):m==='old'?sw('#dc2626','사용승인 1996년 이전 공동주택(재건축 연한 30년 경과)')+'<br><small>안전진단·정비계획 여부는 따로 확인 필요</small>':m==='mute'?sw(dark?'#5d6f78':'#b7bfc4','아파트')+sw(dark?'#33454e':'#dfe1db','그 밖의 건물')+'<br><small>아파트 시세를 켠 동안은 가격표가 잘 보이게 건물을 옅게 칠합니다</small>':BCATS.slice(0,5).map(c=>sw(c[2],c[1])).join('')+' 등';};window._bcSet=bcSet;
 $('bcm').addEventListener('change',bcSet);bcSet();
+// 학원가 이름표(이름 + 학원 수 두 줄)는 다른 이름표보다 먼저 자리를 잡게 맨 위로
+map.moveLayer('hgln');
 _applyVis();
 // 지난번에 보던 시세 표시(켜짐·값·면적)를 이어받음
 try{const u=JSON.parse(localStorage.getItem('krmap_ui')||'{}');if(u.k&&APC[u.k])$('aptc').value=u.k;if(u.a)aptArea=u.a;if(u.apt){$('L_apt').checked=true;aptApply()}}catch(e){}

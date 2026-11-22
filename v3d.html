@@ -12,6 +12,7 @@ html,body{margin:0;height:100%;font:15px/1.5 "Noto Sans KR",system-ui,sans-serif
 .bar a{display:inline-flex;align-items:center;height:40px;padding:0 12px;border:1px solid var(--edge);border-radius:8px;background:var(--panel);color:var(--ink);text-decoration:none;font-size:14px}
 #msg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1000;max-width:min(460px,90vw);background:var(--panel);border:1px solid var(--edge);border-radius:10px;padding:16px 18px;display:none}
 #msg p{margin:0 0 8px}#msg small{color:var(--sub)}
+body.clean #naviTopPannel3d,body.clean #naviBottomPannel3d,body.clean #footer3d,body.clean .cesium-viewer-bottom,body.clean .hudCanvas,body.clean .distanceLegendCanvas{display:none!important}
 #src{position:absolute;right:10px;bottom:6px;z-index:1000;font-size:11px;color:#fff;text-shadow:0 0 3px #000}
 </style>
 <script src="vwkey.js"></script>
@@ -56,6 +57,7 @@ addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v
  else if(m.v3c==='orbit'){stopOrb();const c=camAt(m.lon,m.lat,m.z,m.p,m.b,fy),tgt=C.Cartesian3.fromDegrees(m.lon,m.lat,m.alt||0),t0=Date.now(),dur=(m.dur||8)*1000;
   ORB=setInterval(()=>{const k=Math.min(1,(Date.now()-t0)/dur);try{cam.lookAt(tgt,new C.HeadingPitchRange((m.b+m.deg*k)*RD,-(90-m.p)*RD,c.range));v.scene.requestRender()}catch(er){}if(k>=1)stopOrb()},33)}
  else if(m.v3c==='stop')stopOrb();
+ else if(m.v3c==='clean')document.body.classList.toggle('clean',!!m.on);
  else if(m.v3c==='marks'){if(v.entities){MK.forEach(x=>v.entities.remove(x));MK=[];
   (m.line||[]).forEach(L=>MK.push(v.entities.add({polyline:{positions:C.Cartesian3.fromDegreesArray(L.flat()),width:6,material:C.Color.fromCssColorString('#fab005'),clampToGround:true}})));
   (m.pts||[]).forEach(q=>MK.push(v.entities.add({position:C.Cartesian3.fromDegrees(q.lon,q.lat,(q.alt||0)+3),point:{pixelSize:q.big?16:12,color:C.Color.fromCssColorString(q.c||'#e8590c'),outlineColor:C.Color.WHITE,outlineWidth:3,heightReference:C.HeightReference.RELATIVE_TO_GROUND,disableDepthTestDistance:Number.POSITIVE_INFINITY},

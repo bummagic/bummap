@@ -1255,6 +1255,7 @@ for(let k=st.length-1;k>=0;k--)if(st[k].g!=='base'&&st[k].g!=='sum'&&!O.g[st[k].
 if(TR!==me)return;
 // 3) 화면 준비: 실사 3D(브이월드) 또는 지도 3D
 const real=O.real&&VK;if(real){prog('실사 3D 불러오기');map.jumpTo({center:c,zoom:st[0].z,pitch:st[0].p,bearing:st[0].b});vw3On();let t0=Date.now();while(TR===me&&!fig.classList.contains('v3ok')&&vw3&&Date.now()-t0<30000)await new Promise(r=>setTimeout(r,300));me.real=vw3&&fig.classList.contains('v3ok');if(!me.real&&vw3)vw3Off()}
+if(me.real){v3({v3c:'clean',on:1});st.forEach(x=>x.sm=(x.sm?x.sm+' · ':'')+'3D: 브이월드(국토교통부)')}
 if(!me.real){if(O.base>=0&&O.base!==baseMode){const m0=mode3;mode3=false;await setBase(O.base);mode3=m0}
 if(O.b3){window._bMax=9;if(!bOn){bOn=true;$('bbtn').classList.add('on')}mode3=true;rot(true);sty();const bm=String(d[5]).match(/^(\S+)\s+(\S+)/);map.setPaintProperty('b3','fill-extrusion-color',col);map.setPaintProperty('b3','fill-extrusion-opacity',baseMode===2?.85:.95);
 if(!map.getLayer('b3h'))map.addLayer({id:'b3h',type:'fill-extrusion',source:'b',paint:{'fill-extrusion-color':'#ff7a1a','fill-extrusion-height':['+',['/',['get','h'],10],.6],'fill-extrusion-opacity':.97,'fill-extrusion-vertical-gradient':true}},'sel');

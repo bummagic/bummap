@@ -713,7 +713,7 @@ function railApply(){const ids=RAIL.map((r,i)=>lineVis(r)?i:-1).filter(i=>i>=0),
 const fi=(base,ids)=>['all',base,['in',['get','i'],['literal',ids]]];
 map.setFilter('rlc',fi(['==',['get','s'],'open'],ids));map.setFilter('rlo',fi(['==',['get','s'],'open'],ids));map.setFilter('rlx',fi(['==',['get','s'],'construction'],ids));map.setFilter('rlp',fi(['==',['get','s'],'planned'],ids));map.setFilter('rlh',['in',['get','i'],['literal',ids]]);
 ['hwc','hwo','hwn'].forEach(l=>map.setFilter(l,fi(['==',['get','s'],'open'],hi)));map.setFilter('hwx',fi(['!=',['get','s'],'open'],hi));map.setFilter('hwh',['in',['get','i'],['literal',hi]]);
-const on=new Set(ids),sv=sts.map((d,i)=>onId(d[3]==='ktx'?'L_ktx':'L_m')&&(!(d[4]||[]).length||d[4].some(j=>on.has(j)))?i:-1).filter(i=>i>=0);
+const on=new Set(ids),sv=sts.map((d,i)=>onId(d[3]==='ktx'?'L_ktx':d[3]==='rail'?'L_rail':'L_m')&&(!(d[4]||[]).length||d[4].some(j=>on.has(j)))?i:-1).filter(i=>i>=0);
 ['stc','stn'].forEach(l=>map.setFilter(l,l==='stc'?['all',['in',['get','i'],['literal',sv]],['any',['==',['get','t'],'ktx'],['>=',['zoom'],zk(5)]]]:['in',['get','i'],['literal',sv]]));syncList()}
 // 노선별 선택 목록
 const GR=[['GTX',r=>/^GTX/.test(r.n)],['수도권 전철·도시철도',r=>r.k==='m'&&!/^GTX/.test(r.n)&&avgLat(r)>36.9],['지방 도시철도·광역전철',r=>r.k==='m'&&avgLat(r)<=36.9],['KTX·고속철도',r=>r.k==='ktx'||/^KTX/.test(r.n)],['일반철도',r=>r.k==='rail'&&!/^KTX/.test(r.n)]];
@@ -736,7 +736,7 @@ $('lf').addEventListener('input',e=>{const v=e.target.value.trim();items.forEach
 const RK={101:'고속국도',102:'도시고속도로',103:'일반국도',104:'특별·광역시도',105:'국가지원지방도',106:'지방도'};
 function showLine(r){setSel({type:'MultiLineString',coordinates:r.l});info.innerHTML=`<h3>${r.n}</h3><div class="muted">${{m:'전철·도시철도',ktx:'고속철도',rail:'일반철도'}[r.k]}</div><span class="tag" style="background:${r.s==='open'?'#4a5a62':r.s==='construction'?'var(--zA)':'var(--zW)'}">${STS[r.s]}</span><dl><dt>현황</dt><dd>${r.i||''}</dd><dt>선형</dt><dd>${r.ap?'역과 역을 이은 개략선(실제 선형 아님)':'OpenStreetMap 선형'}</dd>${r.src&&r.src.startsWith('http')?`<dt>근거</dt><dd><a href="${r.src}">관련 보도</a></dd>`:''}</dl>`}
 function showHwy(h){setSel({type:'MultiLineString',coordinates:h.l});info.innerHTML=`<h3>${h.n}</h3><div class="muted">고속도로${h.r?' · '+h.r+'번':''}</div><span class="tag" style="background:${C3.hw}">${h.s==='open'?'개통':'공사 중'}</span><dl><dt>선형</dt><dd>OpenStreetMap (단순화, 2026년 11월 17일 조회 기준)</dd></dl>`}
-function showStation(d){setSel(null);info.innerHTML=`<h3>${d[0]}역</h3><div class="muted">${d[3]==='ktx'?'고속철도역':'전철·도시철도역'}</div><p class="muted" style="margin:10px 0 0">지나는 노선 (누르면 그 노선만 보기)</p><div class="chips">${(d[4]||[]).map(i=>RAIL[i]).filter(Boolean).map((r,j)=>`<button data-i="${d[4][j]}" style="border-left:6px solid ${r.k==='m'?r.c:RC[r.k]}">${r.n}</button>`).join('')}</div>`;info.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>solo(RAIL[+b.dataset.i]))}
+function showStation(d){setSel(null);info.innerHTML=`<h3>${d[0]}역</h3><div class="muted">${d[3]==='ktx'?'고속철도역':d[3]==='rail'?'일반철도역':'전철·도시철도역'}</div><p class="muted" style="margin:10px 0 0">지나는 노선 (누르면 그 노선만 보기)</p><div class="chips">${(d[4]||[]).map(i=>RAIL[i]).filter(Boolean).map((r,j)=>`<button data-i="${d[4][j]}" style="border-left:6px solid ${r.k==='m'?r.c:RC[r.k]}">${r.n}</button>`).join('')}</div>`;info.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>solo(RAIL[+b.dataset.i]))}
 const cellSel=g=>setSel(g);
 const SHOW={
 sch:p=>{const s=window._edu.s[p.i],t=s[1];setSel(null);info.innerHTML=`<h3>${sname(s)}</h3><div class="muted">${SL[t[0]]}</div><span class="tag" style="background:${C3['s'+t[0]]}">${SF(t)}${t.includes('b')?' · 분교':''}</span><dl><dt>출처</dt><dd>전국초중등학교위치표준데이터 (${window._edu.ref} 기준)</dd></dl>`},
@@ -797,8 +797,14 @@ const nearIdx=(pts,lonOf,latOf)=>{const G=new Map();pts.forEach((p,i)=>{const k=
 return (lon,lat,R=3)=>{let bi=-1,bd=1e9;const a0=Math.floor(lat/.02),o0=Math.floor(lon/.02);for(let r=0;r<=R;r++){for(let a=a0-r;a<=a0+r;a++)for(let o=o0-r;o<=o0+r;o++){if(Math.max(Math.abs(a-a0),Math.abs(o-o0))!==r)continue;for(const i of G.get(a+'_'+o)||[]){const d=km([lon,lat],[lonOf(pts[i]),latOf(pts[i])]);if(d<bd){bd=d;bi=i}}}if(bi>=0&&bd<r*1.5)break}return [bi,bd]}};
 const aptLoad=()=>aptP||(aptP=(async()=>{bst.textContent='아파트 실거래가 불러오는 중…';const d=await fetch('data/apt.json').then(r=>r.json()).catch(()=>null);bst.textContent='';if(!d)return null;
 const fu=await fetch('data/future.json').then(r=>r.json()).catch(()=>({s:[]}));window._fut=fu;
-const nS=nearIdx(sts,p=>p[1],p=>p[2]),nF=nearIdx(fu.s,p=>p[2],p=>p[1]),es=edu.s.filter(x=>x[1][0]==='e'),nE=nearIdx(es,p=>p[3]/1e5,p=>p[2]/1e5);
+const opn=(st,k)=>(st[4]||[]).some(j=>RAIL[j]&&RAIL[j].s==='open'&&(k==='m'?RAIL[j].k==='m':RAIL[j].k!=='m')),mI=sts.map((x,i)=>i).filter(i=>opn(sts[i],'m')),nS0=nearIdx(mI,i=>sts[i][1],i=>sts[i][2]),nS=(x,y)=>{const [i,v]=nS0(x,y);return [i>=0?mI[i]:-1,v]},nF=nearIdx(fu.s,p=>p[2],p=>p[1]),es=edu.s.filter(x=>x[1][0]==='e'),nE=nearIdx(es,p=>p[3]/1e5,p=>p[2]/1e5);
 d.a.forEach(a=>{const [si,sd]=nS(a[1],a[2]),[fi,fd]=nF(a[1],a[2]),[ei,ed]=nE(a[1],a[2],2);a.st=[si,sd];a.fu=[fi,fd];a.dg=dongOf(a[1],a[2]);a.el=[ei>=0?es[ei]:null,ed]});
+// 지하철(전철·도시철도)이 없는 시는 '가까운 역' 대신 가까운 기차역(KTX·일반철도)과 버스터미널(고속·시외)을 보여 줌
+{const tm=await fetch('data/terminal.json').then(r=>r.json()).catch(()=>({t:[]}));window._term=tm;
+const cityK=c=>{if(/^(11|2[1-6]|29)/.test(c))return c.slice(0,2);const m=c.slice(0,5),r=(MUNI[m]||'').match(/^(\S+?시)\S+구$/);return r?c.slice(0,2)+r[1]:m};
+const MK=new Set();sts.forEach(st=>{if(!opn(st,'m'))return;const i=dongOf(st[1],st[2]);if(i>=0)MK.add(cityK(fs[i].properties.code))});
+const trI=sts.map((x,i)=>i).filter(i=>opn(sts[i],'r')),nTr=nearIdx(trI,i=>sts[i][1],i=>sts[i][2]),nBt=nearIdx(tm.t,p=>p[2],p=>p[1]);
+d.a.forEach(a=>{a.ms=a.dg<0||MK.has(cityK(fs[a.dg].properties.code));if(a.ms)return;const [ti,td]=nTr(a[1],a[2],12),[bi,bd]=nBt(a[1],a[2],12);a.tr=[ti>=0?trI[ti]:-1,td];a.bt=[bi,bd]})}
 // 호재 점수(0~100, 이 지도 자체 기준): 1.5km 안 공사·계획 역마다 거리(500m 1·1km 0.6·1.5km 0.3)×개통 시기(2년 안 1·5년 0.7·10년 0.4·미정 0.2)×노선(GTX 1·도시철도 0.7·경전철 0.5)×(이미 다른 노선이 다니는 역이면 0.8)을 곱하고, 역마다 가장 큰 것 하나 + 다음 두 역 0.3배씩
 {const Y=new Date().getFullYear(),G=new Map();fu.s.forEach((f,i)=>{const k=Math.floor(f[1]/.02)+'_'+Math.floor(f[2]/.02);if(!G.has(k))G.set(k,[]);G.get(k).push(i)});
 window.futW=f=>!f[8]?.2:f[8]-Y<=2?1:f[8]-Y<=5?.7:f[8]-Y<=10?.4:.2;
@@ -855,6 +861,8 @@ $('mlg').querySelector('.rp').innerHTML=c.c.map((cl,i)=>`<span style="--c:${cl}"
 $('alg').textContent='지금 표시: '+c.u;
 aptPills()}
 ['L_apt','aptc','aptf'].forEach(id=>$(id).addEventListener('change',()=>{if(id!=='L_apt')$('L_apt').checked=true;aptApply()}));
+const trRows=d=>(d.tr[0]>=0?`<dt>기차역</dt><dd>${sts[d.tr[0]][0]}역 ${dkm(d.tr[1])}</dd>`:'')+(d.bt[0]>=0?`<dt>버스터미널</dt><dd>${esc(_term.t[d.bt[0]][0])} ${dkm(d.bt[1])}</dd>`:'');
+const trTxt=d=>d.ms?(d.st[0]>=0?`역 ${dkm(d.st[1])}`:''):[d.tr[0]>=0&&`기차역 ${dkm(d.tr[1])}`,d.bt[0]>=0&&`터미널 ${dkm(d.bt[1])}`].filter(Boolean).join(' · ');
 const futTxt=i=>{const f=_fut.s[i],ln=f[3]>=0?RAIL[f[3]]:null;return `${f[0]||'(역 이름 미정)'}${f[0]&&!/역$/.test(f[0])?'역':''} — ${f[6]||(ln?ln.n:'')} ${f[4]==='c'?'공사 중':'계획'}${ln&&ln.i?` <small class="muted">(${ln.i.replace(/^.*?개통:\s*/,'개통 ').replace(/\s*\(.*$/,'').slice(0,30)})</small>`:''}`};
 // 월별 평당 매매(진한 점·선)·전세(옅은 선) 중앙값 그림
 function aptChart(d){const M=d[13]||[],mm=aptD.m||[];if(!M.some(x=>x[1]||x[3]))return '';const W=300,H=110,L=34,B=18,vs=M.flatMap(x=>[x[0],x[2]]).filter(Boolean),lo=Math.min(...vs)*.9,hi=Math.max(...vs)*1.05,X=i=>L+i*(W-L-6)/Math.max(1,M.length-1),Y=v=>6+(H-B-6)*(1-(v-lo)/(hi-lo||1));
@@ -871,7 +879,7 @@ info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?` · ${d[3]}년
 ${t||u?`<div class="hero">${t?`<div><small>${t[0]}㎡ 최근 매매</small><b>${eok(t[1])}</b><small>${ymdS(t[2])} · ${t[3]}층</small></div>`:''}${u?`<div><small>${u[0]}㎡ 전세 중앙값</small><b>${eok(u[4])}</b><small>12개월 ${u[5]}건</small></div>`:''}</div>`:''}
 <div>${d[6]?`<span class="tag" style="background:${colOf('p',d[6])}">3.3㎡당 ${eok(d[6])}</span>`:''}${d[8]>=0?`<span class="tag" style="background:${colOf('j',d[8])}">전세가율 ${d[8]}%</span>`:''}${d[9]>-999?`<span class="tag" style="background:${colOf('g',d[9])}">3개월 ${d[9]>0?'+':''}${d[9]}%</span>`:''}</div>
 <dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건</dd>
-${d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}</dd>`:''}${d.hs?`<dt>호재 점수</dt><dd><b>${d.hs}</b> <small class="muted">/ 100 · 이 지도 기준</small>${d.hl.map(h=>{const f=_fut.s[h[1]];return `<br>${f[0]||'(이름 미정)'}역 ${dkm(h[2])} · ${f[11]||(f[6]||'').split(',')[0]} ${f[8]?f[8]+'년 목표':'개통 미정'}`}).join('')}</dd>`:d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}</dd>`:''}<dt>주변 학원</dt><dd id="aHg" class="muted">세는 중…</dd></dl>
+${d.ms?(d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}</dd>`:''):trRows(d)}${d.hs?`<dt>호재 점수</dt><dd><b>${d.hs}</b> <small class="muted">/ 100 · 이 지도 기준</small>${d.hl.map(h=>{const f=_fut.s[h[1]];return `<br>${f[0]||'(이름 미정)'}역 ${dkm(h[2])} · ${f[11]||(f[6]||'').split(',')[0]} ${f[8]?f[8]+'년 목표':'개통 미정'}`}).join('')}</dd>`:d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}</dd>`:''}<dt>주변 학원</dt><dd id="aHg" class="muted">세는 중…</dd></dl>
 ${aptChart(d)}
 <div class="at"><div class="r h"><span>전용</span><span>최근 매매</span><span>전세 중앙값</span><span>최근 월세</span></div>${T.map(x=>`<div class="r"><span><b>${x[0]}㎡</b><small>${(x[0]/3.305785).toFixed(1)}평</small></span><span>${x[1]?`<b>${eok(x[1])}</b><small>${ymdS(x[2])} · ${x[3]}층 · ${x[6]}건</small>`:'—'}</span><span>${x[4]?`<b>${eok(x[4])}</b><small>${x[5]}건</small>`:'—'}</span><span>${x[7]?`<b>${eok(x[7])}/${x[8]}</b>`:'—'}</span></div>`).join('')}</div>
 <div class="acts"><button id="aTour" title="동네 → 단지 → 가까운 역 → 초등학교 → 호재 역 순서로 자막과 함께 자동으로 둘러봅니다(화면 녹화용)">▶ 임장 코스</button><button id="aSave"></button><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 아파트')}" target="_blank" rel="noopener">카카오맵</a><a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">실거래가 공개시스템</a></div>
@@ -902,11 +910,12 @@ const nm=d[0],src=`국토교통부 실거래가 ${aptD.from.slice(0,4)}.${aptD.f
 st.push({c,z:13,p:0,b:0,h:3200,em:'임장 시작',t:nm,s:`${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년차)`:''}`});
 st.push({c,z:16.6,p:60,b:-25,rot:70,h:6500,em:'단지',t:nm,s:[t&&`${t[0]}㎡ 최근 매매 ${eok(t[1])} (${ymdS(t[2])}, ${t[3]}층)`,u&&`전세 중앙값 ${eok(u[4])}`,d[8]>=0&&`전세가율 ${d[8]}%`].filter(Boolean).join(' · ')||'최근 12개월 매매·전세 거래 없음'});
 const seen=new Set(),stop=(q,em,name,extra)=>{const k=q[0].toFixed(4)+q[1].toFixed(4);if(seen.has(k))return;seen.add(k);const dk=km(c,q);
-st.push({c:q,z:16.2,p:50,b:15,ln:q,nm:name,h:4200,em,t:name,s:`단지에서 직선 ${dkm(dk)} · 걸어서 약 ${Math.max(1,Math.round(dk*15))}분${extra?`<br>${extra}`:''}`})};
-if(d.st[0]>=0&&d.st[1]<=3){const s=sts[d.st[0]];stop([s[1],s[2]],'가까운 역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', '))}
+st.push({c:q,z:16.2,p:50,b:15,ln:q,nm:name,h:4200,em,t:name,s:`단지에서 직선 ${dkm(dk)}${dk<=2.5?` · 걸어서 약 ${Math.max(1,Math.round(dk*15))}분`:''}${extra?`<br>${extra}`:''}`})};
+if(!d.ms){if(d.tr[0]>=0&&d.tr[1]<=10){const s=sts[d.tr[0]];stop([s[1],s[2]],'기차역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', '))}if(d.bt[0]>=0&&d.bt[1]<=10){const b=_term.t[d.bt[0]];stop([b[2],b[1]],'버스터미널',b[0])}}
+else if(d.st[0]>=0&&d.st[1]<=3){const s=sts[d.st[0]];stop([s[1],s[2]],'가까운 역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', '))}
 if(d.el[0]&&d.el[1]<=2)stop(xy(d.el[0]),'초등학교',sname(d.el[0]));
 (d.hl||[]).slice(0,2).forEach(h=>{const f=_fut.s[h[1]];if(!f)return;stop([f[2],f[1]],'호재 역 · '+(f[4]==='c'?'공사 중':'계획'),(f[0]||'이름 미정')+(f[0]&&!/역$/.test(f[0])?'역':''),`${esc(f[11]||f[6]||'')} · ${f[8]?f[8]+'년 개통 목표':'개통 시기 미정'}${f[7]?' (기존 역에 노선 추가)':''}`)});
-st.push({c,z:14.7,p:42,b:0,all:1,h:6000,em:'정리',t:nm,s:[t&&`${t[0]}㎡ ${eok(t[1])}`,d[6]&&`3.3㎡당 ${eok(d[6])}`,d.st[0]>=0&&`역 ${dkm(d.st[1])}`,d.el[0]&&`초등학교 ${dkm(d.el[1])}`,d.hs&&`호재 점수 ${d.hs}/100`,`12개월 매매 ${d[7]}건`].filter(Boolean).join(' · '),sm:src});
+st.push({c,z:14.7,p:42,b:0,all:1,h:6000,em:'정리',t:nm,s:[t&&`${t[0]}㎡ ${eok(t[1])}`,d[6]&&`3.3㎡당 ${eok(d[6])}`,trTxt(d),d.el[0]&&`초등학교 ${dkm(d.el[1])}`,d.hs&&`호재 점수 ${d.hs}/100`,`12개월 매매 ${d[7]}건`].filter(Boolean).join(' · '),sm:src});
 TR={pz:false,nx:false,p:map.getPitch(),b:map.getBearing(),m3on:false};const me=TR;
 aptSel=i;aptPills();document.body.classList.add('touring');tCap.hidden=false;tBar.hidden=false;map.resize();
 if(bOn&&!mode3&&baseMode!==2){me.m3on=true;await setDim(true)}map.stop();
@@ -971,7 +980,7 @@ if(best)res.push({i,d,...best})});
 const key={hs:r=>-(r.d.hs||0),price:r=>r.price,fut:r=>r.d.fu[0]>=0?r.d.fu[1]:99,st:r=>r.d.st[1],deal:r=>-(r.d[7]+r.d[10]),jr:r=>-(r.d[8]),up:r=>r.d[9]>-999?-r.d[9]:999}[O];res.sort((a,b)=>key(a)-key(b));
 const top=res.slice(0,100);map.getSource('rec').setData(FC(top.map((r,k)=>pt([r.d[1],r.d[2]],{no:String(k+1)}))));
 const lab={buy:'최근 매매',jeonse:'전세 중앙값',gap:'매매−전세'}[P0];
-$('recR2').innerHTML=`<p style="margin:8px 0 4px;font-weight:700">${res.length.toLocaleString()}개 단지가 맞습니다${res.length>100?' (앞 100곳 표시)':''}</p>`+(top.length?`<div style="max-height:320px;overflow:auto">${top.map((r,k)=>`<div class="pl"><span class="no" style="background:#fab005">${k+1}</span><button class="go" data-i="${r.i}">${r.d[0]} <small class="muted">${r.d[5]}</small></button></div><div class="muted" style="font-size:12px;margin:-2px 0 4px 26px">전용 ${r.t[0]}㎡ · ${lab} ${won(r.price)} · ${r.d[3]?r.d[3]+'년':'준공 미상'} · 역 ${dkm(r.d.st[1])}${r.d.hs?' · 호재 점수 '+r.d.hs:''}${r.d[8]>=0?' · 전세가율 '+r.d[8]+'%':''}</div>`).join('')}</div>`:'<p class="muted" style="font-size:13px">조건을 조금 넓혀 보세요(예산·면적·지역).</p>')+`<p class="muted" style="font-size:11.5px;margin:4px 0 0">국토부 실거래가(${D.from.slice(0,4)}.${D.from.slice(4)}~${D.to.slice(0,4)}.${D.to.slice(4)}) 기준 · 투자 권유가 아니라 조건 검색 결과입니다</p>`;
+$('recR2').innerHTML=`<p style="margin:8px 0 4px;font-weight:700">${res.length.toLocaleString()}개 단지가 맞습니다${res.length>100?' (앞 100곳 표시)':''}</p>`+(top.length?`<div style="max-height:320px;overflow:auto">${top.map((r,k)=>`<div class="pl"><span class="no" style="background:#fab005">${k+1}</span><button class="go" data-i="${r.i}">${r.d[0]} <small class="muted">${r.d[5]}</small></button></div><div class="muted" style="font-size:12px;margin:-2px 0 4px 26px">전용 ${r.t[0]}㎡ · ${lab} ${won(r.price)} · ${r.d[3]?r.d[3]+'년':'준공 미상'} ${(x=>x?' · '+x:'')(trTxt(r.d))}${r.d.hs?' · 호재 점수 '+r.d.hs:''}${r.d[8]>=0?' · 전세가율 '+r.d[8]+'%':''}</div>`).join('')}</div>`:'<p class="muted" style="font-size:13px">조건을 조금 넓혀 보세요(예산·면적·지역).</p>')+`<p class="muted" style="font-size:11.5px;margin:4px 0 0">국토부 실거래가(${D.from.slice(0,4)}.${D.from.slice(4)}~${D.to.slice(0,4)}.${D.to.slice(4)}) 기준 · 투자 권유가 아니라 조건 검색 결과입니다</p>`;
 $('recR2').querySelectorAll('button.go').forEach(x=>x.onclick=()=>goApt(+x.dataset.i));
 if(top.length&&R!=='view'){const xs=top.map(r=>r.d[1]),ys=top.map(r=>r.d[2]);map.fitBounds([[Math.min(...xs),Math.min(...ys)],[Math.max(...xs),Math.max(...ys)]],{padding:60,maxZoom:15,duration:700})}
 }finally{b.disabled=false;b.textContent='찾기'}};
@@ -1074,7 +1083,7 @@ const R=[['면적',c=>c.t?`<b>${c.t[0]}㎡</b><small>${(c.t[0]/3.305785).toFixed
 ['전세가율',c=>c.d[8]>=0?`<b>${c.d[8]}%</b>`:no],
 ['3.3㎡당',c=>c.d[6]?`<b>${eok(c.d[6])}</b>`:no],
 ['3개월 변동',c=>c.d[9]>-999?`<b>${c.d[9]>0?'+':''}${c.d[9]}%</b>`:no],
-['가까운 역',c=>c.d.st[0]>=0?`<b>${dkm(c.d.st[1])}</b><small>${esc(sts[c.d.st[0]][0])}역</small>`:no],
+['역·터미널',c=>c.d.ms?(c.d.st[0]>=0?`<b>${dkm(c.d.st[1])}</b><small>${esc(sts[c.d.st[0]][0])}역</small>`:no):(c.d.tr[0]>=0||c.d.bt[0]>=0)?`${c.d.tr[0]>=0?`<b>기차 ${dkm(c.d.tr[1])}</b><small>${esc(sts[c.d.tr[0]][0])}역</small>`:''}${c.d.bt[0]>=0?`<b>터미널 ${dkm(c.d.bt[1])}</b><small>${esc(_term.t[c.d.bt[0]][0])}</small>`:''}`:no],
 ['호재 점수',c=>c.d.hs?`<b>${c.d.hs}</b><small>/100 · 이 지도 기준</small>`:no],
 ['호재 역',c=>fu(c.d)],
 ['준공',c=>c.d[3]?`<b>${c.d[3]}년</b><small>${Y-c.d[3]}년 경과</small>`:no],

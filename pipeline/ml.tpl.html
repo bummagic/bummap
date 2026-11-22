@@ -1066,7 +1066,7 @@ const tBar=document.createElement('div');tBar.className='tourbar';tBar.hidden=tr
 let TR=null;
 const tWait=async ms=>{let t=0;ms*=TR&&TR.sp||1;while(TR&&!TR.nx&&t<ms){await new Promise(r=>setTimeout(r,100));if(TR&&!TR.pz)t+=100}if(TR)TR.nx=false};
 const tSay=(em,b,sp,sm)=>{tCap.classList.remove('on');setTimeout(()=>{tCap.innerHTML=`<em>${em}</em><b>${b}</b>${sp?`<span>${sp}</span>`:''}${sm?`<small>${sm}</small>`:''}`;tCap.classList.add('on')},250)};
-function tourEnd(){if(!TR)return;const w=TR;TR=null;map.stop();tCloud.classList.remove('on');window._bMax=0;if(w.real&&vw3)vw3Off();(w.hid||[]).forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility','visible'));document.body.classList.remove('touring','tnopill');try{map.getTerrain&&map.getTerrain()&&map.setTerrain(null)}catch(e){}try{map.setSky&&map.setSky({'sky-color':P.sea,'horizon-color':P.sea,'fog-color':P.sea,'atmosphere-blend':0})}catch(e){}map.getLayer('b3h')&&map.setLayoutProperty('b3h','visibility','none');map.setPaintProperty('b3','fill-extrusion-opacity',.9);window._bcSet&&_bcSet();if(w.base0!==baseMode)setBase(w.base0);if(!w.bOn0){bOn=false;$('bbtn').classList.remove('on')}mode3=w.m30;rot(w.m30);sty();tCap.hidden=true;tBar.hidden=true;map.getSource('tour').setData(EMPTY);map.getSource('life')&&map.getSource('life').setData(EMPTY);map.resize();
+function tourEnd(){if(!TR)return;const w=TR;TR=null;map.stop();window._bOff=0;if(map.getLayer('b3s'))map.setLayoutProperty('b3s','visibility','none');map.getSource('bs')&&map.getSource('bs').setData(EMPTY);tCloud.classList.remove('on');window._bMax=0;if(w.real&&vw3)vw3Off();(w.hid||[]).forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility','visible'));document.body.classList.remove('touring','tnopill');try{map.getTerrain&&map.getTerrain()&&map.setTerrain(null)}catch(e){}try{map.setSky&&map.setSky({'sky-color':P.sea,'horizon-color':P.sea,'fog-color':P.sea,'atmosphere-blend':0})}catch(e){}map.getLayer('b3h')&&map.setLayoutProperty('b3h','visibility','none');map.setPaintProperty('b3','fill-extrusion-opacity',.9);window._bcSet&&_bcSet();if(w.base0!==baseMode)setBase(w.base0);if(!w.bOn0){bOn=false;$('bbtn').classList.remove('on')}mode3=w.m30;rot(w.m30);sty();tCap.hidden=true;tBar.hidden=true;map.getSource('tour').setData(EMPTY);map.getSource('life')&&map.getSource('life').setData(EMPTY);map.resize();
 if(w.m3on)setDim(false);else map.easeTo({pitch:w.p,bearing:w.b,duration:500})}
 $('tEnd').onclick=tourEnd;$('tNext').onclick=()=>{if(TR){TR.nx=true;TR.pz=false;$('tPause').textContent='일시정지'}};
 $('tPause').onclick=()=>{if(!TR)return;TR.pz=!TR.pz;$('tPause').textContent=TR.pz?'다시 재생':'일시정지';if(TR.pz)map.stop()};
@@ -1198,7 +1198,7 @@ let TOPT=(()=>{try{const o=JSON.parse(localStorage.getItem('krmap_tour')||'{}');
 const tDlg=document.createElement('div');tDlg.className='tdlg';tDlg.hidden=true;fig.appendChild(tDlg);
 function tourStart(i){const o=TOPT,G=[['sc','점수(객관·내 조건)'],['by','브역대신평초'],['st','역·KTX역'],['el','초등학교'],['shop','상권'],['life','병원·편의시설·공원'],['fut','호재 역']];
 const meTxt=()=>ME?[ME.work&&'직장 '+ME.work.n,ME.fam&&FAM[ME.fam]&&FAM[ME.fam][0],ME.car===1?'차량 있음':ME.car===0?'차량 없음':''].filter(Boolean).join(' · '):'입력 안 함';
-tDlg.innerHTML=`<div role="dialog" aria-label="임장 코스 설정"><h3>임장 코스</h3><p class="muted" style="margin:0 0 8px;font-size:12.5px">${esc(aptD.a[i][0])} · 화면 녹화용으로 틀을 숨기고 자동으로 둘러봅니다. 시작 전에 자료를 미리 불러오느라 10~30초 걸립니다.</p>
+tDlg.innerHTML=`<div role="dialog" aria-label="임장 코스 설정"><h3>임장 코스</h3><p class="muted" style="margin:0 0 8px;font-size:12.5px">${esc(aptD.a[i][0])} · 화면 녹화용으로 틀을 숨기고 자동으로 둘러봅니다. 시작 전에 자료·3D 건물을 받고 장면을 한 번씩 미리 그려 두느라 30초~1분 30초쯤 걸립니다(재생 중 끊기지 않게).</p>
 <div class="r">화면<select id="tReal"><option value="0">지도 3D (가볍고 빠름)</option><option value="1" ${VK?'':'disabled'}>실사 3D (브이월드${VK?'':' · 인증키 필요'})</option></select></div>
 <div class="r">배경(지도 3D)<select id="tBase"><option value="-1">지금 그대로</option><option value="0">단색</option><option value="1">일반지도</option><option value="2">위성</option></select></div>
 <div class="r">건물 3D · 산·언덕 입체 · 하늘<span><input type="checkbox" id="tB3" ${o.b3?'checked':''}> <input type="checkbox" id="tDem" ${o.dem?'checked':''}> <input type="checkbox" id="tSky" ${o.sky?'checked':''}></span></div>
@@ -1219,11 +1219,19 @@ let v3Id=0;const v3Wait=new Map();addEventListener('message',e=>{if(e.source!==v
 const v3=m=>{try{v3f.contentWindow.postMessage(m,location.origin)}catch(e){}};
 const v3Ask=(m,ms=3000)=>new Promise(r=>{const id=++v3Id;v3Wait.set(id,r);v3({...m,id});setTimeout(()=>{if(v3Wait.has(id)){v3Wait.delete(id);r(null)}},ms)});
 const race=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
+// 브이월드 도로명주소 건물(JSONP, 1,000개씩 여러 쪽) → 높이 = 지상층수 × 3.1m, 이 단지(이름 같음, 600m 안 · 없으면 120m 안 10층 이상) = t 1
+let spN=0;const vwJ=u=>new Promise(res=>{const cb='_vwj'+(++spN),s=document.createElement('script');let done=false;window[cb]=x=>{done=true;delete window[cb];s.remove();res(x)};s.onerror=()=>{if(!done){delete window[cb];res(null)}};s.src=u+'&callback='+cb;document.head.appendChild(s);setTimeout(()=>{if(!done){window[cb]=()=>{};res(null)}},12000)});
+const spbdLoad=async(boxes,c,nm,tick)=>{if(!VK)return null;const seen=new Set(),out=[],N=x=>String(x||'').replace(/\s|아파트/g,'');const tn=N(nm);
+for(const [q,r] of boxes){for(let pg=1;pg<=6;pg++){const j=await vwJ(`https://api.vworld.kr/req/data?service=data&request=GetFeature&data=LT_C_SPBD&key=${encodeURIComponent(VK)}&domain=${location.hostname}&format=json&size=1000&page=${pg}&crs=EPSG:4326&geometry=true&attribute=true&geomFilter=BOX(${q[0]-r},${q[1]-r*.82},${q[0]+r},${q[1]+r*.82})`);
+const R=j&&j.response;if(!R||R.status!=='OK')break;for(const f of R.result.featureCollection.features){const p=f.properties;if(seen.has(p.bd_mgt_sn))continue;seen.add(p.bd_mgt_sn);const fl=+p.gro_flo_co||1;
+const g=f.geometry,ring=(g.type==='MultiPolygon'?g.coordinates[0][0]:g.coordinates[0]),cx=ring.reduce((s,x)=>s+x[0],0)/ring.length,cy=ring.reduce((s,x)=>s+x[1],0)/ring.length,bn=N(p.buld_nm);
+out.push({type:'Feature',properties:{h:Math.min(fl,80)*3.1,f:fl,t:bn&&(bn===tn||bn===tn+'아파트')&&km(c,[cx,cy])<=.6?1:0,cx,cy},geometry:g})}tick&&tick(out.length);if(pg>=(+R.page.total||1))break}}
+if(!out.some(f=>f.properties.t))out.forEach(f=>{if(f.properties.f>=10&&km(c,[f.properties.cx,f.properties.cy])<=.12)f.properties.t=1});return out};
 async function tourRun(i,O){if(TR)tourEnd();const d=aptD.a[i],c=[d[1],d[2]],Y=new Date().getFullYear(),t=repT(d,'pm'),u=repT(d,'jm'),nm=d[0];
 TR={pz:false,nx:false,p:map.getPitch(),b:map.getBearing(),sp:O.sp,base0:baseMode,bOn0:bOn,m30:mode3,real:false};const me=TR;
 aptSel=i;aptPills();document.body.classList.add('touring');document.body.classList.toggle('tnopill',!O.price);tBar.hidden=false;map.resize();
 await cloud(true,'임장 준비 중',nm);const prog=t=>cloudTx('임장 준비 중',`${nm} · ${t}`);
-me.hid=['ysf','ysl','sch','schn','hp','rec','recn',...(O.price?[]:['apt'])].filter(l=>map.getLayer(l)&&map.getLayoutProperty(l,'visibility')!=='none');me.hid.forEach(l=>map.setLayoutProperty(l,'visibility','none'));
+me.hid=['ysf','ysl','sch','schn','hp','rec','recn','dline','mline','pline','zfill','zA','zB','zW','fz','ldong','lmuni','lsido','candf','candl',...(O.price?[]:['apt'])].filter(l=>map.getLayer(l)&&map.getLayoutProperty(l,'visibility')!=='none');me.hid.forEach(l=>map.setLayoutProperty(l,'visibility','none'));
 // 1) 자료 모으기(지도는 구름 뒤에서 움직임)
 prog('단지 평가');const by=await race(bydsOf(d),15000);
 prog('KTX역·병원까지 길 찾기');const [kr,bh,sh]=await Promise.all([race(kxRoute(d),7000),race(bigHosp(c),8000),race(shopNear(c),8000)]);
@@ -1257,17 +1265,28 @@ if(TR!==me)return;
 const real=O.real&&VK;if(real){prog('실사 3D 불러오기');map.jumpTo({center:c,zoom:st[0].z,pitch:st[0].p,bearing:st[0].b});vw3On();let t0=Date.now();while(TR===me&&!fig.classList.contains('v3ok')&&vw3&&Date.now()-t0<30000)await new Promise(r=>setTimeout(r,300));me.real=vw3&&fig.classList.contains('v3ok');if(!me.real&&vw3)vw3Off()}
 if(me.real){v3({v3c:'clean',on:1});st.forEach(x=>x.sm=(x.sm?x.sm+' · ':'')+'3D: 브이월드(국토교통부)')}
 if(!me.real){if(O.base>=0&&O.base!==baseMode){const m0=mode3;mode3=false;await setBase(O.base);mode3=m0}
-if(O.b3){window._bMax=9;if(!bOn){bOn=true;$('bbtn').classList.add('on')}mode3=true;rot(true);sty();const bm=String(d[5]).match(/^(\S+)\s+(\S+)/);map.setPaintProperty('b3','fill-extrusion-color',col);map.setPaintProperty('b3','fill-extrusion-opacity',baseMode===2?.85:.95);
+if(O.b3){if(!bOn){bOn=true;$('bbtn').classList.add('on')}mode3=true;rot(true);sty();
+// 임장용 건물: 브이월드 도로명주소 건물(LT_C_SPBD, 지상층수) — 국토부 건물자료에 빠진 신축 단지도 서게. 모두 회색, 이 단지만 주황
+prog('3D 건물');const pts=[...new Map(st.filter(s=>s.at).map(s=>[s.at[0].toFixed(3)+','+s.at[1].toFixed(3),s.at])).values()];
+const BS=await race(spbdLoad(pts.map((q,k)=>[q,k?.005:.008]),c,nm,n=>prog(`3D 건물 ${n.toLocaleString()}동`)),60000);
+if(BS&&BS.length){if(!map.getSource('bs'))map.addSource('bs',{type:'geojson',data:EMPTY});map.getSource('bs').setData(FC(BS));
+if(!map.getLayer('b3s'))map.addLayer({id:'b3s',type:'fill-extrusion',source:'bs',paint:{'fill-extrusion-color':['case',['==',['get','t'],1],'#ff7a1a',dark?'#6b7a82':'#d5d8da'],'fill-extrusion-height':['get','h'],'fill-extrusion-opacity':.96,'fill-extrusion-vertical-gradient':true}},'sel');
+map.setLayoutProperty('b3s','visibility','visible');['b2','b2l','b3','b3h'].forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility','none'));me.bs=1;window._bOff=1}
+else{window._bMax=9;map.setPaintProperty('b3','fill-extrusion-color',dark?'#6b7a82':'#d5d8da');const bm=String(d[5]).match(/^(\S+)\s+(\S+)/);
 if(!map.getLayer('b3h'))map.addLayer({id:'b3h',type:'fill-extrusion',source:'b',paint:{'fill-extrusion-color':'#ff7a1a','fill-extrusion-height':['+',['/',['get','h'],10],.6],'fill-extrusion-opacity':.97,'fill-extrusion-vertical-gradient':true}},'sel');
 map.setFilter('b3h',['all',['==',['get','c'],1],['any',...(bm?[['all',['in',bm[1],['get','d']],['==',['get','j'],bm[2]]]]:[]),['in',nm,['get','n']]]]);map.setLayoutProperty('b3h','visibility','visible');
-prog('3D 건물');await race(Promise.all([...new Set(st.filter(s=>s.at).map(s=>s.at[0].toFixed(2)+','+s.at[1].toFixed(2)))].map(k=>bPre(k.split(',').map(Number)))),20000)}
+await race(Promise.all(pts.map(q=>bPre(q))),20000)}}
 if(O.dem){if(!map.getSource('dem'))map.addSource('dem',{type:'raster-dem',tiles:['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],tileSize:256,encoding:'terrarium',maxzoom:15});try{map.setTerrain({source:'dem',exaggeration:1.5})}catch(e){}}
 if(O.sky&&map.setSky){try{map.setSky({'sky-color':'#7fb8e8','horizon-color':'#dceaf3','fog-color':'#eef3f6','sky-horizon-blend':.6,'horizon-fog-blend':.7,'fog-ground-blend':.5,'atmosphere-blend':['interpolate',['linear'],['zoom'],0,1,12,.6,16,.2]})}catch(e){}}}
+// 3-2) 장면 위치를 구름 뒤에서 한 번씩 미리 그려 둠(지도 타일·실사 건물을 받아 두어 재생 중 끊기지 않게)
+{const vs=st.filter(x=>x.at&&!x.same);for(let k=0;k<vs.length&&TR===me;k++){const s=vs[k];prog(`화면 미리 그리기 ${k+1}/${vs.length}`);
+if(me.real){v3({v3c:'view',lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b});await new Promise(r=>setTimeout(r,1500));const t0=Date.now();while(Date.now()-t0<7000){const r=await v3Ask({v3c:'tiles'},1500);if(!r||r.ok)break;await new Promise(r=>setTimeout(r,400))}}
+else{map.jumpTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b});await idle(6000)}}}
 // 4) 재생: 멀면 구름으로 가렸다가(그동안 화면 준비) 펼치고, 가까우면 부드럽게 이동
 const ft=[];const marks=s=>{const pts=(s.mk||[]).map(m=>({lon:m.c[0],lat:m.c[1],n:m.n,c:m.col||'#e8590c',big:m.big?1:0})),line=s.ln&&s.at?[[c,s.at]]:[];
 if(me.real)v3({v3c:'marks',pts,line});else{map.getSource('tour').setData(FC([...line.map(l=>({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:l}})),...pts.filter(p=>p.big).map(p=>pt([p.lon,p.lat],{k:p.lon===c[0]&&p.lat===c[1]?'a':'s',n:p.n}))]));map.getSource('life').setData(FC(pts.filter(p=>!p.big).map(p=>pt([p.lon,p.lat],{n:p.n,col:p.c}))))}};
 const view=(s,fly)=>{const o={lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b};if(me.real){v3({v3c:fly?'fly':'view',...o,dur:2.2})}else if(fly)map.flyTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b,duration:2200,essential:true});else map.jumpTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b})};
-const settle=async()=>{if(me.real){const t0=Date.now();await new Promise(r=>setTimeout(r,1200));while(Date.now()-t0<5000){const r=await v3Ask({v3c:'tiles'},1500);if(!r||r.ok)break;await new Promise(r=>setTimeout(r,300))}}else{if(O.b3)await race(bLoad(),4000);await idle(3500)}};
+const settle=async()=>{if(me.real){const t0=Date.now();await new Promise(r=>setTimeout(r,1200));while(Date.now()-t0<8000){const r=await v3Ask({v3c:'tiles'},1500);if(!r||r.ok)break;await new Promise(r=>setTimeout(r,300))}}else{if(O.b3&&!me.bs)await race(bLoad(),5000);await idle(6000)}await new Promise(r=>setTimeout(r,400))};
 const orbit=s=>{if(!s.rot||TR.pz)return;if(me.real)v3({v3c:'orbit',lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b,deg:s.rot,dur:s.h*(TR.sp||1)/1000});else map.easeTo({bearing:s.b+s.rot,duration:s.h*(TR.sp||1),easing:x=>x})};
 let cur=null;tCap.hidden=false;
 for(let k=0;k<st.length&&TR===me;k++){const s=st[k];$('tStep').textContent=`${k+1} / ${st.length}`;
@@ -1640,7 +1659,7 @@ const bDecode=j=>{const[ox,oy]=j.o;return j.r.map(r=>{const f=r[8];let x=0,y=0;c
 return {type:'Feature',properties:{c:r[0],f:r[1],h:Math.max(r[2],30),y:r[3],d:j.d[r[4]],j:r[5],n:r[6],a:r[7],s:r[9]?1:0},geometry:{type:'Polygon',coordinates:[ring]}}})};
 let bSeq=0;
 async function bLoad(){if(!map.getSource('b'))return;if(!bIdx){bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}))}
-const my=++bSeq,z=map.getZoom(),src=map.getSource('b');if(!bOn||vw3){src.setData(EMPTY);bst.textContent='';return}
+const my=++bSeq,z=map.getZoom(),src=map.getSource('b');if(window._bOff)return;if(!bOn||vw3){src.setData(EMPTY);bst.textContent='';return}
 if(z<14){src.setData(EMPTY);bst.textContent=z>=12?'건물은 조금 더 확대하면(축척 약 200m) 나타납니다':'';return}
 const b=map.getBounds(),Z=bIdx.z,[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y1]=tileOf(b.getEast(),b.getSouth(),Z);
 const cc=map.getCenter(),[cx0,cy0]=tileOf(cc.lng,cc.lat,Z),cand=[];

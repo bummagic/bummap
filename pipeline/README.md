@@ -169,6 +169,9 @@
 - 길 선: routeGeo(c,q,'foot'|'car') = routing.openstreetmap.de 보행 / OSRM 자동차 route(overview=full, geojson). rTicks로 걷기 250m(2km 넘으면 500m)·차 1km(12km 넘으면 2km) 눈금. 임장 장면은 단지·목적지·길을 cameraForBounds로 한 화면에(z 11.2~16.3), 2D는 tour 원본(tourlc 흰 테두리 + tourl 주황 걷기/파랑 차), 실사 3D는 marks line·눈금 점.
 - 우리 단지 주황: 이름이 같은 SPBD 건물의 지번(bd_mgt_sn 앞 19자리) 또는 실거래 지번(gu = 동, sn[11:15] 본번, sn[15:19] 부번)이 같은 5층 이상 건물.
 
+## T-6. 단색 지도 건물 채우기 (2026-11-23)
+- 국토부 GIS건물통합정보(bld/)에 빠진 신축 단지(예: 전북혁신도시)를 채우려고 단색 배경·z14.5↑에서 spView()가 브이월드 LT_C_SPBD를 0.01° 칸마다 JSONP로 받음(칸 캐시 40개). 2D = vb_sp(면, b2 아래), 3D = vb_sp3(기둥, 국토부 건물 bbox 안에 중심이 든 것은 dup=1로 빼서 겹치지 않게). 브이월드 키가 없으면 안 그림.
+
 ## T-2. KTX역 실제 이동 시간 (데이터 갱신 없음, 2026-11-22)
 - KTX역 목록 = stations.json 중 t='ktx' + 운행 중 KTX 노선(rail.json k='ktx')이 지나는 역 + `KXN`(수서·동탄·평택지제(2026.9 KTX·SRT 통합), 행신, 서대전·계룡·논산(기존선 KTX), 원주·제천·단양(중앙선 KTX-이음), 서울). 노선·정차역이 바뀌면 KXN을 고친다. 단지마다 직선 가장 가까운 KTX역 a.kx, 지하철 없는 시는 a.tr = a.kx.
 - 단지 카드·임장 코스·관심 단지 비교: OSRM 공개 서버(router.project-osrm.org, table/v1/driving, 브라우저에서 바로 호출, 키 없음)로 직선 가까운 KTX역 3곳 + 가까운 버스터미널까지 자동차 시간·도로 거리를 받아 가장 빠른 KTX역을 보여 줌. 막힘·신호 대기 반영 안 됨, 서버에 닿지 않으면 직선거리. 카카오맵 '길찾기' 링크(map.kakao.com/link/to).

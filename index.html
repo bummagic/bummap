@@ -1640,7 +1640,19 @@ A({id:'vb_bld',type:'fill','source-layer':'building',minzoom:13.5,paint:{'fill-c
 const PC=['hospital','school','college','park','library','town_hall','grocery','shop','museum','stadium','attraction'];
 A({id:'vb_poi',type:'symbol','source-layer':'poi',minzoom:14.5,filter:['all',['in',cl,['literal',PC]],['has','name'],['<=',['get','rank'],['step',['zoom'],8,16,20,17,40]]],layout:{'text-field':['coalesce',['get','name:ko'],['get','name']],'text-size':['interpolate',['linear'],['zoom'],14.5,10.5,18,12.5],'text-font':['Noto Sans Medium'],'text-max-width':7,'text-padding':4,'symbol-sort-key':['get','rank']},paint:{'text-color':['match',cl,'hospital','#c92a2a',['school','college'],'#2f7d4f','park','#2f7d4f','library','#6741d9',['grocery','shop'],'#1c6fb8',VB.lab],'text-halo-color':VB.halo,'text-halo-width':1.6}});
 vbOK=true}
-window._vbApply=()=>{if(baseMode===0&&!vbOK&&map.getLayer('terr'))vbInit();['vb_lc','vb_lu','vb_park','vb_wa','vb_ww','vb_rdc','vb_rd','vb_bld','vb_poi'].forEach(l=>vis(l,vbOn()))};
+// 단색 지도 건물 채우기: 브이월드 도로명주소 건물(지상층수)을 화면 둘레 0.01° 칸마다 받아 2D 면(국토부 건물 아래)·3D 기둥(국토부 건물이 없는 곳만)으로
+const spC=new Map();let spSeq=0,spT;S('bsp',EMPTY);
+L({id:'vb_sp',type:'fill',source:'bsp',minzoom:14.5,layout:{visibility:'none'},paint:{'fill-color':VB.bld,'fill-outline-color':VB.bldl,'fill-opacity':['interpolate',['linear'],['zoom'],14.5,0,15.2,1]}},'b2');
+L({id:'vb_sp3',type:'fill-extrusion',source:'bsp',minzoom:14.5,filter:['!=',['get','dup'],1],layout:{visibility:'none'},paint:{'fill-extrusion-color':dark?'#6b7a82':'#d9dbdc','fill-extrusion-height':['get','h'],'fill-extrusion-opacity':.92,'fill-extrusion-vertical-gradient':true}},'b3');
+window._spDup=()=>{const fc=window._spFC;if(!fc)return;const G=new Map();(window._bF||[]).forEach(f=>{const r=f.geometry.coordinates[0];let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;r.forEach(q=>{if(q[0]<x0)x0=q[0];if(q[0]>x1)x1=q[0];if(q[1]<y0)y0=q[1];if(q[1]>y1)y1=q[1]});const k=Math.floor((x0+x1)/2/.002)+'_'+Math.floor((y0+y1)/2/.002);if(!G.has(k))G.set(k,[]);G.get(k).push([x0-.00005,y0-.00005,x1+.00005,y1+.00005])});
+fc.features.forEach(f=>{const p=f.properties;let dup=0;for(let a=-1;a<=1&&!dup;a++)for(let b=-1;b<=1&&!dup;b++)for(const q of G.get((Math.floor(p.cx/.002)+a)+'_'+(Math.floor(p.cy/.002)+b))||[])if(p.cx>=q[0]&&p.cx<=q[2]&&p.cy>=q[1]&&p.cy<=q[3]){dup=1;break}p.dup=dup});map.getSource('bsp').setData(fc)};
+async function spView(){const on=vbOn()&&!TR&&bOn&&map.getZoom()>=14.5&&!!VK;vis('vb_sp',on);vis('vb_sp3',on&&mode3&&!vw3);if(!on)return;const b=map.getBounds(),cc=map.getCenter(),ks=[];
+for(let x=Math.floor(b.getWest()/.01);x<=Math.floor(b.getEast()/.01);x++)for(let y=Math.floor(b.getSouth()/.01);y<=Math.floor(b.getNorth()/.01);y++)ks.push([Math.hypot(x*.01+.005-cc.lng,y*.01+.005-cc.lat),x,y]);
+ks.sort((a,b)=>a[0]-b[0]);const want=ks.slice(0,9),my=++spSeq;for(const [,x,y] of want){const k=x+'_'+y;if(spC.has(k))continue;spC.set(k,spbdLoad([[[x*.01+.005,y*.01+.005],.0062]],[x*.01+.005,y*.01+.005],'',null,'').catch(()=>[]))}
+const A=await Promise.all(want.map(([,x,y])=>spC.get(x+'_'+y)));if(my!==spSeq)return;const seen=new Set(),F=[];A.forEach(a=>(a||[]).forEach(f=>{const k=f.properties.cx.toFixed(6)+f.properties.cy.toFixed(6);if(!seen.has(k)){seen.add(k);F.push(f)}}));
+if(spC.size>40)[...spC.keys()].slice(0,spC.size-40).forEach(k=>spC.delete(k));window._spFC=FC(F);_spDup()}
+map.on('moveend',()=>{clearTimeout(spT);spT=setTimeout(spView,350)});window._spView=spView;
+window._vbApply=()=>{setTimeout(()=>window._spView&&_spView(),0);if(baseMode===0&&!vbOK&&map.getLayer('terr'))vbInit();['vb_lc','vb_lu','vb_park','vb_wa','vb_ww','vb_rdc','vb_rd','vb_bld','vb_poi'].forEach(l=>vis(l,vbOn()))};
 const terrOn=()=>onId('L_tr')&&baseMode!==2&&!vbOn(),watOn=()=>onId('L_wa')&&baseMode!==2&&!vbOn();
 window._applyVis=()=>{window._vbApply&&_vbApply();const z=onId('L_zone');['zfill','zA','zB','zW'].forEach(i=>vis(i,z));vis('fz',onId('L_fz'));vis('terr',terrOn());['wb','rv'].forEach(i=>vis(i,watOn()));['lw1','lw2','lw3','lw4','lw5'].forEach(i=>vis(i,(watOn()||vbOn())&&!LOFF.has(i)));vis('ldong',onId('L_dong'));vis('land',!baseMode);['stc','stn'].forEach(i=>vis(i,onId('L_st')));const ym=+$('ysm').value;vis('ysf',ym>0);vis('ysl',ym>0);map.getLayer('ysl')&&map.setFilter('ysl',ym===2?null:['==',['get','m'],500]);window._ph3Apply&&_ph3Apply()};
 ['L_zone','L_fz','L_tr','L_wa','L_dong','L_st'].forEach(id=>tog(id,()=>_applyVis()));$('ysm').addEventListener('change',()=>_applyVis());
@@ -1707,7 +1719,7 @@ window._applyVis&&_applyVis();sty()}
 function sty(){if(!map.getLayer('b2'))return;const sat=baseMode===2;
 map.setPaintProperty('b2','fill-opacity',sat?.18:.85);map.setPaintProperty('b2','fill-outline-color',sat?'rgba(0,0,0,0)':(dark?'#0d1c24':'#ffffff'));
 map.setPaintProperty('b3','fill-extrusion-opacity',sat?.82:.9);
-vis2('b2',bOn&&!mode3);vis2('b2l',bOn&&!mode3&&sat);vis2('b3',bOn&&mode3&&!vw3);bLoad()}
+vis2('b2',bOn&&!mode3);vis2('b2l',bOn&&!mode3&&sat);vis2('b3',bOn&&mode3&&!vw3);bLoad();window._spView&&_spView()}
 const vis2=(id,on)=>map.setLayoutProperty(id,'visibility',on?'visible':'none');
 async function setBase(m){if(m===baseMode)return;await ready;if(vw3)vw3Off();baseMode=m;['bm0','bm1','bm2'].forEach((id,i)=>$(id).classList.toggle('on',i===m));setBaseLayer();styBase();if(m===2&&mode3&&VK){vw3Fail=false;vw3On()}}
 [0,1,2].forEach(i=>$('bm'+i).onclick=()=>setBase(i));
@@ -1733,7 +1745,7 @@ bst.textContent='건물 불러오는 중…';
 await Promise.all(want.filter(k=>!bCache.has(k)).map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}));
 if(my!==bSeq)return;
 if(bCache.size>60){for(const k of [...bCache.keys()].slice(0,bCache.size-60))if(!want.includes(k))bCache.delete(k)}
-const feats=want.flatMap(k=>bCache.get(k)||[]);src.setData({type:'FeatureCollection',features:feats});bst.textContent=`건물 ${feats.length.toLocaleString()}동 · 누르면 지번·용도·층수`}
+const feats=want.flatMap(k=>bCache.get(k)||[]);window._bF=feats;src.setData({type:'FeatureCollection',features:feats});window._spDup&&_spDup();bst.textContent=`건물 ${feats.length.toLocaleString()}동 · 누르면 지번·용도·층수`}
 let lt;map.on('moveend',()=>{clearTimeout(lt);lt=setTimeout(bLoad,150)});
 
 // ── 2D·3D: 3D에서도 규제지역·경계·이름표가 그대로 보인다. 위성+3D는 브이월드 실사 3D를 띄운다(안 되면 색 기둥).

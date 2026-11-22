@@ -91,3 +91,20 @@ ok = sum(1 for r in res if r[0] >= 0); print('stations', len(sts), 'reach 강남
 for n in ['잠실', '노원', '일산', '수원', '동탄', '인천', '판교', '광교중앙', '사당', '김포공항', '정자']:
     for s, st in enumerate(sts):
         if st[0] == n and 37 < st[2] < 38: print(n, res[s])
+# 브라우저에서 임의 목적지(직장)까지 계산하도록 역 노드만 남긴 축약 그래프: data/rgraph.json = {n:[역 번호…](노드=역×노선), e:[[a,b,분×10]…]}
+nodes = sorted({n for n in G if isinstance(n, tuple) and n[0] == 's'}, key=lambda x: (x[1], x[2])); NI = {n: k for k, n in enumerate(nodes)}
+E = {}
+for n in nodes:
+    D = {n: 0}; h = [(0, 0, n)]; cnt = 0
+    while h:
+        c, _, x = heapq.heappop(h)
+        if c > D.get(x, 1e9): continue
+        if x != n and x in NI:
+            a, b = NI[n], NI[x]; k = (min(a, b), max(a, b))
+            if c < E.get(k, 1e9): E[k] = c
+            continue
+        for m, w in G[x]:
+            nc = c + w
+            if nc < D.get(m, 1e9): D[m] = nc; cnt += 1; heapq.heappush(h, (nc, cnt, m))
+json.dump({'n': [n[1] for n in nodes], 'e': [[a, b, round(w * 10)] for (a, b), w in E.items()]}, open(__import__('os').path.join(__import__('os').path.dirname(OUT) or '.', 'rgraph.json'), 'w'), separators=(',', ':'))
+print('rgraph nodes', len(nodes), 'edges', len(E))

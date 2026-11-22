@@ -43,6 +43,25 @@ const msg=(t,why)=>{tell('fail',why);if(emb)return;const m=document.getElementBy
 window.getCam=function(){try{const C=ws3d.common,v=ws3d.viewer,cam=v.camera,cv=v.scene.canvas;const p=v.scene.pickPosition&&v.scene.globe?cam.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2)):null;if(!p)return null;
 const g=C.Cartographic.fromCartesian(p),range=C.Cartesian3.distance(cam.positionWC,p),mpp=range*Math.tan(cam.frustum.fovy/2)/(cv.clientHeight/2);
 return {lon:g.longitude/RD,lat:g.latitude/RD,z:Math.log2(40075016.7*Math.cos(g.latitude)/(512*mpp)),b:((cam.heading/RD)%360+360)%360,p:90+cam.pitch/RD}}catch(e){return null}};
+// 임장 코스용 카메라 명령(부모 지도에서 postMessage): view·fly·orbit·marks·tiles
+const camAt=(lon,lat,Zm,Pt,Br,fovy)=>{const h=innerHeight||700,mpp=40075016.7*Math.cos(lat*RD)/(512*2**Zm),range=(h/2*mpp)/Math.tan(fovy/2),up=range*Math.cos(Pt*RD),hz=range*Math.sin(Pt*RD),dn=-hz*Math.cos(Br*RD),de=-hz*Math.sin(Br*RD);
+ return {lon:lon+de/(111320*Math.cos(lat*RD)),lat:lat+dn/111320,h:Math.max(30,up),head:Br,pitch:-(90-Pt),range}};
+let ORB=null,KICK=null;const kick=ms=>{clearInterval(KICK);const t0=Date.now();KICK=setInterval(()=>{try{ws3d.viewer.scene.requestRender()}catch(e){}if(Date.now()-t0>ms)clearInterval(KICK)},60)};
+const stopOrb=()=>{if(ORB){clearInterval(ORB);ORB=null;try{ws3d.viewer.camera.lookAtTransform(ws3d.common.Matrix4.IDENTITY)}catch(e){}}};
+let MK=[];
+addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v3c)return;const m=e.data;try{
+ const C=ws3d.common,v=ws3d.viewer,cam=v.camera,fy=cam.frustum.fovy||fovyOf();
+ if(m.v3c==='view'||m.v3c==='fly'){stopOrb();const c=camAt(m.lon,m.lat,m.z,m.p,m.b,fy),dest=C.Cartesian3.fromDegrees(c.lon,c.lat,c.h+(m.alt||0)),ori={heading:c.head*RD,pitch:c.pitch*RD,roll:0};
+  if(m.v3c==='view'){cam.setView({destination:dest,orientation:ori});kick(3000)}else{cam.flyTo({destination:dest,orientation:ori,duration:m.dur||2});kick((m.dur||2)*1000+1500)}}
+ else if(m.v3c==='orbit'){stopOrb();const c=camAt(m.lon,m.lat,m.z,m.p,m.b,fy),tgt=C.Cartesian3.fromDegrees(m.lon,m.lat,m.alt||0),t0=Date.now(),dur=(m.dur||8)*1000;
+  ORB=setInterval(()=>{const k=Math.min(1,(Date.now()-t0)/dur);try{cam.lookAt(tgt,new C.HeadingPitchRange((m.b+m.deg*k)*RD,-(90-m.p)*RD,c.range));v.scene.requestRender()}catch(er){}if(k>=1)stopOrb()},33)}
+ else if(m.v3c==='stop')stopOrb();
+ else if(m.v3c==='marks'){if(v.entities){MK.forEach(x=>v.entities.remove(x));MK=[];
+  (m.line||[]).forEach(L=>MK.push(v.entities.add({polyline:{positions:C.Cartesian3.fromDegreesArray(L.flat()),width:6,material:C.Color.fromCssColorString('#fab005'),clampToGround:true}})));
+  (m.pts||[]).forEach(q=>MK.push(v.entities.add({position:C.Cartesian3.fromDegrees(q.lon,q.lat,(q.alt||0)+3),point:{pixelSize:q.big?16:12,color:C.Color.fromCssColorString(q.c||'#e8590c'),outlineColor:C.Color.WHITE,outlineWidth:3,heightReference:C.HeightReference.RELATIVE_TO_GROUND,disableDepthTestDistance:Number.POSITIVE_INFINITY},
+   label:{text:q.n||'',font:'bold 17px "Noto Sans KR",sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.fromCssColorString('#14232b'),outlineWidth:4,style:C.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:C.VerticalOrigin.BOTTOM,pixelOffset:new C.Cartesian2(0,-16),heightReference:C.HeightReference.RELATIVE_TO_GROUND,disableDepthTestDistance:Number.POSITIVE_INFINITY}})));kick(1500)}}
+ else if(m.v3c==='tiles'){let ok=true;try{ok=v.scene.globe.tilesLoaded}catch(er){}parent.postMessage({v3d:'tiles',ok,id:m.id},location.origin)}
+}catch(err){try{parent.postMessage({v3d:'err',why:String(err),id:m.id},location.origin)}catch(e2){}}});
 window.getCenter=function(){try{const C=window.ws3d&&ws3d.common,v=ws3d.viewer,cv=v.scene.canvas;const p=v.camera.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2));if(!p)return null;const g=C.Cartographic.fromCartesian(p);return [g.longitude*180/Math.PI,g.latitude*180/Math.PI]}catch(e){return null}};
 if(!VK)msg('<p><b>브이월드 인증키가 없습니다.</b></p><p>사이버 임장지도 화면 오른쪽 패널의 ‘배경지도 설정’에 인증키를 넣고 저장한 뒤 다시 들어와 주세요.</p>','브이월드 인증키가 없습니다');
 else if(window.vworldIsValid==='false')msg('<p><b>브이월드가 이 키를 거부했습니다.</b></p><p>'+(window.vworldErrMsg||'')+'</p>','브이월드 응답: '+(window.vworldErrMsg||'키 거부'));

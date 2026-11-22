@@ -286,7 +286,13 @@ body.touring .rpl{display:none}body.touring.tnopill .pill{display:none}
 .tdlg .go{display:flex;gap:8px;margin-top:10px}.tdlg .go button{flex:1;height:40px}.tdlg .go .p{background:var(--on);color:var(--onink);border-color:var(--on);font-weight:700}
 body.touring .app{grid-template-columns:minmax(0,1fr)}body.touring .fig{inset:0!important}
 .tourcap{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);width:max-content;max-width:min(680px,calc(100% - 28px));padding:13px 22px 14px;border-radius:16px;background:rgba(17,30,37,.86);color:#fff;text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.3);z-index:7;opacity:0;transition:opacity .45s}
-.tourcap .bg{display:grid;grid-template-columns:auto auto 1fr;gap:3px 8px;margin:8px auto 0;text-align:left;max-width:560px}.tourcap .bg>*{display:block;margin:0;font-size:14px;font-style:normal;letter-spacing:0;line-height:1.35}.tourcap .bg>.k{font-weight:700}.tourcap.on{opacity:1}.tourcap[hidden]{display:none}
+.tourcap .bg{display:grid;grid-template-columns:auto auto 1fr;gap:3px 8px;margin:8px auto 0;text-align:left;max-width:560px}.tourcap .bg>*{display:block;margin:0;font-size:14px;font-style:normal;letter-spacing:0;line-height:1.35}.tourcap .bg>.k{font-weight:700}.tcloud{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;transition:opacity .7s ease;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#ffffff 0,#eef3f7 55%,#d9e5ee 100%)}
+.tcloud.on{opacity:1}.tcloud .cl i{position:absolute;border-radius:50%;background:#fff;filter:blur(18px);opacity:.9;animation:cl 6s ease-in-out infinite alternate}
+.tcloud .cl i:nth-child(1){width:60%;height:45%;left:-10%;top:5%}.tcloud .cl i:nth-child(2){width:55%;height:40%;right:-12%;top:12%;animation-delay:-2s}.tcloud .cl i:nth-child(3){width:70%;height:40%;left:15%;bottom:-8%;animation-delay:-4s}
+.tcloud .cl i:nth-child(4){width:40%;height:35%;left:30%;top:30%;background:#f4f8fb;animation-delay:-1s}.tcloud .cl i:nth-child(5){width:45%;height:38%;left:-8%;bottom:10%;animation-delay:-3s}.tcloud .cl i:nth-child(6){width:42%;height:36%;right:-5%;bottom:5%;animation-delay:-5s}
+@keyframes cl{from{transform:translate(-3%,0) scale(1)}to{transform:translate(3%,-2%) scale(1.08)}}
+.tcloud .tx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:#14232b}.tcloud .tx b{display:block;font-size:22px}.tcloud .tx span{display:block;margin-top:6px;font-size:14px;color:#4a5a62}
+.tourcap.on{opacity:1}.tourcap[hidden]{display:none}
 .tourcap em{display:block;font-style:normal;font-size:12.5px;opacity:.75;margin-bottom:3px}
 .tourcap b{display:block;font-size:22px;line-height:1.25;letter-spacing:-.3px}
 .tourcap span{display:block;margin-top:5px;font-size:14.5px;line-height:1.45;opacity:.95}
@@ -1030,7 +1036,7 @@ SHOW.apt=p=>{const d=aptD.a[p.i];setSel(null);aptSel=p.i;aptPills();const T=d[12
 info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년 경과)`:''}</div>
 ${t||u?`<div class="hero">${t?`<div><small>${t[0]}㎡ 최근 매매</small><b>${eok(t[1])}</b><small>${ymdS(t[2])} · ${t[3]}층</small></div>`:''}${u?`<div><small>${u[0]}㎡ 전세 중앙값</small><b>${eok(u[4])}</b><small>12개월 ${u[5]}건</small></div>`:''}</div>`:''}
 <div>${d[6]?`<span class="tag" style="background:${colOf('p',d[6])}">3.3㎡당 ${eok(d[6])}</span>`:''}${d[8]>=0?`<span class="tag" style="background:${colOf('j',d[8])}">전세가율 ${d[8]}%</span>`:''}${d[9]>-999?`<span class="tag" style="background:${colOf('g',d[9])}">3개월 ${d[9]>0?'+':''}${d[9]}%</span>`:''}${d.g6!=null?`<span class="tag" style="background:${colOf('g6',d.g6)}">6개월 ${d.g6>0?'+':''}${d.g6}%</span>`:''}${d.g12!=null?`<span class="tag" style="background:${colOf('g12',d.g12)}">연초 대비 ${d.g12>0?'+':''}${d.g12}%</span>`:''}${d.pj?`<span class="tag" style="background:${colOf('pj',d.pj)}">3.3㎡당 전세 ${eok(d.pj)}</span>`:''}${(t=>t?`<span class="tag" style="background:${colOf('gap',t[1]-t[4])}">${t[0]}㎡ 갭 ${eok(t[1]-t[4])}</span>`:'')(gapT(d))}</div>
-${aptSum(d)}<div style="margin-top:10px"><div style="font-size:12px;color:var(--sub);margin-bottom:3px">브역대신평초 <span id="aByN"></span></div><div id="aBy" class="muted" style="font-size:12.5px">계산 중…</div></div><dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건${d.vl!=null?` · 최근 3개월 거래량 ${d.vl>0?'+':''}${d.vl}%`:''}</dd>${d.tm&&d.tm.some(v=>v!=null)?`<dt>통근(추정)</dt><dd>${['강남','여의도','광화문','판교'].map((n,j)=>d.tm[j]!=null?`${n} ${d.tm[j]}분`:'').filter(Boolean).join(' · ')}<small class="muted" style="display:block">걷기(직선 1km≈18분)+지하철, 운행 중 노선 기준 추정</small></dd>`:''}${d.cb?`<dt>큰 상권</dt><dd>${esc(_shb.L[d.cb[0]][0])} 상권 ${dkm(d.cb[1])} <small class="muted">(생활업종 점포 ${_shb.L[d.cb[0]][1].toLocaleString()}곳, ${_shb.ref})</small></dd>`:''}${d.nb!=null?`<dt>동네 대비</dt><dd>3.3㎡당 ${d.nb>0?'+':''}${d.nb}% <small class="muted">(1km 안 비슷한 연식 ${d.nbn}곳 중앙값 대비)</small></dd>`:''}${d.lv!=null?`<dt>입지·연식 대비</dt><dd>${d.lv>0?'+':''}${d.lv}점 <small class="muted">(같은 시군구 안 입지 순위 − 가격 순위, +면 입지에 비해 쌈)</small></dd>`:''}
+${aptSum(d)}<div id="aSc"><p class="muted" style="font-size:12px;margin:10px 0 0">점수 계산 중…</p></div><div style="margin-top:10px"><div style="font-size:12px;color:var(--sub);margin-bottom:3px">브역대신평초 <span id="aByN"></span></div><div id="aBy" class="muted" style="font-size:12.5px">계산 중…</div></div><dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건${d.vl!=null?` · 최근 3개월 거래량 ${d.vl>0?'+':''}${d.vl}%`:''}</dd>${d.tm&&d.tm.some(v=>v!=null)?`<dt>통근(추정)</dt><dd>${['강남','여의도','광화문','판교'].map((n,j)=>d.tm[j]!=null?`${n} ${d.tm[j]}분`:'').filter(Boolean).join(' · ')}<small class="muted" style="display:block">걷기(직선 1km≈18분)+지하철, 운행 중 노선 기준 추정</small></dd>`:''}${d.cb?`<dt>큰 상권</dt><dd>${esc(_shb.L[d.cb[0]][0])} 상권 ${dkm(d.cb[1])} <small class="muted">(생활업종 점포 ${_shb.L[d.cb[0]][1].toLocaleString()}곳, ${_shb.ref})</small></dd>`:''}${d.nb!=null?`<dt>동네 대비</dt><dd>3.3㎡당 ${d.nb>0?'+':''}${d.nb}% <small class="muted">(1km 안 비슷한 연식 ${d.nbn}곳 중앙값 대비)</small></dd>`:''}${d.lv!=null?`<dt>입지·연식 대비</dt><dd>${d.lv>0?'+':''}${d.lv}점 <small class="muted">(같은 시군구 안 입지 순위 − 가격 순위, +면 입지에 비해 쌈)</small></dd>`:''}
 ${d.ms?(d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}${wTxt(d.st[1])}</dd>`:''):''}${kxRow(d)}${d.ms?'':trRows(d)}${d.hs?`<dt>호재 점수</dt><dd><b>${d.hs}</b> <small class="muted">/ 100 · 이 지도 기준</small>${d.hl.map(h=>{const f=_fut.s[h[1]];return `<br>${f[0]||'(이름 미정)'}역 ${dkm(h[2])} · ${f[11]||(f[6]||'').split(',')[0]} ${f[8]?f[8]+'년 목표':'개통 미정'}`}).join('')}</dd>`:d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}${wTxt(d.el[1])}<small class="muted" id="aRd" style="display:block">큰길 확인 중…</small></dd>`:''}<dt>주변 학원</dt><dd id="aHg" class="muted">세는 중…</dd></dl>
 <div id="aLifeBox"></div>${aptChart(d)}${sensBox(d)}
 <div class="at"><div class="r h"><span>전용</span><span>최근 매매</span><span>전세 중앙값</span><span>최근 월세</span></div>${T.map(x=>`<div class="r"><span><b>${x[0]}㎡</b><small>${(x[0]/3.305785).toFixed(1)}평</small></span><span>${x[1]?`<b>${eok(x[1])}</b><small>${ymdS(x[2])} · ${x[3]}층 · ${x[6]}건</small>`:'—'}</span><span>${x[4]?`<b>${eok(x[4])}</b><small>${x[5]}건</small>`:'—'}</span><span>${x[7]?`<b>${eok(x[7])}/${x[8]}</b>`:'—'}</span></div>`).join('')}</div>
@@ -1045,8 +1051,9 @@ kxRoute(d).then(r=>{const el=$('aKx');if(!el)return;const k=d.kx;if(r&&r.k){cons
 const eb=$('aBt');if(eb&&r&&r.t)eb.innerHTML=`${esc(_term.t[d.bt[0]][0])} 차로 약 <b>${mins(r.t.s)}분</b> · 도로 ${dkm(r.t.m/1000)} ${kxLink(_term.t[d.bt[0]][0],_term.t[d.bt[0]][1],_term.t[d.bt[0]][2])}`});
 map.getSource('life')&&map.getSource('life').setData(EMPTY);
 bydsOf(d).then(o=>{const el=$('aBy');if(!el)return;el.classList.remove('muted');el.innerHTML=bydsHtml(o)+`<p class="src" style="margin-top:4px">${BYNOTE}</p>`;$('aByN').textContent=`${o.n}/6 충족`});
+const scRender=async L=>{const c0=[d[1],d[2]],[,kr,sh,bh]=await Promise.all([bydsOf(d),race(kxRoute(d),7000),race(shopNear(c0),8000),race(bigHosp(c0),8000)]);if(!$('aSc')||aptSel!==p.i)return;const P=scoreParts(d,{kr,sh,L,bh}),o=wsum(P,OBJW),sj=await race(subjOf(d,P),9000);const el=$('aSc');if(!el||aptSel!==p.i)return;el.innerHTML=scoreHtml(P,o,sj);const b=$('aMe');if(b)b.onclick=async()=>{await meAsk();scRender(L)}};scRender(null);
 $('aLife').onclick=async()=>{const B=$('aLifeBox'),bt=$('aLife');bt.disabled=true;bt.textContent='찾는 중…';map.flyTo({center:[d[1],d[2]],zoom:14.6,pitch:0,bearing:0,duration:900});await new Promise(r=>setTimeout(r,1000));
-const [L,sh]=await Promise.all([lifeScan([d[1],d[2]],1),shopNear([d[1],d[2]])]);if(!$('aLifeBox'))return;lifeMark(Object.values(L.by).flat());B.innerHTML=lifeHtml(L,sh);bt.disabled=false;bt.textContent='주변 생활권 다시';B.scrollIntoView({block:'nearest',behavior:'smooth'})};
+const [L,sh,bh]=await Promise.all([lifeScan([d[1],d[2]],1),shopNear([d[1],d[2]]),race(bigHosp([d[1],d[2]]),8000)]);if(!$('aLifeBox'))return;lifeMark(Object.values(L.by).flat());B.innerHTML=lifeHtml(L,sh,bh);bt.disabled=false;bt.textContent='주변 생활권 다시';B.scrollIntoView({block:'nearest',behavior:'smooth'});scRender(L)};
 if(d.el[0])bigRoad([d[1],d[2]],xy(d.el[0])).then(x=>{const el=$('aRd');if(el&&x!=null)el.innerHTML=x?`<span style="color:#c92a2a">직선으로 이으면 왕복 8차선 이상 큰길(${esc(x)})을 건넘</span>`:'직선상 왕복 8차선 이상 큰길을 건너지 않음';});
 const cb=()=>{if(has()&&!$('aCmp')){const b=document.createElement('button');b.id='aCmp';b.textContent='관심 단지 비교';b.onclick=()=>{window._showTab('me');_cmpDraw();setTimeout(()=>$('cmp').scrollIntoView({block:'start',behavior:'smooth'}),80)};sv.after(b)}};cb()};
 // ── 임장 코스 자동 재생: 동네 → 단지(돌며 보기) → 가까운 역 → 초등학교 → 호재 역 → 정리. 틀을 숨기고 자막·경로만 보여 화면 녹화로 임장 영상을 만들 수 있게
@@ -1059,7 +1066,7 @@ const tBar=document.createElement('div');tBar.className='tourbar';tBar.hidden=tr
 let TR=null;
 const tWait=async ms=>{let t=0;ms*=TR&&TR.sp||1;while(TR&&!TR.nx&&t<ms){await new Promise(r=>setTimeout(r,100));if(TR&&!TR.pz)t+=100}if(TR)TR.nx=false};
 const tSay=(em,b,sp,sm)=>{tCap.classList.remove('on');setTimeout(()=>{tCap.innerHTML=`<em>${em}</em><b>${b}</b>${sp?`<span>${sp}</span>`:''}${sm?`<small>${sm}</small>`:''}`;tCap.classList.add('on')},250)};
-function tourEnd(){if(!TR)return;const w=TR;TR=null;map.stop();(w.hid||[]).forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility','visible'));document.body.classList.remove('touring','tnopill');try{map.getTerrain&&map.getTerrain()&&map.setTerrain(null)}catch(e){}try{map.setSky&&map.setSky({'sky-color':P.sea,'horizon-color':P.sea,'fog-color':P.sea,'atmosphere-blend':0})}catch(e){}map.getLayer('b3h')&&map.setLayoutProperty('b3h','visibility','none');map.setPaintProperty('b3','fill-extrusion-opacity',.9);window._bcSet&&_bcSet();if(w.base0!==baseMode)setBase(w.base0);if(!w.bOn0){bOn=false;$('bbtn').classList.remove('on')}mode3=w.m30;rot(w.m30);sty();tCap.hidden=true;tBar.hidden=true;map.getSource('tour').setData(EMPTY);map.getSource('life')&&map.getSource('life').setData(EMPTY);map.resize();
+function tourEnd(){if(!TR)return;const w=TR;TR=null;map.stop();tCloud.classList.remove('on');window._bMax=0;if(w.real&&vw3)vw3Off();(w.hid||[]).forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility','visible'));document.body.classList.remove('touring','tnopill');try{map.getTerrain&&map.getTerrain()&&map.setTerrain(null)}catch(e){}try{map.setSky&&map.setSky({'sky-color':P.sea,'horizon-color':P.sea,'fog-color':P.sea,'atmosphere-blend':0})}catch(e){}map.getLayer('b3h')&&map.setLayoutProperty('b3h','visibility','none');map.setPaintProperty('b3','fill-extrusion-opacity',.9);window._bcSet&&_bcSet();if(w.base0!==baseMode)setBase(w.base0);if(!w.bOn0){bOn=false;$('bbtn').classList.remove('on')}mode3=w.m30;rot(w.m30);sty();tCap.hidden=true;tBar.hidden=true;map.getSource('tour').setData(EMPTY);map.getSource('life')&&map.getSource('life').setData(EMPTY);map.resize();
 if(w.m3on)setDim(false);else map.easeTo({pitch:w.p,bearing:w.b,duration:500})}
 $('tEnd').onclick=tourEnd;$('tNext').onclick=()=>{if(TR){TR.nx=true;TR.pz=false;$('tPause').textContent='일시정지'}};
 $('tPause').onclick=()=>{if(!TR)return;TR.pz=!TR.pz;$('tPause').textContent=TR.pz?'다시 재생':'일시정지';if(TR.pz)map.stop()};
@@ -1083,12 +1090,12 @@ const bydsOf=d=>d._by||(d._by=(async()=>{const Y=new Date().getFullYear(),R=[];
 const b=brandOf(d[0]);R.push(['브',b?2:0,b?`${b[1]} (${b[2]}, 2026 시공능력평가 ${b[3]}위)`:'10대 건설사 브랜드 아님 (단지 이름 기준)']);
 if(d.ms)R.push(['역',d.st[0]<0?0:d.st[1]<=.5?2:d.st[1]<=1?1:0,d.st[0]>=0?`${sts[d.st[0]][0]}역 ${dkm(d.st[1])} · 걸어서 약 ${wmin(d.st[1])}분`:'가까운 역 없음']);
 else R.push(['역',0,`지하철 없는 시 · ${trTxt(d)||'KTX역·터미널 멂'}`]);
-const bl=await bldOf(d).catch(()=>null),hh=bl&&bl.a?Math.round(bl.a/100/50)*50:0;
+const bl=await bldOf(d).catch(()=>null),hh=bl&&bl.a?Math.round(bl.a/100/50)*50:0;d._bl=bl;d._hh=hh;
 R.push(['대',!bl?1:hh>=1000?2:hh>=500?1:0,bl?`${bl.n}개 동 · 최고 ${bl.f}층${hh?` · 약 ${hh.toLocaleString()}세대 규모(연면적 ÷100㎡ 추정)`:''}`:'건물 자료에서 단지를 찾지 못함']);
 const age=d[3]?Y-d[3]:null;R.push(['신',age==null?1:age<=10?2:age<=20?1:0,age==null?'준공 연도 모름':`${d[3]}년 준공 · ${age}년차${age<=5?' (신축)':age<=10?' (준신축)':age>=30?' (재건축 연한)':''}`]);
-const sl=await slopeOf([d[1],d[2]]).catch(()=>null);let sx='';if(sl&&d.ms&&d.st[0]>=0&&d.st[1]<=1.5){const h2=await ele(sts[d.st[0]][1],sts[d.st[0]][2]);if(h2!=null){const dh=Math.round(sl.h-h2);sx=` · 역까지 ${Math.abs(dh)<3?'거의 평지':dh>0?`내리막 ${dh}m`:`오르막 ${-dh}m`}`;d._dh=dh}}
+const sl=await slopeOf([d[1],d[2]]).catch(()=>null);d._sl=sl?sl.r:null;let sx='';if(sl&&d.ms&&d.st[0]>=0&&d.st[1]<=1.5){const h2=await ele(sts[d.st[0]][1],sts[d.st[0]][2]);if(h2!=null){const dh=Math.round(sl.h-h2);sx=` · 역까지 ${Math.abs(dh)<3?'거의 평지':dh>0?`내리막 ${dh}m`:`오르막 ${-dh}m`}`;d._dh=dh}}
 R.push(['평',!sl?1:sl.r<10?2:sl.r<25?1:0,sl?`둘레 300m 고도차 ${sl.r}m${sl.r<10?' (평지)':sl.r<25?' (완만)':' (경사)'}${sx}`:'표고 자료를 못 읽음']);
-let rd=null;if(d.el[0]&&d.el[1]<=.8)rd=await bigRoad([d[1],d[2]],xy(d.el[0])).catch(()=>null);
+let rd=null;if(d.el[0]&&d.el[1]<=.8)rd=await bigRoad([d[1],d[2]],xy(d.el[0])).catch(()=>null);d._rd=rd;
 R.push(['초',!d.el[0]?0:d.el[1]<=.4&&!rd?2:d.el[1]<=.8?1:0,d.el[0]?`${sname(d.el[0])} ${dkm(d.el[1])} · 걸어서 약 ${wmin(d.el[1])}분${rd?` · 큰길(${rd}) 건넘`:rd===''?' · 큰길 안 건넘':''}`:'2km 안 초등학교 없음']);
 return {R,n:R.filter(r=>r[1]===2).length}})());
 const bydsHtml=o=>`<div style="display:grid;grid-template-columns:auto auto 1fr;gap:3px 7px;align-items:baseline">${o.R.map(r=>`<b style="font-size:13px">${r[0]}</b><b style="color:${GC[r[1]]}">${G3[r[1]]}</b><span style="font-size:12.5px">${esc(r[2])}</span>`).join('')}</div>`;
@@ -1115,88 +1122,159 @@ const k=lkOf(p);if(!k)continue;const n=p['name:ko']||p.name;if(!n)continue;const
 const by={};for(const v of seen.values())(by[v.k]=by[v.k]||[]).push(v);for(const k in by)by[k].sort((a,b)=>(b.big-a.big)||a.dk-b.dk);return {by,cnt}};
 const lifeMark=(arr)=>map.getSource('life').setData(FC(arr.map(v=>pt(v.c,{n:v.n,col:LK[v.k][1]}))));
 const lifeList=(a,max=5)=>a.slice(0,max).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ');
-const lifeHtml=(L,sh)=>{const row=(k,t)=>{const a=L.by[k]||[];return a.length?`<dt>${t}</dt><dd>${lifeList(a,6)}${a.length>6?` 외 ${a.length-6}곳`:''}</dd>`:''};
+const lifeHtml=(L,sh,bh)=>{const row=(k,t)=>{const a=L.by[k]||[];return a.length?`<dt>${t}</dt><dd>${lifeList(a,6)}${a.length>6?` 외 ${a.length-6}곳`:''}</dd>`:''};
 return `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--edge)"><div style="font-weight:700;font-size:14px">주변 생활권 <small class="muted" style="font-weight:400">단지에서 1km 안</small></div><dl style="margin-top:4px">
 ${sh?`<dt>상권</dt><dd>${sh.best?`${esc(sh.best.l[0])} 상권 ${dkm(sh.best.dk)} (생활업종 ${sh.best.l[1].toLocaleString()}곳)`:''}${sh.zn?`${sh.best?'<br>':''}${esc(sh.zn.n)} ${sh.zn.t} ${dkm(sh.zn.dk)}`:''}<small class="muted" style="display:block">500m 안 ${shopTxt(sh)}</small></dd>`:''}
-${row('hosp','병원')}${(L.by.phar||[]).length?`<dt>약국</dt><dd>${lifeList(L.by.phar,3)}</dd>`:''}${row('mart','마트·시장')}${L.cnt.conv?`<dt>편의점</dt><dd>500m 안 ${L.cnt.conv}곳 (지도에 올라온 곳)</dd>`:''}${row('park','공원')}${row('lib','도서관')}${row('civ','주민센터·우체국')}${row('cul','영화관·체육')}</dl>
+${bh&&bh.a&&bh.a[0]?`<dt>상급종합병원</dt><dd>${bh.a.map(h=>`${esc(h.n)} ${h.s!=null?`차로 약 ${mins(h.s)}분 · ${dkm(h.m/1000)}`:dkm(h.dk)}`).join('<br>')} ${kxLink(bh.a[0].n,bh.a[0].c[1],bh.a[0].c[0])}<small class="muted" style="display:block">보건복지부 제5기 상급종합병원(2024~2026) · 차 시간 OSRM, 막힘 반영 안 됨</small></dd>`:''}${row('hosp','병원')}${(L.by.phar||[]).length?`<dt>약국</dt><dd>${lifeList(L.by.phar,3)}</dd>`:''}${row('mart','마트·시장')}${L.cnt.conv?`<dt>편의점</dt><dd>500m 안 ${L.cnt.conv}곳 (지도에 올라온 곳)</dd>`:''}${row('park','공원')}${row('lib','도서관')}${row('civ','주민센터·우체국')}${row('cul','영화관·체육')}</dl>
 <p class="src">시설 이름: OpenStreetMap(OpenFreeMap 타일, 매주 갱신) — 동네 의원·편의점은 빠진 곳이 많아 병원·약국 수는 상가(상권)정보(${sh?sh.ref:''}) 250m 칸 합계로 봅니다. 거리는 직선거리.</p></div>`};
 window._lifeScan=lifeScan;window._byds=bydsOf;
-// 임장 코스 시작 전 선택지(브라우저에 기억)
-const TOPT0={pill:false,base:-1,b3:true,dem:true,sky:true,sp:1,g:{by:1,st:1,el:1,shop:1,life:1,fut:1}};
-let TOPT=(()=>{try{return {...TOPT0,...JSON.parse(localStorage.getItem('krmap_tour')||'{}')}}catch(e){return {...TOPT0}}})();
+// ── 건물 → 아파트 단지 찾기(같은 동·지번, 아니면 같은 동 안 이름 포함)
+let BAI=null;window._bldApt=async p=>{const D=aptD||await aptLoad();if(!D)return -1;if(!BAI){BAI=new Map();D.a.forEach((a,i)=>{const m=String(a[5]).match(/^(\S+)\s+(\S+)/);if(m)BAI.set(m[1]+'|'+m[2],i)})}
+const dn=String(p.d||'').split(' ').pop(),k=BAI.get(dn+'|'+p.j);if(k!=null)return k;const nm=String(p.n||'').replace(/\s*\S*\d+동$/,'').replace(/\s/g,'');if(nm.length<2)return -1;
+let best=-1,bd=.6;D.a.forEach((a,i)=>{if(a[0].replace(/\s/g,'')!==nm&&!nm.startsWith(a[0].replace(/\s/g,'')))return;const m=String(a[5]).match(/^(\S+)/);if(m&&m[1]!==dn)return;best=i});return best};
+// ── 상급종합병원(보건복지부 제5기) · OSRM 자동차 시간(여러 목적지)
+let BH=null;const bhLoad=()=>BH||(BH=fetch('data/bighosp.json').then(r=>r.json()).catch(()=>({t:[]})));
+const osrmT=async(c,P)=>{if(!P.length)return null;const ctl=new AbortController();setTimeout(()=>ctl.abort(),7000);try{const j=await fetch(`https://router.project-osrm.org/table/v1/driving/${[c,...P].map(p=>(+p[0]).toFixed(5)+','+(+p[1]).toFixed(5)).join(';')}?sources=0&annotations=duration,distance`,{signal:ctl.signal}).then(r=>r.json());return j.code==='Ok'?P.map((p,k)=>({s:j.durations[0][k+1],m:j.distances[0][k+1]})):null}catch(e){return null}};
+const bigHosp=async(c,R=15)=>{const B=await bhLoad(),a=B.t.map(h=>({n:h[0],c:[h[2],h[1]],dk:km(c,[h[2],h[1]])})).filter(h=>h.dk<=R).sort((x,y)=>x.dk-y.dk).slice(0,2);if(!a.length)return {a,ref:B.ref};const r=await osrmT(c,a.map(h=>h.c));if(r)a.forEach((h,k)=>{h.s=r[k].s;h.m=r[k].m});return {a,ref:B.ref}};
+// ── 지하철 경로(역 연결망 data/rgraph.json, build_commute.py와 같은 가정): 출발 2km 안 역(걷기) → 도착 2km 안 역(걷기), 첫 대기 4분
+let RG=null;const rgLoad=()=>RG||(RG=fetch('data/rgraph.json').then(r=>r.json()).then(g=>{const adj=g.n.map(()=>[]);g.e.forEach(([a,b,w])=>{adj[a].push([b,w/10]);adj[b].push([a,w/10])});const byS=new Map();g.n.forEach((s,k)=>{if(!byS.has(s))byS.set(s,[]);byS.get(s).push(k)});return {n:g.n,adj,byS}}).catch(()=>null));
+const subwayMin=async(a,b)=>{const g=await rgLoad();if(!g)return null;const near=p=>[...g.byS.keys()].map(s=>[s,km(p,[sts[s][1],sts[s][2]])]).filter(x=>x[1]<=2);const A=near(a),B=near(b);if(!A.length||!B.length)return null;
+const D=new Float64Array(g.n.length).fill(1e9),H=[];const push=(k,v)=>{H.push([v,k]);H.sort((x,y)=>y[0]-x[0])};A.forEach(([s,dk])=>g.byS.get(s).forEach(k=>{const v=wmin(dk)+4;if(v<D[k]){D[k]=v;push(k,v)}}));
+while(H.length){const [v,k]=H.pop();if(v>D[k]||v>150)continue;for(const [m,w] of g.adj[k]){const nv=v+w;if(nv<D[m]){D[m]=nv;push(m,nv)}}}
+let best=null;B.forEach(([s,dk])=>g.byS.get(s).forEach(k=>{const v=D[k]+wmin(dk);if(v<1e8&&(!best||v<best.t))best={t:Math.round(v),to:s}}));return best};
+// ── 점수(0~100, 이 지도 기준) — 객관 점수와 내 조건(직장·가족·차량) 점수
+const LIN=(x,a,b)=>x==null?null:Math.max(0,Math.min(100,(b-x)/(b-a)*100));
+const LOGS=(x,top)=>Math.min(100,Math.log1p(Math.max(0,x))/Math.log1p(top)*100);
+const avgW=a=>{let s=0,w=0;a.forEach(([v,k])=>{if(v!=null){s+=v*k;w+=k}});return w?s/w:null};
+const scoreParts=(d,X)=>{const Y=new Date().getFullYear(),kr=X.kr,sh=X.sh,L=X.L&&Object.keys(X.L.by||{}).length?X.L:null,bh=X.bh;
+const stS=d.ms&&d.st[0]>=0?LIN(d.st[1],.3,2):0,tmv=d.tm?d.tm.filter(v=>v!=null):[],cm=tmv.length?Math.min(...tmv):null;
+const T=d.ms?avgW([[stS,.6],[cm!=null?LIN(cm,30,90):null,.4]]):avgW([[kr&&kr.k?LIN(kr.k.s/60,10,40):d.kx&&d.kx[0]>=0?LIN(d.kx[1],3,20):0,.5],[kr&&kr.t?LIN(kr.t.s/60,10,40):d.bt&&d.bt[0]>=0?LIN(d.bt[1],3,20):0,.5]]);
+const el=d.el[0]?LIN(d.el[1],.3,1.2)*(d._rd?.8:1):0,hg=d.hg1!=null?LOGS(d.hg1,300):null;
+const shops=sh?LOGS(sh.S.I2+sh.S.G2+sh.S.S2,600):null,med=sh?Math.min(100,sh.S.Q1/40*100):null,bhS=bh&&bh.a&&bh.a[0]?(bh.a[0].s!=null?LIN(bh.a[0].s/60,10,40):LIN(bh.a[0].dk,3,15)):0,pk=L&&L.by.park&&L.by.park[0]?LIN(L.by.park[0].dk,.2,1):L?0:null;
+const brand=brandOf(d[0])?100:40,hh=d._hh||0,size=!d._bl?50:hh>=1500?100:hh>=1000?85:hh>=500?65:hh>=300?45:25,ag=d[3]?Y-d[3]:null,age=ag==null?50:ag<=5?100:ag<=10?85:ag<=15?70:ag<=20?55:ag<=30?40:30,flat=d._sl!=null?LIN(d._sl,10,50):null;
+return {T:{n:'교통',v:T,why:d.ms?`역 ${d.st[0]>=0?dkm(d.st[1]):'멂'}${cm!=null?` · 주요 업무지구 ${cm}분`:''}`:`KTX역·터미널 ${kr&&kr.k?'차 '+mins(kr.k.s)+'분':'직선 '+(d.kx&&d.kx[0]>=0?dkm(d.kx[1]):'-')}`},
+E:{n:'교육',v:avgW([[el,.6],[hg,.4]]),el,hg,why:`초등 ${d.el[0]?dkm(d.el[1]):'멂'}${d._rd?'(큰길 건넘)':''} · 학원 1km ${d.hg1!=null?d.hg1.toLocaleString():'-'}곳`},
+L:{n:'생활',v:avgW([[shops,.35],[med,.25],[bhS,.15],[pk,.25]]),med,bhS,why:`500m 점포 ${sh?(sh.S.I2+sh.S.G2+sh.S.S2).toLocaleString():'-'} · 병원·약국 ${sh?sh.S.Q1:'-'}${bh&&bh.a[0]?` · 상급종합 ${bh.a[0].s!=null?'차 '+mins(bh.a[0].s)+'분':dkm(bh.a[0].dk)}`:''}${L?` · 공원 ${L.by.park&&L.by.park[0]?dkm(L.by.park[0].dk):'1km 밖'}`:''}`},
+C:{n:'단지',v:brand*.3+size*.35+age*.35,why:`${brandOf(d[0])?'10대 건설사':'일반 브랜드'} · ${d._bl?'약 '+hh.toLocaleString()+'세대':'규모 모름'} · ${ag!=null?ag+'년차':'연식 모름'}`},
+N:{n:'환경',v:avgW([[flat,.6],[pk,.4]]),flat,why:`${d._sl!=null?'둘레 고도차 '+d._sl+'m':'경사 모름'}${L&&L.by.park&&L.by.park[0]?' · '+L.by.park[0].n:''}`}}};
+const OBJW={T:.3,E:.2,L:.2,C:.2,N:.1};
+const FAM={'1':['1인 가구',{T:.35,E:.05,L:.3,C:.2,N:.1}],'2':['부부',{T:.3,E:.1,L:.25,C:.2,N:.15}],k0:['자녀(미취학)',{T:.2,E:.2,L:.25,C:.15,N:.2}],k1:['자녀(초등)',{T:.15,E:.35,L:.2,C:.15,N:.15}],k2:['자녀(중·고등)',{T:.2,E:.35,L:.2,C:.15,N:.1}],p:['부모님·어르신과 함께',{T:.2,E:.05,L:.35,C:.15,N:.25}]};
+const wsum=(P,W)=>{let s=0,w=0;for(const k in W){const v=P[k]&&P[k].v;if(v!=null){s+=v*W[k];w+=W[k]}}return w?Math.round(s/w):null};
+let ME=(()=>{try{return JSON.parse(localStorage.getItem('krmap_me')||'null')}catch(e){return null}})();
+const meSave=m=>{ME=m;try{m?localStorage.setItem('krmap_me',JSON.stringify(m)):localStorage.removeItem('krmap_me')}catch(e){}};
+const subjOf=async(d,P)=>{if(!ME)return null;const W={...(FAM[ME.fam]||[0,OBJW])[1]},why=[];if(FAM[ME.fam])why.push(FAM[ME.fam][0]+' → '+(ME.fam==='p'?'생활(병원)·환경(평지) 비중↑':ME.fam==='1'?'교통·생활 비중↑':ME.fam.startsWith('k')?'교육 비중↑':'교통·생활 비중↑'));
+const Q={...P};if(ME.fam==='k2'&&P.E)Q.E={...P.E,v:avgW([[P.E.el,.35],[P.E.hg,.65]])};if(ME.fam==='p'&&P.L)Q.L={...P.L,v:avgW([[P.L.v,.5],[P.L.med,.25],[P.L.bhS,.25]])};
+if(ME.car===0){W.T*=1.3;why.push('차량 없음 → 교통 비중↑')}else if(ME.car===1){W.T*=.85;why.push('차량 있음 → 교통 비중↓')}
+let work=null;if(ME.work){const c=[d[1],d[2]],w=[ME.work.lng,ME.work.lat];if(ME.car===1){const r=await osrmT(c,[w]);if(r&&r[0].s!=null)work={t:mins(r[0].s),how:`차로 약 ${mins(r[0].s)}분(막힘 반영 안 됨)`}}
+if(!work||ME.car!==1){const r=await subwayMin(c,w);if(r&&(!work||r.t<work.t))work={t:r.t,how:`지하철 약 ${r.t}분(걷기 포함 추정)`}}
+if(!work&&km(c,w)<=2.5)work={t:wmin(km(c,w)),how:`걸어서 약 ${wmin(km(c,w))}분`}
+Q.W={n:'직장',v:work?LIN(work.t,20,70):0,why:`${ME.work.n}까지 ${work?work.how:'지하철·도보 경로 추정 불가'}`};for(const k in W)W[k]*=.7;W.W=.3}
+return {v:wsum(Q,W),P:Q,W,why}};
+const scBar=(p,col)=>`<div style="display:grid;grid-template-columns:3.2em 1fr 2.4em;gap:6px;align-items:center;font-size:12.5px;margin-top:3px"><b>${p.n}</b><span style="height:7px;border-radius:4px;background:var(--edge);overflow:hidden"><i style="display:block;height:100%;width:${p.v==null?0:Math.round(p.v)}%;background:${col}"></i></span><span style="text-align:right">${p.v==null?'—':Math.round(p.v)}</span></div><div class="muted" style="font-size:11.5px;margin:0 0 2px 3.9em">${esc(p.why)}</div>`;
+const SCNOTE='이 지도 기준 0~100점: 교통 30%(역 거리·주요 업무지구 통근, 지하철 없는 시는 KTX역·터미널 차 시간) · 교육 20%(초등학교 거리·큰길, 학원 수) · 생활 20%(500m 점포·병원약국, 상급종합병원 차 시간, 공원) · 단지 20%(10대 건설사·세대 규모 추정·연식) · 환경 10%(둘레 고도차·공원). 공원은 \'주변 생활권\'을 누르면 반영.';
+const scoreHtml=(P,o,sj)=>`<div style="margin-top:10px;padding:10px 11px;border-radius:var(--r);background:var(--wash)"><div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:12px;color:var(--sub)">객관 점수</span><b style="font-size:22px">${o}</b><span class="muted" style="font-size:12px">/ 100</span>${sj?`<span style="margin-left:auto;font-size:12px;color:var(--sub)">내 조건</span><b style="font-size:22px;color:#1c7ed6">${sj.v}</b>`:`<button id="aMe" style="margin-left:auto;height:28px;font-size:12px">내 조건 넣기</button>`}</div>
+${['T','E','L','C','N'].map(k=>scBar(P[k],'#e8590c')).join('')}${sj&&sj.P.W?scBar(sj.P.W,'#1c7ed6'):''}${sj?`<div class="muted" style="font-size:11.5px;margin-top:4px">${esc(sj.why.join(' · '))} <button id="aMe" style="height:24px;font-size:11.5px;padding:0 7px">내 조건 바꾸기</button></div>`:''}<p class="src" style="margin-top:6px">${SCNOTE}</p></div>`;
+window._scoreParts=scoreParts;window._subjOf=subjOf;window._objW=OBJW;
+// ── 내 조건 입력(직장·가족·차량) — 이 브라우저에만 저장
+const meDlg=document.createElement('div');meDlg.className='tdlg';meDlg.hidden=true;fig.appendChild(meDlg);
+const placeOf=v=>{v=(v||'').trim();if(!v)return null;const h=idx.get(v)||[...idx.entries()].find(([n])=>n.includes(v))?.[1];if(h){if(h.s)return [h.s[1],h.s[2],h.s[0]+'역'];if(h.u)return [h.u[3]/1e5,h.u[2]/1e5,h.u[0]];if(h.f){const q=centroid(h.f.geometry);return q&&[q[0],q[1],h.f.properties.name]}if(h.g){const q=centroid(h.g);return q&&[q[0],q[1],v]}}
+if(aptD){const a=aptD.a.find(x=>x[0].includes(v));if(a)return [a[1],a[2],a[0]]}return null};
+const meAsk=()=>new Promise(res=>{const m=ME||{};meDlg.innerHTML=`<div role="dialog" aria-label="내 조건"><h3>내 조건 <small class="muted" style="font-weight:400">(선택 · 이 브라우저에만 저장)</small></h3><p class="muted" style="margin:0 0 8px;font-size:12.5px">넣으면 객관 점수와 따로 ‘내 조건 점수’를 계산합니다. 비워 두고 건너뛰어도 됩니다.</p>
+<div class="r">직장(역·동·대학·단지 이름)<input id="meW" list="names" value="${esc(m.work?m.work.n:'')}" placeholder="예: 강남역, 전주대학교" style="width:52%"></div>
+<div class="r">가족 형태<select id="meF"><option value="">고르지 않음</option>${Object.entries(FAM).map(([k,v])=>`<option value="${k}" ${m.fam===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+<div class="r">차량<select id="meC"><option value="">고르지 않음</option><option value="1" ${m.car===1?'selected':''}>있음</option><option value="0" ${m.car===0?'selected':''}>없음</option></select></div>
+<p id="meE" class="muted" style="font-size:12px;margin:6px 0 0"></p><div class="go"><button id="meN">건너뛰기</button><button id="meX">지우기</button><button class="p" id="meS">저장</button></div></div>`;meDlg.hidden=false;
+$('meN').onclick=()=>{meDlg.hidden=true;res(ME)};$('meX').onclick=()=>{meSave(null);meDlg.hidden=true;res(null)};
+$('meS').onclick=async()=>{const wv=$('meW').value.trim();let work=null;if(wv){if(!aptD)await aptLoad();const p=placeOf(wv);if(!p){$('meE').textContent='직장 위치를 찾지 못했습니다. 목록에 나오는 역·동·대학 이름으로 넣어 주세요.';return}work={n:p[2],lng:+(+p[0]).toFixed(5),lat:+(+p[1]).toFixed(5)}}
+const f=$('meF').value,c=$('meC').value;meSave(work||f||c?{work,fam:f||null,car:c===''?null:+c}:null);meDlg.hidden=true;res(ME)}});
+window._meAsk=meAsk;
+// ── 구름 전환·준비 화면
+const tCloud=document.createElement('div');tCloud.className='tcloud';tCloud.innerHTML='<div class="cl"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="tx"><b></b><span></span></div>';fig.appendChild(tCloud);
+const cloud=async(on,b,sp)=>{tCloud.querySelector('b').textContent=b||'';tCloud.querySelector('span').textContent=sp||'';tCloud.classList.toggle('on',on);await new Promise(r=>setTimeout(r,on?750:900))};
+const cloudTx=(b,sp)=>{tCloud.querySelector('b').textContent=b||'';tCloud.querySelector('span').textContent=sp||''};
+// ── 임장 코스 시작 전 선택지(브라우저에 기억)
+const TOPT0={real:false,price:false,base:-1,b3:true,dem:true,sky:true,sp:1,g:{sc:1,by:1,st:1,el:1,shop:1,life:1,fut:1}};
+let TOPT=(()=>{try{const o=JSON.parse(localStorage.getItem('krmap_tour')||'{}');return {...TOPT0,...o,g:{...TOPT0.g,...(o.g||{})}}}catch(e){return {...TOPT0}}})();
 const tDlg=document.createElement('div');tDlg.className='tdlg';tDlg.hidden=true;fig.appendChild(tDlg);
-function tourStart(i){const o=TOPT,G=[['by','브역대신평초 평가'],['st','역·KTX역'],['el','초등학교'],['shop','상권'],['life','병원·편의시설·공원'],['fut','호재 역']];
-tDlg.innerHTML=`<div role="dialog" aria-label="임장 코스 설정"><h3>임장 코스</h3><p class="muted" style="margin:0 0 8px;font-size:12.5px">${esc(aptD.a[i][0])} · 화면 녹화용으로 틀을 숨기고 자동으로 둘러봅니다</p>
-<div class="r">배경<select id="tBase"><option value="-1">지금 그대로</option><option value="0">단색</option><option value="1">일반지도</option><option value="2">위성</option></select></div>
-<div class="r">건물 3D<input type="checkbox" id="tB3" ${o.b3?'checked':''}></div><div class="r">산·언덕 입체(지형)<input type="checkbox" id="tDem" ${o.dem?'checked':''}></div><div class="r">하늘·안개<input type="checkbox" id="tSky" ${o.sky?'checked':''}></div>
-<div class="r">단지 가격표 보이기<input type="checkbox" id="tPill" ${o.pill?'checked':''}></div>
+function tourStart(i){const o=TOPT,G=[['sc','점수(객관·내 조건)'],['by','브역대신평초'],['st','역·KTX역'],['el','초등학교'],['shop','상권'],['life','병원·편의시설·공원'],['fut','호재 역']];
+const meTxt=()=>ME?[ME.work&&'직장 '+ME.work.n,ME.fam&&FAM[ME.fam]&&FAM[ME.fam][0],ME.car===1?'차량 있음':ME.car===0?'차량 없음':''].filter(Boolean).join(' · '):'입력 안 함';
+tDlg.innerHTML=`<div role="dialog" aria-label="임장 코스 설정"><h3>임장 코스</h3><p class="muted" style="margin:0 0 8px;font-size:12.5px">${esc(aptD.a[i][0])} · 화면 녹화용으로 틀을 숨기고 자동으로 둘러봅니다. 시작 전에 자료를 미리 불러오느라 10~30초 걸립니다.</p>
+<div class="r">화면<select id="tReal"><option value="0">지도 3D (가볍고 빠름)</option><option value="1" ${VK?'':'disabled'}>실사 3D (브이월드${VK?'':' · 인증키 필요'})</option></select></div>
+<div class="r">배경(지도 3D)<select id="tBase"><option value="-1">지금 그대로</option><option value="0">단색</option><option value="1">일반지도</option><option value="2">위성</option></select></div>
+<div class="r">건물 3D · 산·언덕 입체 · 하늘<span><input type="checkbox" id="tB3" ${o.b3?'checked':''}> <input type="checkbox" id="tDem" ${o.dem?'checked':''}> <input type="checkbox" id="tSky" ${o.sky?'checked':''}></span></div>
+<div class="r">시세 보이기(가격표·자막의 가격)<input type="checkbox" id="tPrice" ${o.price?'checked':''}></div>
 <div class="r">속도<select id="tSp"><option value="0.7">빠르게</option><option value="1">보통</option><option value="1.4">느리게</option></select></div>
+<div class="r">내 조건 <span><small class="muted" id="tMeT">${esc(meTxt())}</small> <button id="tMe" style="height:28px;font-size:12px">입력</button></span></div>
 <div style="padding-top:6px;font-size:12px;color:var(--sub)">넣을 장면</div><div class="ck">${G.map(([k,t])=>`<label><input type="checkbox" data-g="${k}" ${o.g[k]?'checked':''}>${t}</label>`).join('')}</div>
 <div class="go"><button id="tCancel">취소</button><button class="p" id="tGo">▶ 시작</button></div></div>`;
-$('tBase').value=String(o.base);$('tSp').value=String(o.sp);tDlg.hidden=false;
+$('tReal').value=o.real&&VK?'1':'0';$('tBase').value=String(o.base);$('tSp').value=String(o.sp);tDlg.hidden=false;
+$('tMe').onclick=async()=>{tDlg.hidden=true;await meAsk();tDlg.hidden=false;$('tMeT').textContent=meTxt()};
 $('tCancel').onclick=()=>tDlg.hidden=true;
-$('tGo').onclick=()=>{TOPT={pill:$('tPill').checked,base:+$('tBase').value,b3:$('tB3').checked,dem:$('tDem').checked,sky:$('tSky').checked,sp:+$('tSp').value,g:Object.fromEntries([...tDlg.querySelectorAll('[data-g]')].map(x=>[x.dataset.g,x.checked?1:0]))};try{localStorage.setItem('krmap_tour',JSON.stringify(TOPT))}catch(e){}tDlg.hidden=true;tourRun(i,TOPT)}}
+$('tGo').onclick=()=>{TOPT={real:$('tReal').value==='1',price:$('tPrice').checked,base:+$('tBase').value,b3:$('tB3').checked,dem:$('tDem').checked,sky:$('tSky').checked,sp:+$('tSp').value,g:Object.fromEntries([...tDlg.querySelectorAll('[data-g]')].map(x=>[x.dataset.g,x.checked?1:0]))};try{localStorage.setItem('krmap_tour',JSON.stringify(TOPT))}catch(e){}tDlg.hidden=true;tourRun(i,TOPT)}}
 // 건물 미리 받기(목적지 둘레 z13 타일 3×3) → 도착하자마자 3D 건물이 서 있게
 const bPre=async c=>{if(!bIdx)bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}));const [x0,y0]=tileOf(c[0],c[1],bIdx.z),ks=[];for(let x=x0-1;x<=x0+1;x++)for(let y=y0-1;y<=y0+1;y++){const k=x+'_'+y;if(bIdx.t[k]&&!bCache.has(k))ks.push(k)}
 await Promise.all(ks.map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}))};
-async function tourRun(i,O){if(TR)tourEnd();const d=aptD.a[i],c=[d[1],d[2]],Y=new Date().getFullYear(),t=repT(d,'pm'),u=repT(d,'jm'),st=[],ft=[pt(c,{k:'a',n:d[0]})];
-let G0='base';{const p0=st.push.bind(st);st.push=(...a)=>p0(...a.map(x=>(x.g=x.g||G0,x)))}
-const nm=d[0],src=`국토교통부 실거래가 ${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} · 거리는 직선거리 · 사이버 임장지도`;
-st.push({c,z:14.6,p:55,b:-50,rot:40,h:4200,em:'임장 시작',t:nm,s:`${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년차)`:''}`});
-st.push({c,z:16.8,p:62,b:-10,rot:150,h:9000,em:'단지',t:nm,s:[t&&`${t[0]}㎡ 최근 매매 ${eok(t[1])} (${ymdS(t[2])}, ${t[3]}층)`,u&&`전세 중앙값 ${eok(u[4])}`,d[8]>=0&&`전세가율 ${d[8]}%`].filter(Boolean).join(' · ')||'최근 12개월 매매·전세 거래 없음'});
-G0='by';const byP=bydsOf(d);byP.then(o=>{const z=st.find(x=>x.em==='정리');if(z)z.s=`브역대신평초 ${o.n}/6 · `+z.s});const TG=['#ff8f6b','#ffd43b','#69db7c'];
-st.push({run:async me=>{const o=await byP;if(TR!==me)return;tSay('브역대신평초 평가',`${esc(nm)} — 6개 중 ${o.n}개 충족`,`<span class="bg">${o.R.map(r=>`<span class="k">${r[0]}</span><span class="k" style="color:${TG[r[1]]}">${G3[r[1]]}</span><span>${esc(r[2])}</span>`).join('')}</span>`,'이 지도 기준 · 브 2026 시공능력평가 10위 안 · 대 연면적 추정 · 평 AWS 표고');map.easeTo({center:c,zoom:16,pitch:45,bearing:-25+70,duration:1500});await tWait(9000)}});
-G0='st';const seen=new Set(),stop=(q,em,name,extra)=>{const k=q[0].toFixed(4)+q[1].toFixed(4);if(seen.has(k))return;seen.add(k);const dk=km(c,q);
-st.push({c:q,z:16.2,p:50,b:15,ln:q,nm:name,h:4200,em,t:name,s:`단지에서 직선 ${dkm(dk)}${dk<=2.5?` · 실제 길로 약 ${dkm(dk*1.2)} · 걸어서 약 ${wmin(dk)}분`:''}${extra?`<br>${extra}`:''}`})};
-if(!d.ms){const R=await Promise.race([kxRoute(d),new Promise(r=>setTimeout(()=>r(null),5000))]);const ki=R&&R.k?R.k.i:d.tr[0];if(ki>=0&&(R&&R.k?R.k.s<=3600:d.tr[1]<=30)){const s=sts[ki];stop([s[1],s[2]],'KTX역',s[0]+'역',(R&&R.k?`차로 약 ${mins(R.k.s)}분 · 도로 ${dkm(R.k.m/1000)} (막힘 반영 안 됨)<br>`:'')+(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', '))}if(d.bt[0]>=0&&d.bt[1]<=10){const b=_term.t[d.bt[0]];stop([b[2],b[1]],'버스터미널',b[0],R&&R.t?`차로 약 ${mins(R.t.s)}분 · 도로 ${dkm(R.t.m/1000)}`:'')}}
-else if(d.st[0]>=0&&d.st[1]<=3){const s=sts[d.st[0]];stop([s[1],s[2]],'가까운 역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', '))}
-G0='el';if(d.el[0]&&d.el[1]<=2)stop(xy(d.el[0]),'초등학교',sname(d.el[0]));G0='shop';
-// 상권: 가까운 상권 덩어리로 가서 그 일대 도로 이름 + 500m 안 업종 수
-st.push({run:async me=>{const sh=await shopNear(c);if(TR!==me||!sh)return;const q=sh.zn&&(!sh.best||sh.zn.dk<sh.best.dk)?sh.zn.c:sh.best?[sh.best.l[3],sh.best.l[2]]:c;
-tSay('상권','주변 상권 살펴보는 중…','');lifeInit();if(q!==c){ft.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[c,q]}},pt(q,{k:'s',n:'상권'}));map.getSource('tour').setData(FC(ft))}
-map.flyTo({center:q,zoom:16.3,pitch:45,bearing:0,duration:2400,essential:true});await tWait(2600);if(TR!==me)return;await idle(3000);
-const nb={};const P0=map.project(q);for(const f of map.queryRenderedFeatures([[P0.x-170,P0.y-130],[P0.x+170,P0.y+130]],{layers:['lifeqn']})){const n=f.properties['name:ko']||f.properties.name;if(!n||/고속|IC$|JC$/.test(n))continue;nb[n]=(nb[n]||0)+(/primary|secondary|tertiary/.test(f.properties.class)?3:1)}
-const roads=Object.entries(nb).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
-const ttl=sh.zn&&(!sh.best||sh.zn.dk<sh.best.dk)?`${sh.zn.n} (${sh.zn.t})`:sh.best?`${sh.best.l[0]} 상권`:'단지 주변 상가';
-tSay('상권',esc(ttl),`${roads.length?esc(roads.join('·'))+' 일대 · ':''}단지에서 ${dkm(km(c,q))}${sh.best?` · 생활업종 점포 ${sh.best.l[1].toLocaleString()}곳`:''}<br>단지 500m 안: ${shopTxt(sh)}`,`소상공인시장진흥공단 상가(상권)정보 ${sh.ref} · 도로 이름 OpenStreetMap`);
-await tWait(7000)}});
-// 생활권: 1km 안 병원·마트·공원 등(지도 타일 OSM 이름) → 종류별로 비춤
-G0='life';let LS=null;
-st.push({run:async me=>{tSay('생활권','단지 1km 안 시설 찾는 중…','');lifeInit();map.flyTo({center:c,zoom:14.6,pitch:0,bearing:0,duration:2400,essential:true});await tWait(2600);if(TR!==me)return;LS=await lifeScan(c,1);if(TR!==me)return;
-const all=Object.values(LS.by).flat();lifeMark(all);const n=k=>(LS.by[k]||[]).length;tSay('생활권','단지 1km 안',['hosp','mart','park','lib','civ','cul'].filter(k=>n(k)).map(k=>`${LK[k][0]} ${n(k)}곳`).join(' · ')||'지도에 올라온 시설이 적은 동네입니다','OpenStreetMap 기준 · 동네 의원·편의점은 빠진 곳이 많음');await tWait(4500)}});
-const kStep=(k,em,extra)=>st.push({run:async me=>{const a=LS&&LS.by[k];if(!a||!a.length)return;lifeMark(a.slice(0,8));const b=new maplibregl.LngLatBounds(c,c);a.slice(0,6).forEach(v=>b.extend(v.c));
-map.fitBounds(b,{padding:{top:120,bottom:220,left:100,right:100},maxZoom:16,pitch:30,bearing:0,duration:2200,essential:true});tSay(em,esc(a.slice(0,3).map(v=>v.n).join(' · ')),a.slice(0,6).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ')+(extra?'<br>'+extra():''),'OpenStreetMap 이름 · 직선거리');await tWait(6500)}});
-kStep('hosp','병원',()=>{const ph=LS.by.phar||[];return ph.length?'약국: '+ph.slice(0,3).map(v=>esc(v.n)).join(' · '):''});
-st.push({run:async me=>{const a=[...(LS&&LS.by.mart||[]),...(LS&&LS.by.lib||[]),...(LS&&LS.by.civ||[]),...(LS&&LS.by.cul||[])];if(!a.length)return;a.sort((x,y)=>x.dk-y.dk);lifeMark(a.slice(0,10));const b=new maplibregl.LngLatBounds(c,c);a.slice(0,8).forEach(v=>b.extend(v.c));
-map.fitBounds(b,{padding:{top:120,bottom:220,left:100,right:100},maxZoom:16,pitch:30,bearing:0,duration:2200,essential:true});const g=k=>(LS.by[k]||[]).slice(0,3).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ');
-tSay('편의시설',esc(a.slice(0,3).map(v=>v.n).join(' · ')),[['mart','마트·시장'],['lib','도서관'],['civ','주민센터·우체국'],['cul','영화관·체육']].filter(([k])=>(LS.by[k]||[]).length).map(([k,t])=>`${t}: ${g(k)}`).join('<br>')+(LS.cnt.conv?`<br>편의점 500m 안 ${LS.cnt.conv}곳(지도에 올라온 곳)`:''),'OpenStreetMap 이름 · 직선거리');await tWait(7000)}});
-kStep('park','공원');
-st.push({run:async me=>{map.getSource('life').setData(EMPTY)}});
-G0='fut';(d.hl||[]).slice(0,2).forEach(h=>{const f=_fut.s[h[1]];if(!f)return;stop([f[2],f[1]],'호재 역 · '+(f[4]==='c'?'공사 중':'계획'),(f[0]||'이름 미정')+(f[0]&&!/역$/.test(f[0])?'역':''),`${esc(f[11]||f[6]||'')} · ${f[8]?f[8]+'년 개통 목표':'개통 시기 미정'}${f[7]?' (기존 역에 노선 추가)':''}`)});
-G0='sum';st.push({c,z:14.7,p:42,b:0,all:1,h:6000,em:'정리',t:nm,s:[t&&`${t[0]}㎡ ${eok(t[1])}`,d[6]&&`3.3㎡당 ${eok(d[6])}`,trTxt(d),d.el[0]&&`초등학교 ${dkm(d.el[1])}`,d.tm&&d.tm[0]!=null&&`강남 ${d.tm[0]}분(추정)`,d.sr&&`지역 지난 하락기 ${PCT(d.sr.dn)}(전국 대비 ${d.sr.bt}배)`,d.hs&&`호재 점수 ${d.hs}/100`,`12개월 매매 ${d[7]}건`].filter(Boolean).join(' · '),sm:src});
+// 실사 3D 창에 명령 보내기
+let v3Id=0;const v3Wait=new Map();addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data)return;const r=v3Wait.get(e.data.id);if(r){v3Wait.delete(e.data.id);r(e.data)}});
+const v3=m=>{try{v3f.contentWindow.postMessage(m,location.origin)}catch(e){}};
+const v3Ask=(m,ms=3000)=>new Promise(r=>{const id=++v3Id;v3Wait.set(id,r);v3({...m,id});setTimeout(()=>{if(v3Wait.has(id)){v3Wait.delete(id);r(null)}},ms)});
+const race=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
+async function tourRun(i,O){if(TR)tourEnd();const d=aptD.a[i],c=[d[1],d[2]],Y=new Date().getFullYear(),t=repT(d,'pm'),u=repT(d,'jm'),nm=d[0];
+TR={pz:false,nx:false,p:map.getPitch(),b:map.getBearing(),sp:O.sp,base0:baseMode,bOn0:bOn,m30:mode3,real:false};const me=TR;
+aptSel=i;aptPills();document.body.classList.add('touring');document.body.classList.toggle('tnopill',!O.price);tBar.hidden=false;map.resize();
+await cloud(true,'임장 준비 중',nm);const prog=t=>cloudTx('임장 준비 중',`${nm} · ${t}`);
+me.hid=['ysf','ysl','sch','schn','hp','rec','recn',...(O.price?[]:['apt'])].filter(l=>map.getLayer(l)&&map.getLayoutProperty(l,'visibility')!=='none');me.hid.forEach(l=>map.setLayoutProperty(l,'visibility','none'));
+// 1) 자료 모으기(지도는 구름 뒤에서 움직임)
+prog('단지 평가');const by=await race(bydsOf(d),15000);
+prog('KTX역·병원까지 길 찾기');const [kr,bh,sh]=await Promise.all([race(kxRoute(d),7000),race(bigHosp(c),8000),race(shopNear(c),8000)]);
+prog('주변 생활시설');map.jumpTo({center:c,zoom:14.6,pitch:0,bearing:0});const L=await race(lifeScan(c,1),9000);
+let roads=[],sq=null;if(sh){sq=sh.zn&&(!sh.best||sh.zn.dk<sh.best.dk)?sh.zn.c:sh.best?[sh.best.l[3],sh.best.l[2]]:null;if(sq){prog('상권 거리 이름');map.jumpTo({center:sq,zoom:16.3});await idle(3000);const nb={},P0=map.project(sq);for(const f of map.queryRenderedFeatures([[P0.x-170,P0.y-130],[P0.x+170,P0.y+130]],{layers:['lifeqn']})){const n=f.properties['name:ko']||f.properties.name;if(!n||/고속|IC$|JC$/.test(n))continue;nb[n]=(nb[n]||0)+(/primary|secondary|tertiary/.test(f.properties.class)?3:1)}roads=Object.entries(nb).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0])}}
+const P=scoreParts(d,{kr,sh,L,bh}),OB=wsum(P,OBJW);prog('내 조건 점수');const SJ=await race(subjOf(d,P),9000);
+// 2) 장면 만들기
+const st=[];let G0='base';const add=o=>st.push({g:G0,...o});const TG=['#ff8f6b','#ffd43b','#69db7c'];
+const priceTxt=[t&&`${t[0]}㎡ 최근 매매 ${eok(t[1])} (${ymdS(t[2])})`,u&&`전세 중앙값 ${eok(u[4])}`].filter(Boolean).join(' · ');
+add({at:c,z:15.8,p:52,b:-35,rot:45,h:5200,em:'임장 시작',t:nm,s:`${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년차)`:''}`,mk:[{c,n:nm,big:1}]});
+add({at:c,z:16.9,p:62,b:10,rot:150,h:8500,em:'단지',t:nm,s:[d._bl&&`${d._bl.n}개 동 · 최고 ${d._bl.f}층${d._hh?` · 약 ${d._hh.toLocaleString()}세대 규모`:''}`,brandOf(d[0])&&brandOf(d[0])[1]+' ('+brandOf(d[0])[2]+')',O.price&&priceTxt].filter(Boolean).join(' · ')||esc(d[5])});
+G0='sc';if(OB!=null)add({same:1,h:8500,em:'점수 · 이 지도 기준',t:`객관 ${OB}점${SJ&&SJ.v!=null?` · 내 조건 ${SJ.v}점`:''}`,s:`<span class="bg">${['T','E','L','C','N'].map(k=>`<span class="k">${P[k].n}</span><span class="k" style="color:#ffd8a8">${P[k].v==null?'—':Math.round(P[k].v)}</span><span>${esc(P[k].why)}</span>`).join('')}${SJ&&SJ.P.W?`<span class="k">직장</span><span class="k" style="color:#a5d8ff">${Math.round(SJ.P.W.v)}</span><span>${esc(SJ.P.W.why)}</span>`:''}</span>${SJ?`<small style="display:block;margin-top:4px">${esc(SJ.why.join(' · '))}</small>`:''}`,sm:'교통 30·교육 20·생활 20·단지 20·환경 10 가중 · 사이버 임장지도 기준'});
+G0='by';if(by)add({same:1,h:9000,em:'브역대신평초',t:`6개 중 ${by.n}개 충족`,s:`<span class="bg">${by.R.map(r=>`<span class="k">${r[0]}</span><span class="k" style="color:${TG[r[1]]}">${G3[r[1]]}</span><span>${esc(r[2])}</span>`).join('')}</span>`,sm:'이 지도 기준 · 브 2026 시공능력평가 10위 안 · 대 연면적 추정 · 평 AWS 표고'});
+const seen=new Set(),stop=(q,em,name,extra,col)=>{const k=q[0].toFixed(4)+q[1].toFixed(4);if(seen.has(k))return;seen.add(k);const dk=km(c,q);
+add({at:q,z:16.3,p:50,b:20,rot:25,h:5200,ln:1,em,t:name,s:`단지에서 직선 ${dkm(dk)}${dk<=2.5?` · 걸어서 약 ${wmin(dk)}분`:''}${extra?`<br>${extra}`:''}`,mk:[{c,n:nm},{c:q,n:name,col:col||'#1c7ed6',big:1}]})};
+G0='st';if(!d.ms){const ki=kr&&kr.k?kr.k.i:d.tr[0];if(ki>=0){const s=sts[ki];stop([s[1],s[2]],'KTX역',s[0]+'역',(kr&&kr.k?`차로 약 ${mins(kr.k.s)}분 · 도로 ${dkm(kr.k.m/1000)} (막힘 반영 안 됨)`:''))}if(d.bt[0]>=0&&d.bt[1]<=10){const b=_term.t[d.bt[0]];stop([b[2],b[1]],'버스터미널',b[0],kr&&kr.t?`차로 약 ${mins(kr.t.s)}분 · 도로 ${dkm(kr.t.m/1000)}`:'')}}
+else if(d.st[0]>=0&&d.st[1]<=3){const s=sts[d.st[0]];stop([s[1],s[2]],'가까운 역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', ')+(d._dh!=null&&Math.abs(d._dh)>=3?` · 단지에서 ${d._dh>0?'내리막':'오르막'} ${Math.abs(d._dh)}m`:''))}
+G0='el';if(d.el[0]&&d.el[1]<=2)stop(xy(d.el[0]),'초등학교',sname(d.el[0]),d._rd?`왕복 8차선 큰길(${esc(d._rd)})을 건넘`:d._rd===''?'큰길을 건너지 않음':'','#2f9e44');
+G0='shop';if(sh&&sq){const ttl=sh.zn&&(!sh.best||sh.zn.dk<sh.best.dk)?`${sh.zn.n} (${sh.zn.t})`:`${sh.best.l[0]} 상권`;seen.add(sq[0].toFixed(4)+sq[1].toFixed(4));
+add({at:sq,z:16.4,p:52,b:-20,rot:30,h:7000,ln:1,em:'상권',t:ttl,s:`${roads.length?esc(roads.join('·'))+' 일대 · ':''}단지에서 ${dkm(km(c,sq))}${sh.best?` · 생활업종 점포 ${sh.best.l[1].toLocaleString()}곳`:''}<br>단지 500m 안: ${shopTxt(sh)}`,sm:`소상공인시장진흥공단 상가(상권)정보 ${sh.ref} · 도로 이름 OpenStreetMap`,mk:[{c,n:nm},{c:sq,n:ttl,col:'#7048e8',big:1}]})}
+G0='life';if(bh&&bh.a[0]&&bh.a[0].dk<=10){const h=bh.a[0];stop(h.c,'상급종합병원',h.n,`${h.s!=null?`차로 약 ${mins(h.s)}분 · 도로 ${dkm(h.m/1000)}`:''}${(L&&L.by.hosp||[]).length?`<br>1km 안 병원: ${L.by.hosp.slice(0,3).map(v=>esc(v.n)).join(' · ')}`:''}`,'#e03131')}
+else if(L&&(L.by.hosp||[]).length){const h=L.by.hosp[0];stop(h.c,'병원',h.n,L.by.hosp.slice(1,4).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ')+(bh&&bh.a[0]?`<br>가까운 상급종합병원: ${esc(bh.a[0].n)} ${bh.a[0].s!=null?'차로 약 '+mins(bh.a[0].s)+'분':dkm(bh.a[0].dk)}`:''),'#e03131')}
+if(L){const a=[...(L.by.mart||[]),...(L.by.lib||[]),...(L.by.civ||[]),...(L.by.cul||[])].sort((x,y)=>x.dk-y.dk);if(a.length){const g=k=>(L.by[k]||[]).slice(0,3).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ');
+add({at:c,z:15.4,p:40,b:0,h:7000,em:'편의시설',t:a.slice(0,3).map(v=>v.n).join(' · '),s:[['mart','마트·시장'],['lib','도서관'],['civ','주민센터·우체국'],['cul','영화관·체육']].filter(([k])=>(L.by[k]||[]).length).map(([k,tt])=>`${tt}: ${g(k)}`).join('<br>')+(L.cnt.conv?`<br>편의점 500m 안 ${L.cnt.conv}곳(지도에 올라온 곳)`:''),sm:'OpenStreetMap 이름 · 직선거리',mk:[{c,n:nm},...a.slice(0,8).map(v=>({c:v.c,n:v.n,col:LK[v.k][1]}))]})}
+const pk=L.by.park||[];if(pk.length){const q=pk[0];add({at:q.c,z:16.2,p:50,b:30,rot:30,h:6000,ln:1,em:'공원',t:pk.slice(0,2).map(v=>v.n).join(' · '),s:pk.slice(0,5).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · '),sm:'OpenStreetMap 이름 · 직선거리',mk:[{c,n:nm},...pk.slice(0,5).map(v=>({c:v.c,n:v.n,col:'#2f9e44'}))]})}}
+G0='fut';(d.hl||[]).slice(0,2).forEach(h=>{const f=_fut.s[h[1]];if(!f)return;stop([f[2],f[1]],'호재 역 · '+(f[4]==='c'?'공사 중':'계획'),(f[0]||'이름 미정')+(f[0]&&!/역$/.test(f[0])?'역':''),`${esc(f[11]||f[6]||'')} · ${f[8]?f[8]+'년 개통 목표':'개통 시기 미정'}${f[7]?' (기존 역에 노선 추가)':''}`,'#e8590c')});
+G0='sum';add({at:c,z:16.2,p:55,b:-20,rot:90,h:7000,em:'정리',t:nm,s:[OB!=null&&`객관 ${OB}점${SJ&&SJ.v!=null?` · 내 조건 ${SJ.v}점`:''}`,by&&`브역대신평초 ${by.n}/6`,O.price&&t&&`${t[0]}㎡ ${eok(t[1])}`,trTxt(d),d.el[0]&&`초등학교 ${dkm(d.el[1])}`,d.hs&&`호재 점수 ${d.hs}/100`].filter(Boolean).join(' · '),sm:`국토교통부 실거래가 ${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} · 상가(상권)정보 · OpenStreetMap · 사이버 임장지도`,mk:[{c,n:nm,big:1}]});
 for(let k=st.length-1;k>=0;k--)if(st[k].g!=='base'&&st[k].g!=='sum'&&!O.g[st[k].g])st.splice(k,1);
-TR={pz:false,nx:false,p:map.getPitch(),b:map.getBearing(),m3on:false,sp:O.sp,base0:baseMode,bOn0:bOn,m30:mode3};const me=TR;
-aptSel=i;aptPills();document.body.classList.add('touring');document.body.classList.toggle('tnopill',!O.pill);tCap.hidden=false;tBar.hidden=false;map.resize();
-// 영상이 깔끔하게: 단지 점·역세권 원·학교·학원 점은 잠시 숨김(가격표를 고르면 단지 점은 둠)
-me.hid=['ysf','ysl','sch','schn','hp',...(O.pill?[]:['apt'])].filter(l=>map.getLayer(l)&&map.getLayoutProperty(l,'visibility')!=='none');me.hid.forEach(l=>map.setLayoutProperty(l,'visibility','none'));
-if(O.base>=0&&O.base!==baseMode){const m0=mode3;mode3=false;await setBase(O.base);mode3=m0}
-if(O.b3){if(!bOn){bOn=true;$('bbtn').classList.add('on')}mode3=true;rot(true);sty();
-// 건물 색: 용도별로 또렷하게, 이 단지 건물은 주황으로
-const bm=String(d[5]).match(/^(\S+)\s+(\S+)/);map.setPaintProperty('b3','fill-extrusion-color',col);map.setPaintProperty('b3','fill-extrusion-opacity',baseMode===2?.85:.95);
+if(TR!==me)return;
+// 3) 화면 준비: 실사 3D(브이월드) 또는 지도 3D
+const real=O.real&&VK;if(real){prog('실사 3D 불러오기');map.jumpTo({center:c,zoom:st[0].z,pitch:st[0].p,bearing:st[0].b});vw3On();let t0=Date.now();while(TR===me&&!fig.classList.contains('v3ok')&&vw3&&Date.now()-t0<30000)await new Promise(r=>setTimeout(r,300));me.real=vw3&&fig.classList.contains('v3ok');if(!me.real&&vw3)vw3Off()}
+if(!me.real){if(O.base>=0&&O.base!==baseMode){const m0=mode3;mode3=false;await setBase(O.base);mode3=m0}
+if(O.b3){window._bMax=9;if(!bOn){bOn=true;$('bbtn').classList.add('on')}mode3=true;rot(true);sty();const bm=String(d[5]).match(/^(\S+)\s+(\S+)/);map.setPaintProperty('b3','fill-extrusion-color',col);map.setPaintProperty('b3','fill-extrusion-opacity',baseMode===2?.85:.95);
 if(!map.getLayer('b3h'))map.addLayer({id:'b3h',type:'fill-extrusion',source:'b',paint:{'fill-extrusion-color':'#ff7a1a','fill-extrusion-height':['+',['/',['get','h'],10],.6],'fill-extrusion-opacity':.97,'fill-extrusion-vertical-gradient':true}},'sel');
-map.setFilter('b3h',['all',['==',['get','c'],1],['any',...(bm?[['all',['in',bm[1],['get','d']],['==',['get','j'],bm[2]]]]:[]),['in',d[0],['get','n']]]]);map.setLayoutProperty('b3h','visibility','visible');
-bPre(c).then(()=>bLoad())}
+map.setFilter('b3h',['all',['==',['get','c'],1],['any',...(bm?[['all',['in',bm[1],['get','d']],['==',['get','j'],bm[2]]]]:[]),['in',nm,['get','n']]]]);map.setLayoutProperty('b3h','visibility','visible');
+prog('3D 건물');await race(Promise.all([...new Set(st.filter(s=>s.at).map(s=>s.at[0].toFixed(2)+','+s.at[1].toFixed(2)))].map(k=>bPre(k.split(',').map(Number)))),20000)}
 if(O.dem){if(!map.getSource('dem'))map.addSource('dem',{type:'raster-dem',tiles:['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],tileSize:256,encoding:'terrarium',maxzoom:15});try{map.setTerrain({source:'dem',exaggeration:1.5})}catch(e){}}
-if(O.sky&&map.setSky){try{map.setSky({'sky-color':'#7fb8e8','horizon-color':'#dceaf3','fog-color':'#eef3f6','sky-horizon-blend':.6,'horizon-fog-blend':.7,'fog-ground-blend':.5,'atmosphere-blend':['interpolate',['linear'],['zoom'],0,1,12,.6,16,.2]})}catch(e){}}
-map.stop();
-map.getSource('tour').setData(FC(ft));
-for(let k=0;k<st.length&&TR===me;k++){const s=st[k];$('tStep').textContent=`${k+1} / ${st.length}`;if(O.b3){const q=s.ln||s.c;if(q)bPre(q)}if(s.run){await s.run(me);continue}tSay(s.em,esc(s.t),s.s,s.sm);
-if(s.ln){ft.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[c,s.ln]}},pt(s.ln,{k:'s',n:s.nm}));map.getSource('tour').setData(FC(ft));
-map.fitBounds(new maplibregl.LngLatBounds(c,c).extend(s.ln),{padding:{top:110,bottom:190,left:90,right:90},maxZoom:16,pitch:35,bearing:0,duration:2200,essential:true});await tWait(2800);if(TR!==me)break}
-if(s.all){const b=new maplibregl.LngLatBounds(c,c);ft.forEach(f=>f.geometry.type==='Point'&&b.extend(f.geometry.coordinates));map.fitBounds(b,{padding:{top:110,bottom:200,left:90,right:90},maxZoom:15.5,pitch:s.p,bearing:0,duration:2800,essential:true})}
-else map.flyTo({center:s.c,zoom:s.z,pitch:s.p,bearing:s.b,duration:k?2600:1800,essential:true});
-await tWait(k?2700:1900);if(TR!==me)break;if(s.rot&&!TR.pz)map.easeTo({bearing:s.b+s.rot,duration:s.h,easing:x=>x});await tWait(s.h)}
-if(TR===me){$('tStep').textContent='끝';await tWait(1500);if(TR===me)tourEnd()}}
+if(O.sky&&map.setSky){try{map.setSky({'sky-color':'#7fb8e8','horizon-color':'#dceaf3','fog-color':'#eef3f6','sky-horizon-blend':.6,'horizon-fog-blend':.7,'fog-ground-blend':.5,'atmosphere-blend':['interpolate',['linear'],['zoom'],0,1,12,.6,16,.2]})}catch(e){}}}
+// 4) 재생: 멀면 구름으로 가렸다가(그동안 화면 준비) 펼치고, 가까우면 부드럽게 이동
+const ft=[];const marks=s=>{const pts=(s.mk||[]).map(m=>({lon:m.c[0],lat:m.c[1],n:m.n,c:m.col||'#e8590c',big:m.big?1:0})),line=s.ln&&s.at?[[c,s.at]]:[];
+if(me.real)v3({v3c:'marks',pts,line});else{map.getSource('tour').setData(FC([...line.map(l=>({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:l}})),...pts.filter(p=>p.big).map(p=>pt([p.lon,p.lat],{k:p.lon===c[0]&&p.lat===c[1]?'a':'s',n:p.n}))]));map.getSource('life').setData(FC(pts.filter(p=>!p.big).map(p=>pt([p.lon,p.lat],{n:p.n,col:p.c}))))}};
+const view=(s,fly)=>{const o={lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b};if(me.real){v3({v3c:fly?'fly':'view',...o,dur:2.2})}else if(fly)map.flyTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b,duration:2200,essential:true});else map.jumpTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b})};
+const settle=async()=>{if(me.real){const t0=Date.now();await new Promise(r=>setTimeout(r,1200));while(Date.now()-t0<5000){const r=await v3Ask({v3c:'tiles'},1500);if(!r||r.ok)break;await new Promise(r=>setTimeout(r,300))}}else{if(O.b3)await race(bLoad(),4000);await idle(3500)}};
+const orbit=s=>{if(!s.rot||TR.pz)return;if(me.real)v3({v3c:'orbit',lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b,deg:s.rot,dur:s.h*(TR.sp||1)/1000});else map.easeTo({bearing:s.b+s.rot,duration:s.h*(TR.sp||1),easing:x=>x})};
+let cur=null;tCap.hidden=false;
+for(let k=0;k<st.length&&TR===me;k++){const s=st[k];$('tStep').textContent=`${k+1} / ${st.length}`;
+if(s.same){tSay(s.em,esc(s.t),s.s,s.sm);if(cur){const b0=cur.b+(cur.rot||0);orbit({...cur,b:b0,rot:40,h:s.h});cur={...cur,b:b0+40,rot:0}}await tWait(s.h);continue}
+const far=!cur||km(cur.at,s.at)>.7||Math.abs(cur.z-s.z)>1.2;tCap.classList.remove('on');
+if(far){await cloud(true,'',s.em);if(TR!==me)break;marks(s);view(s,false);await settle();if(TR!==me)break;cloud(false)}else{marks(s);view(s,true);await tWait(2300)}
+if(TR!==me)break;cur=s;tSay(s.em,esc(s.t),s.s,s.sm);orbit(s);await tWait(s.h)}
+if(TR===me){$('tStep').textContent='끝';await tWait(1200);if(TR===me)tourEnd()}}
 window._tour=i=>tourStart(i);
 // ── 호재 역(공사·계획 노선의 역): kr-rail-map 역 + OSM 공사·계획 역
 S('fst',EMPTY);
@@ -1438,7 +1516,10 @@ return `<details style="margin-top:12px"><summary style="cursor:pointer;font-wei
 const BUSE={1:'공동주택',2:'단독주택',3:'근린생활·판매·숙박',4:'업무시설',5:'교육연구·노유자',6:'문화·종교·의료·운동',7:'공장·창고·위험물 등',8:'기타',0:'정보 없음'},BCOL=Object.fromEntries(BCATS.map(c=>[c[0],c[2]]));
 const bDL=p=>`<div class="muted">${p.d} ${p.j}</div><dl><dt>용도</dt><dd>${BUSE[p.c]}</dd><dt>지상층수</dt><dd>${p.f?p.f+'층':'정보 없음'}</dd><dt>높이</dt><dd>${(p.h/10).toFixed(1)}m</dd><dt>사용승인</dt><dd>${p.y?p.y+'년 ('+(2026-p.y)+'년 경과)':'정보 없음'}</dd><dt>연면적</dt><dd>${p.a?Number(p.a).toLocaleString()+'㎡':'정보 없음'}</dd><dt>출처</dt><dd>국토교통부 GIS건물통합정보 (2026-11-09 기준)${p.s?' · 원본에 모양이 없어 같은 자리 도로명주소 건물 도형(브이월드)으로 채움':''}</dd></dl>`;
 map.on('click',e=>{if(_msr(e))return;if(_plPick(e))return;if(_pick3(e,1))return;const bf=bOn?map.queryRenderedFeatures(e.point,{layers:mode3?['b3']:['b2']})[0]:null;
-if(bf){const p=bf.properties;setSel(bf.geometry);info.innerHTML=`<h3>${p.n||BUSE[p.c]}</h3><span class="tag" style="background:${BCOL[p.c]};color:#14232b">${BUSE[p.c]}</span>${bDL(p)}`;return}
+const bShow=bf=>{const p=bf.properties;setSel(bf.geometry);info.innerHTML=`<h3>${p.n||BUSE[p.c]}</h3><span class="tag" style="background:${BCOL[p.c]};color:#14232b">${BUSE[p.c]}</span>${bDL(p)}`};
+// 아파트 건물을 누르면 시세를 꺼 두었어도 그 단지 카드(실거래가 단지와 같은 동·지번 또는 이름)
+if(bf&&bf.properties.c===1&&window._bldApt){_bldApt(bf.properties).then(ai=>{if(ai>=0)SHOW.apt({i:ai,nopan:1});else bShow(bf)});return}
+if(bf){bShow(bf);return}
 const jf=onId('L_jb')&&map.queryRenderedFeatures(e.point,{layers:['jbf']})[0];
 if(jf){const z=jbD.z[jf.properties.i];setSel({type:'Polygon',coordinates:z.c[0]?[z.c[0]]:[]});const bar=JV.map((x,i)=>`<span style="display:inline-block;width:18%;height:8px;margin-right:2%;border-radius:2px;background:${i<=z.v?x[1]:'var(--edge)'}"></span>`).join('');
 info.innerHTML=`<h3>${z.n}</h3><div class="muted">${JG[z.g][0]}${TY[z.t]&&TY[z.t]!==JG[z.g][0]?' · '+TY[z.t]:''}</div><span class="tag" style="background:${JV[z.v][1]};color:${z.v<2?'#13242e':'#fff'}">${z.p||'단계 정보 없음'}</span><div style="margin:2px 0 10px">${bar}</div><dl><dt>면적</dt><dd>${z.a?z.a.toLocaleString()+'㎡ (약 '+Math.round(z.a/3.3058).toLocaleString()+'평)':'—'}</dd><dt>자료 생성</dt><dd>${z.d?z.d.slice(0,4)+'.'+z.d.slice(4,6)+'.'+z.d.slice(6,8):'—'}</dd><dt>출처</dt><dd>서울시 도시계획사업 현황(서울플랜+) ${jbD.ref} · 법적 효력 없는 참고자료</dd></dl>`;return}
@@ -1563,7 +1644,7 @@ if(z<14){src.setData(EMPTY);bst.textContent=z>=12?'건물은 조금 더 확대�
 const b=map.getBounds(),Z=bIdx.z,[x0,y0]=tileOf(b.getWest(),b.getNorth(),Z),[x1,y1]=tileOf(b.getEast(),b.getSouth(),Z);
 const cc=map.getCenter(),[cx0,cy0]=tileOf(cc.lng,cc.lat,Z),cand=[];
 for(let x=Math.max(x0,cx0-4);x<=Math.min(x1,cx0+4);x++)for(let y=Math.max(y0,cy0-4);y<=Math.min(y1,cy0+4);y++){const k=x+'_'+y;if(bIdx.t[k])cand.push([(x-cx0)**2+(y-cy0)**2,k])}
-cand.sort((p,q)=>p[0]-q[0]);const want=cand.slice(0,16).map(c=>c[1]);
+cand.sort((p,q)=>p[0]-q[0]);const want=cand.slice(0,window._bMax||16).map(c=>c[1]);
 if(!want.length){src.setData(EMPTY);bst.textContent='이 지역은 건물 자료 범위 밖입니다 (서울·경기·인천·대전·세종·충북·충남·전북만 수록)';return}
 bst.textContent='건물 불러오는 중…';
 await Promise.all(want.filter(k=>!bCache.has(k)).map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}));

@@ -1266,6 +1266,9 @@ $('tGo').onclick=()=>{TOPT={v:2,real:$('tReal').value==='1',price:$('tPrice').ch
 // 건물 미리 받기(목적지 둘레 z13 타일 3×3) → 도착하자마자 3D 건물이 서 있게
 const bPre=async c=>{if(!bIdx)bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}));const [x0,y0]=tileOf(c[0],c[1],bIdx.z),ks=[];for(let x=x0-1;x<=x0+1;x++)for(let y=y0-1;y<=y0+1;y++){const k=x+'_'+y;if(bIdx.t[k]&&!bCache.has(k))ks.push(k)}
 await Promise.all(ks.map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}))};
+// 새 버전 확인: 휴대폰 브라우저가 예전 화면을 그대로 되살리는 경우가 있어, 열 때·다시 볼 때 version.json을 확인해 바뀌었으면 새로 불러옴(임장 재생 중에는 안 함)
+{const B='202611230734';const chk=()=>{if(B.startsWith('__')||document.body.classList.contains('touring'))return;fetch('version.json?'+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{if(j&&j.b&&j.b!==B){const u=new URL(location.href);u.searchParams.set('v',j.b);location.replace(u.toString())}}).catch(()=>{})};
+setTimeout(chk,1500);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chk()});addEventListener('pageshow',e=>{if(e.persisted)chk()})}
 // 실사 3D 창에 명령 보내기
 let v3Id=0;const v3Wait=new Map();addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data)return;const r=v3Wait.get(e.data.id);if(r){v3Wait.delete(e.data.id);r(e.data)}});
 const v3=m=>{try{v3f.contentWindow.postMessage(m,location.origin)}catch(e){}};

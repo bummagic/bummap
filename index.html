@@ -281,7 +281,7 @@ body.touring .tools,body.touring .abar,body.touring .rail,body.touring .zoom,bod
 body.touring .rpl{display:none}
 body.touring .app{grid-template-columns:minmax(0,1fr)}body.touring .fig{inset:0!important}
 .tourcap{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);width:max-content;max-width:min(680px,calc(100% - 28px));padding:13px 22px 14px;border-radius:16px;background:rgba(17,30,37,.86);color:#fff;text-align:center;box-shadow:0 8px 28px rgba(0,0,0,.3);z-index:7;opacity:0;transition:opacity .45s}
-.tourcap.on{opacity:1}.tourcap[hidden]{display:none}
+.tourcap .bg{display:grid;grid-template-columns:auto auto 1fr;gap:3px 8px;margin:8px auto 0;text-align:left;max-width:560px}.tourcap .bg>*{display:block;margin:0;font-size:14px;font-style:normal;letter-spacing:0;line-height:1.35}.tourcap .bg>.k{font-weight:700}.tourcap.on{opacity:1}.tourcap[hidden]{display:none}
 .tourcap em{display:block;font-style:normal;font-size:12.5px;opacity:.75;margin-bottom:3px}
 .tourcap b{display:block;font-size:22px;line-height:1.25;letter-spacing:-.3px}
 .tourcap span{display:block;margin-top:5px;font-size:14.5px;line-height:1.45;opacity:.95}
@@ -1015,17 +1015,21 @@ SHOW.apt=p=>{const d=aptD.a[p.i];setSel(null);aptSel=p.i;aptPills();const T=d[12
 info.innerHTML=`<h3>${d[0]}</h3><div class="muted">${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년 경과)`:''}</div>
 ${t||u?`<div class="hero">${t?`<div><small>${t[0]}㎡ 최근 매매</small><b>${eok(t[1])}</b><small>${ymdS(t[2])} · ${t[3]}층</small></div>`:''}${u?`<div><small>${u[0]}㎡ 전세 중앙값</small><b>${eok(u[4])}</b><small>12개월 ${u[5]}건</small></div>`:''}</div>`:''}
 <div>${d[6]?`<span class="tag" style="background:${colOf('p',d[6])}">3.3㎡당 ${eok(d[6])}</span>`:''}${d[8]>=0?`<span class="tag" style="background:${colOf('j',d[8])}">전세가율 ${d[8]}%</span>`:''}${d[9]>-999?`<span class="tag" style="background:${colOf('g',d[9])}">3개월 ${d[9]>0?'+':''}${d[9]}%</span>`:''}${d.g6!=null?`<span class="tag" style="background:${colOf('g6',d.g6)}">6개월 ${d.g6>0?'+':''}${d.g6}%</span>`:''}${d.g12!=null?`<span class="tag" style="background:${colOf('g12',d.g12)}">연초 대비 ${d.g12>0?'+':''}${d.g12}%</span>`:''}${d.pj?`<span class="tag" style="background:${colOf('pj',d.pj)}">3.3㎡당 전세 ${eok(d.pj)}</span>`:''}${(t=>t?`<span class="tag" style="background:${colOf('gap',t[1]-t[4])}">${t[0]}㎡ 갭 ${eok(t[1]-t[4])}</span>`:'')(gapT(d))}</div>
-${aptSum(d)}<dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건${d.vl!=null?` · 최근 3개월 거래량 ${d.vl>0?'+':''}${d.vl}%`:''}</dd>${d.tm&&d.tm.some(v=>v!=null)?`<dt>통근(추정)</dt><dd>${['강남','여의도','광화문','판교'].map((n,j)=>d.tm[j]!=null?`${n} ${d.tm[j]}분`:'').filter(Boolean).join(' · ')}<small class="muted" style="display:block">걷기(직선 1km≈18분)+지하철, 운행 중 노선 기준 추정</small></dd>`:''}${d.cb?`<dt>큰 상권</dt><dd>${esc(_shb.L[d.cb[0]][0])} 상권 ${dkm(d.cb[1])} <small class="muted">(생활업종 점포 ${_shb.L[d.cb[0]][1].toLocaleString()}곳, ${_shb.ref})</small></dd>`:''}${d.nb!=null?`<dt>동네 대비</dt><dd>3.3㎡당 ${d.nb>0?'+':''}${d.nb}% <small class="muted">(1km 안 비슷한 연식 ${d.nbn}곳 중앙값 대비)</small></dd>`:''}${d.lv!=null?`<dt>입지·연식 대비</dt><dd>${d.lv>0?'+':''}${d.lv}점 <small class="muted">(같은 시군구 안 입지 순위 − 가격 순위, +면 입지에 비해 쌈)</small></dd>`:''}
+${aptSum(d)}<div style="margin-top:10px"><div style="font-size:12px;color:var(--sub);margin-bottom:3px">브역대신평초 <span id="aByN"></span></div><div id="aBy" class="muted" style="font-size:12.5px">계산 중…</div></div><dl><dt>12개월 거래</dt><dd>매매 ${d[7]}건 · 전세 ${d[10]}건 · 월세 ${d[11]}건${d.vl!=null?` · 최근 3개월 거래량 ${d.vl>0?'+':''}${d.vl}%`:''}</dd>${d.tm&&d.tm.some(v=>v!=null)?`<dt>통근(추정)</dt><dd>${['강남','여의도','광화문','판교'].map((n,j)=>d.tm[j]!=null?`${n} ${d.tm[j]}분`:'').filter(Boolean).join(' · ')}<small class="muted" style="display:block">걷기(직선 1km≈18분)+지하철, 운행 중 노선 기준 추정</small></dd>`:''}${d.cb?`<dt>큰 상권</dt><dd>${esc(_shb.L[d.cb[0]][0])} 상권 ${dkm(d.cb[1])} <small class="muted">(생활업종 점포 ${_shb.L[d.cb[0]][1].toLocaleString()}곳, ${_shb.ref})</small></dd>`:''}${d.nb!=null?`<dt>동네 대비</dt><dd>3.3㎡당 ${d.nb>0?'+':''}${d.nb}% <small class="muted">(1km 안 비슷한 연식 ${d.nbn}곳 중앙값 대비)</small></dd>`:''}${d.lv!=null?`<dt>입지·연식 대비</dt><dd>${d.lv>0?'+':''}${d.lv}점 <small class="muted">(같은 시군구 안 입지 순위 − 가격 순위, +면 입지에 비해 쌈)</small></dd>`:''}
 ${d.ms?(d.st[0]>=0?`<dt>가까운 역</dt><dd>${sts[d.st[0]][0]}역 ${dkm(d.st[1])}${wTxt(d.st[1])}</dd>`:''):trRows(d)}${d.hs?`<dt>호재 점수</dt><dd><b>${d.hs}</b> <small class="muted">/ 100 · 이 지도 기준</small>${d.hl.map(h=>{const f=_fut.s[h[1]];return `<br>${f[0]||'(이름 미정)'}역 ${dkm(h[2])} · ${f[11]||(f[6]||'').split(',')[0]} ${f[8]?f[8]+'년 목표':'개통 미정'}`}).join('')}</dd>`:d.fu[0]>=0&&d.fu[1]<=3?`<dt>호재 역</dt><dd>${futTxt(d.fu[0])} · ${dkm(d.fu[1])}</dd>`:''}${d.el[0]?`<dt>초등학교</dt><dd>${sname(d.el[0])} ${dkm(d.el[1])}${wTxt(d.el[1])}<small class="muted" id="aRd" style="display:block">큰길 확인 중…</small></dd>`:''}<dt>주변 학원</dt><dd id="aHg" class="muted">세는 중…</dd></dl>
-${aptChart(d)}${sensBox(d)}
+<div id="aLifeBox"></div>${aptChart(d)}${sensBox(d)}
 <div class="at"><div class="r h"><span>전용</span><span>최근 매매</span><span>전세 중앙값</span><span>최근 월세</span></div>${T.map(x=>`<div class="r"><span><b>${x[0]}㎡</b><small>${(x[0]/3.305785).toFixed(1)}평</small></span><span>${x[1]?`<b>${eok(x[1])}</b><small>${ymdS(x[2])} · ${x[3]}층 · ${x[6]}건</small>`:'—'}</span><span>${x[4]?`<b>${eok(x[4])}</b><small>${x[5]}건</small>`:'—'}</span><span>${x[7]?`<b>${eok(x[7])}/${x[8]}</b>`:'—'}</span></div>`).join('')}</div>
-<div class="acts"><button id="aTour" title="동네 → 단지 → 가까운 역 → 초등학교 → 호재 역 순서로 자막과 함께 자동으로 둘러봅니다(화면 녹화용)">▶ 임장 코스</button><button id="aSave"></button><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 아파트')}" target="_blank" rel="noopener">카카오맵</a><a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">실거래가 공개시스템</a></div>
+<div class="acts"><button id="aTour" title="동네 → 단지 → 브역대신평초 평가 → 역 → 초등학교 → 상권 → 병원·편의시설·공원 → 호재 역 순서로 자막과 함께 자동으로 둘러봅니다(화면 녹화용)">▶ 임장 코스</button><button id="aLife" title="단지 1km 안 상권·병원·마트·공원 등을 지도에 표시">주변 생활권</button><button id="aSave"></button><a href="https://map.kakao.com/link/search/${encodeURIComponent(d[0]+' 아파트')}" target="_blank" rel="noopener">카카오맵</a><a href="https://rt.molit.go.kr/" target="_blank" rel="noopener">실거래가 공개시스템</a></div>
 <p class="src">국토교통부 아파트 매매·전월세 실거래가(${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} 계약, ${aptD.ref} 수집). 해제된 거래는 뺐습니다. 위치는 지번으로 찾아 조금 어긋날 수 있고, 거리는 단지 중심에서 잰 직선거리입니다. 실제 걷는 길은 보통 직선보다 20%쯤 길어, 걸어서 걸리는 시간은 직선 1km에 약 18분으로 잡았습니다. 변동은 3.3㎡당 중앙값을 7~12개월 전과 견준 값입니다.</p>`;
 hgNear(d[1],d[2],1).then(r=>{const el=$('aHg');if(!el)return;if(!r){el.textContent='—';return}const S=r.S;el.classList.remove('muted');el.innerHTML=`1km 안 입시·교과·외국어 <b>${(S[0]+S[1]).toLocaleString()}곳</b><small class="muted" style="display:block">이름 기준 ${hlvTxt(S[4],S[5],S[6],S[7]).replace(/<small[^>]*>/,' · ').replace('</small>','')} · 예체능 ${S[2]} · 250m 칸 기준 대략값(${r.ref})</small>`});
 const sv=$('aSave'),has=()=>PL.some(q=>Math.abs(q.lng-d[1])<2e-5&&Math.abs(q.lat-d[2])<2e-5),lab=()=>{sv.textContent=has()?'★ 내 장소에 저장됨':'☆ 내 장소에 저장';sv.disabled=has()};lab();
 if(!p.nopan)focusPt(d[1],d[2]);
 sv.onclick=()=>{PL.push({n:d[0],lng:+d[1].toFixed(6),lat:+d[2].toFixed(6),z:16,a:d[5],t:new Date().toISOString().slice(0,10)});window._cmpAdd&&_cmpAdd(PL[PL.length-1]);plSave();plDraw();lab();cb()};
 $('aTour').onclick=()=>tourStart(p.i);
+map.getSource('life')&&map.getSource('life').setData(EMPTY);
+bydsOf(d).then(o=>{const el=$('aBy');if(!el)return;el.classList.remove('muted');el.innerHTML=bydsHtml(o)+`<p class="src" style="margin-top:4px">${BYNOTE}</p>`;$('aByN').textContent=`${o.n}/6 충족`});
+$('aLife').onclick=async()=>{const B=$('aLifeBox'),bt=$('aLife');bt.disabled=true;bt.textContent='찾는 중…';map.flyTo({center:[d[1],d[2]],zoom:14.6,pitch:0,bearing:0,duration:900});await new Promise(r=>setTimeout(r,1000));
+const [L,sh]=await Promise.all([lifeScan([d[1],d[2]],1),shopNear([d[1],d[2]])]);if(!$('aLifeBox'))return;lifeMark(Object.values(L.by).flat());B.innerHTML=lifeHtml(L,sh);bt.disabled=false;bt.textContent='주변 생활권 다시';B.scrollIntoView({block:'nearest',behavior:'smooth'})};
 if(d.el[0])bigRoad([d[1],d[2]],xy(d.el[0])).then(x=>{const el=$('aRd');if(el&&x!=null)el.innerHTML=x?`<span style="color:#c92a2a">직선으로 이으면 왕복 8차선 이상 큰길(${esc(x)})을 건넘</span>`:'직선상 왕복 8차선 이상 큰길을 건너지 않음';});
 const cb=()=>{if(has()&&!$('aCmp')){const b=document.createElement('button');b.id='aCmp';b.textContent='관심 단지 비교';b.onclick=()=>{window._showTab('me');_cmpDraw();setTimeout(()=>$('cmp').scrollIntoView({block:'start',behavior:'smooth'}),80)};sv.after(b)}};cb()};
 // ── 임장 코스 자동 재생: 동네 → 단지(돌며 보기) → 가까운 역 → 초등학교 → 호재 역 → 정리. 틀을 숨기고 자막·경로만 보여 화면 녹화로 임장 영상을 만들 수 있게
@@ -1038,27 +1042,107 @@ const tBar=document.createElement('div');tBar.className='tourbar';tBar.hidden=tr
 let TR=null;
 const tWait=async ms=>{let t=0;while(TR&&!TR.nx&&t<ms){await new Promise(r=>setTimeout(r,100));if(TR&&!TR.pz)t+=100}if(TR)TR.nx=false};
 const tSay=(em,b,sp,sm)=>{tCap.classList.remove('on');setTimeout(()=>{tCap.innerHTML=`<em>${em}</em><b>${b}</b>${sp?`<span>${sp}</span>`:''}${sm?`<small>${sm}</small>`:''}`;tCap.classList.add('on')},250)};
-function tourEnd(){if(!TR)return;const w=TR;TR=null;map.stop();document.body.classList.remove('touring');tCap.hidden=true;tBar.hidden=true;map.getSource('tour').setData(EMPTY);map.resize();
+function tourEnd(){if(!TR)return;const w=TR;TR=null;map.stop();document.body.classList.remove('touring');tCap.hidden=true;tBar.hidden=true;map.getSource('tour').setData(EMPTY);map.getSource('life')&&map.getSource('life').setData(EMPTY);map.resize();
 if(w.m3on)setDim(false);else map.easeTo({pitch:w.p,bearing:w.b,duration:500})}
 $('tEnd').onclick=tourEnd;$('tNext').onclick=()=>{if(TR){TR.nx=true;TR.pz=false;$('tPause').textContent='일시정지'}};
 $('tPause').onclick=()=>{if(!TR)return;TR.pz=!TR.pz;$('tPause').textContent=TR.pz?'다시 재생':'일시정지';if(TR.pz)map.stop()};
 addEventListener('keydown',e=>{if(!TR)return;if(e.key==='Escape')tourEnd();else if(e.key===' '){e.preventDefault();$('tPause').click()}else if(e.key==='ArrowRight')$('tNext').click()});
+// ── 브역대신평초 평가 + 상권·병원·편의시설·공원(생활권) — 단지 카드 '주변 생활권'과 임장 코스가 함께 씀
+// 브: 국토교통부 2026년 시공능력평가(토목건축, 2026.7.30 공시) 상위 10개사 아파트 브랜드(단지 이름 기준)
+const BRD=[[/래미안|레미안/,'래미안','삼성물산',1],[/디에이치/,'디에이치','현대건설',2],[/힐스테이트|힐스테잇/,'힐스테이트','현대건설·현대엔지니어링',2],[/현대홈타운/,'현대홈타운','현대건설',2],[/자이(?!언)|XI/,'자이','GS건설',3],[/푸르지오|^(?!.*호반).*써밋/,'푸르지오·써밋','대우건설',5],[/e ?편한세상|이편한세상|e-편한세상|아크로/i,'e편한세상·아크로','DL이앤씨',6],[/롯데캐슬|르엘/,'롯데캐슬·르엘','롯데건설',7],[/더샵|오티에르/,'더샵','포스코이앤씨',8],[/SK ?뷰|SK ?VIEW|에스케이뷰|SK북한산시티/i,'SK뷰','SK에코플랜트',9],[/아이파크|I-?PARK/i,'아이파크','HDC현대산업개발',10]];
+const brandOf=n=>{for(const b of BRD)if(b[0].test(n))return b;return null};
+// 표고: AWS Terrain Tiles(terrarium, z15 ≈ 4m 칸) — 단지 둘레 300m 고도차와 역까지 오르내림
+const eleT=new Map();const ele=async(lon,lat)=>{const z=15,n=2**z,xf=(lon+180)/360*n,yf=(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n,x=Math.floor(xf),y=Math.floor(yf),k=x+'_'+y;
+if(!eleT.has(k))eleT.set(k,fetch(`https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${z}/${x}/${y}.png`).then(r=>r.blob()).then(createImageBitmap).then(im=>{const cv=document.createElement('canvas');cv.width=cv.height=256;const g=cv.getContext('2d');g.drawImage(im,0,0);return g.getImageData(0,0,256,256).data}).catch(()=>null));
+const D=await eleT.get(k);if(!D)return null;const i=(Math.min(255,Math.floor((yf-y)*256))*256+Math.min(255,Math.floor((xf-x)*256)))*4;return D[i]*256+D[i+1]+D[i+2]/256-32768};
+const slopeOf=async c=>{const pts=[c];for(let a=0;a<8;a++){const t=a/8*2*Math.PI;pts.push([c[0]+.3/88.8*Math.cos(t),c[1]+.3/111.2*Math.sin(t)])}const v=(await Promise.all(pts.map(p=>ele(p[0],p[1])))).filter(x=>x!=null);if(v.length<5)return null;return {h:v[0],r:Math.round(Math.max(...v)-Math.min(...v))}};
+// 건물(GIS건물통합정보)에서 같은 동·지번이거나 이름이 같은 공동주택 → 동 수·최고 층·연면적
+const bldOf=async d=>{if(!bIdx)bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}));const [x,y]=tileOf(d[1],d[2],bIdx.z),e=bIdx.t[x+'_'+y];if(!e)return null;
+const j=await getB(e[0]).then(buf=>new Response(new Blob([buf.slice(e[1],e[1]+e[2])]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).catch(()=>null);if(!j)return null;
+const m=String(d[5]).match(/^(\S+)\s+(\S+)/),dn=m?m[1]:'',jb=m?m[2]:'',nm=d[0].replace(/\s/g,''),hit=j.r.filter(r=>r[0]===1&&((dn&&(j.d[r[4]]||'').endsWith(' '+dn)&&String(r[5])===jb)||(nm.length>=3&&(r[6]||'').replace(/\s/g,'').startsWith(nm))));
+if(!hit.length)return null;return {n:hit.length,f:Math.max(...hit.map(r=>r[1]||0)),a:hit.reduce((s,r)=>s+(+r[7]||0),0)}};
+const G3=['✗','△','✓'],GC=['#b8410c','#b08a00','#2f7d4f'];
+const bydsOf=d=>d._by||(d._by=(async()=>{const Y=new Date().getFullYear(),R=[];
+const b=brandOf(d[0]);R.push(['브',b?2:0,b?`${b[1]} (${b[2]}, 2026 시공능력평가 ${b[3]}위)`:'10대 건설사 브랜드 아님 (단지 이름 기준)']);
+if(d.ms)R.push(['역',d.st[0]<0?0:d.st[1]<=.5?2:d.st[1]<=1?1:0,d.st[0]>=0?`${sts[d.st[0]][0]}역 ${dkm(d.st[1])} · 걸어서 약 ${wmin(d.st[1])}분`:'가까운 역 없음']);
+else R.push(['역',0,`지하철 없는 시 · ${trTxt(d)||'기차역·터미널 멂'}`]);
+const bl=await bldOf(d).catch(()=>null),hh=bl&&bl.a?Math.round(bl.a/100/50)*50:0;
+R.push(['대',!bl?1:hh>=1000?2:hh>=500?1:0,bl?`${bl.n}개 동 · 최고 ${bl.f}층${hh?` · 약 ${hh.toLocaleString()}세대 규모(연면적 ÷100㎡ 추정)`:''}`:'건물 자료에서 단지를 찾지 못함']);
+const age=d[3]?Y-d[3]:null;R.push(['신',age==null?1:age<=10?2:age<=20?1:0,age==null?'준공 연도 모름':`${d[3]}년 준공 · ${age}년차${age<=5?' (신축)':age<=10?' (준신축)':age>=30?' (재건축 연한)':''}`]);
+const sl=await slopeOf([d[1],d[2]]).catch(()=>null);let sx='';if(sl&&d.ms&&d.st[0]>=0&&d.st[1]<=1.5){const h2=await ele(sts[d.st[0]][1],sts[d.st[0]][2]);if(h2!=null){const dh=Math.round(sl.h-h2);sx=` · 역까지 ${Math.abs(dh)<3?'거의 평지':dh>0?`내리막 ${dh}m`:`오르막 ${-dh}m`}`;d._dh=dh}}
+R.push(['평',!sl?1:sl.r<10?2:sl.r<25?1:0,sl?`둘레 300m 고도차 ${sl.r}m${sl.r<10?' (평지)':sl.r<25?' (완만)':' (경사)'}${sx}`:'표고 자료를 못 읽음']);
+let rd=null;if(d.el[0]&&d.el[1]<=.8)rd=await bigRoad([d[1],d[2]],xy(d.el[0])).catch(()=>null);
+R.push(['초',!d.el[0]?0:d.el[1]<=.4&&!rd?2:d.el[1]<=.8?1:0,d.el[0]?`${sname(d.el[0])} ${dkm(d.el[1])} · 걸어서 약 ${wmin(d.el[1])}분${rd?` · 큰길(${rd}) 건넘`:rd===''?' · 큰길 안 건넘':''}`:'2km 안 초등학교 없음']);
+return {R,n:R.filter(r=>r[1]===2).length}})());
+const bydsHtml=o=>`<div style="display:grid;grid-template-columns:auto auto 1fr;gap:3px 7px;align-items:baseline">${o.R.map(r=>`<b style="font-size:13px">${r[0]}</b><b style="color:${GC[r[1]]}">${G3[r[1]]}</b><span style="font-size:12.5px">${esc(r[2])}</span>`).join('')}</div>`;
+const BYNOTE='이 지도 기준: 브 = 2026 시공능력평가 10위 안 건설사 브랜드(이름 기준) · 역 = 500m 안 ✓·1km △ · 대 = 연면적으로 추정한 1,000세대 이상 ✓·500 △ · 신 = 10년 이내 ✓·20년 △ · 평 = 단지 둘레 300m 고도차 10m 미만 ✓·25m △(AWS Terrain Tiles) · 초 = 400m 안이고 왕복 8차선 큰길을 안 건너면 ✓·800m △';
+// 상권: 상가(상권)정보 250m 칸으로 단지 500m 안 업종 수 + 가까운 상권 이름(1.5km 안 생활업종 400곳 이상 덩어리)
+const shopNear=async c=>{const D=await getJ('cm','data/shop.json');if(!D)return null;const [L0,O0,DL,DO]=D.o,S={};D.k.forEach(k=>S[k]=0);let T=0;
+for(const g of D.g){const p=[O0+(g[0]+.5)*DO,L0+(g[1]+.5)*DL];if(Math.abs(p[0]-c[0])>.008||Math.abs(p[1]-c[1])>.006||km(c,p)>.5)continue;T+=g[2];D.k.forEach((k,i)=>S[k]+=g[3+i]||0)}
+let best=null;for(const l of D.L){const dk=km(c,[l[3],l[2]]);if(dk>1.5)continue;const sc=l[1]/(1+dk*2);if(!best||sc>best.sc)best={l,dk,sc}}
+let zn=null;const Z=await getJ('cz','data/shop_zone.json');if(Z)for(const z of Z.z){if(z.t==='골목상권')continue;const p=z.c[0];if(!p||Math.abs(p[0]-c[0])>.03||Math.abs(p[1]-c[1])>.03)continue;const q=centroid({type:'Polygon',coordinates:[z.c]});if(!q)continue;const dk=km(c,q);if(dk<=1.2&&(!zn||dk<zn.dk))zn={n:z.n,t:z.t,dk,c:q}}
+return {T,S,best,zn,ref:D.ref}};
+const shopTxt=o=>`음식점·카페 ${o.S.I2.toLocaleString()} · 소매 ${o.S.G2.toLocaleString()} · 병원·약국 ${o.S.Q1.toLocaleString()} · 학원 등 교육 ${o.S.P1.toLocaleString()} · 미용·수리 등 ${o.S.S2.toLocaleString()}`;
+// 생활권 시설: 지도 타일(OpenFreeMap · OpenStreetMap) poi에서 1km 안 병원·마트·공원·도서관 등 이름
+const LK={hosp:['병원','#e03131'],phar:['약국','#f06595'],mart:['마트·시장','#1c7ed6'],park:['공원','#2f9e44'],lib:['도서관','#7048e8'],civ:['주민센터·우체국','#495057'],cul:['영화관·체육','#f08c00']};
+const lkOf=p=>{const c=p.class,s=p.subclass;return c==='hospital'||c==='doctors'||c==='dentist'?'hosp':c==='pharmacy'?'phar':c==='grocery'&&s!=='convenience'?'mart':c==='shop'&&/^(mall|department_store|supermarket)$/.test(s)?'mart':c==='park'||c==='garden'?'park':c==='library'?'lib':c==='town_hall'||c==='post'?'civ':c==='cinema'||c==='sports_centre'||c==='theatre'?'cul':null};
+S('life',EMPTY);
+L({id:'lifec',type:'circle',source:'life',paint:{'circle-color':['get','col'],'circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2}});
+L({id:'lifen',type:'symbol',source:'life',layout:{'text-field':['get','n'],'text-size':12,'text-font':['Noto Sans Medium'],'text-anchor':'top','text-offset':[0,.8],'text-optional':true,'text-max-width':8},paint:{'text-color':['get','col'],'text-halo-color':'#fff','text-halo-width':2}});
+const lifeInit=()=>{osrInit();if(!map.getLayer('lifeq'))map.addLayer({id:'lifeq',type:'circle',source:'ofm','source-layer':'poi',minzoom:13,paint:{'circle-color':'rgba(0,0,0,0)','circle-radius':1}});
+if(!map.getLayer('lifeqn'))map.addLayer({id:'lifeqn',type:'line',source:'ofm','source-layer':'transportation_name',minzoom:14,paint:{'line-color':'rgba(0,0,0,0)','line-width':14}})};
+const idle=ms=>new Promise(r=>{let t=setTimeout(r,ms);map.once('idle',()=>{clearTimeout(t);setTimeout(r,200)})});
+const lifeScan=async(c,R=1)=>{lifeInit();await idle(4500);const seen=new Map(),cnt={conv:0};
+for(const f of map.querySourceFeatures('ofm',{sourceLayer:'poi'})){const g=f.geometry;if(g.type!=='Point')continue;const p=f.properties;if(p.class==='shop'&&p.subclass==='convenience'){if(km(c,g.coordinates)<=.5)cnt.conv++;continue}
+const k=lkOf(p);if(!k)continue;const n=p['name:ko']||p.name;if(!n)continue;const dk=km(c,g.coordinates);if(dk>R)continue;const key=k+n;if(seen.has(key)&&seen.get(key).dk<=dk)continue;seen.set(key,{k,n,dk,c:g.coordinates,big:p.subclass==='hospital'})}
+const by={};for(const v of seen.values())(by[v.k]=by[v.k]||[]).push(v);for(const k in by)by[k].sort((a,b)=>(b.big-a.big)||a.dk-b.dk);return {by,cnt}};
+const lifeMark=(arr)=>map.getSource('life').setData(FC(arr.map(v=>pt(v.c,{n:v.n,col:LK[v.k][1]}))));
+const lifeList=(a,max=5)=>a.slice(0,max).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ');
+const lifeHtml=(L,sh)=>{const row=(k,t)=>{const a=L.by[k]||[];return a.length?`<dt>${t}</dt><dd>${lifeList(a,6)}${a.length>6?` 외 ${a.length-6}곳`:''}</dd>`:''};
+return `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--edge)"><div style="font-weight:700;font-size:14px">주변 생활권 <small class="muted" style="font-weight:400">단지에서 1km 안</small></div><dl style="margin-top:4px">
+${sh?`<dt>상권</dt><dd>${sh.best?`${esc(sh.best.l[0])} 상권 ${dkm(sh.best.dk)} (생활업종 ${sh.best.l[1].toLocaleString()}곳)`:''}${sh.zn?`${sh.best?'<br>':''}${esc(sh.zn.n)} ${sh.zn.t} ${dkm(sh.zn.dk)}`:''}<small class="muted" style="display:block">500m 안 ${shopTxt(sh)}</small></dd>`:''}
+${row('hosp','병원')}${(L.by.phar||[]).length?`<dt>약국</dt><dd>${lifeList(L.by.phar,3)}</dd>`:''}${row('mart','마트·시장')}${L.cnt.conv?`<dt>편의점</dt><dd>500m 안 ${L.cnt.conv}곳 (지도에 올라온 곳)</dd>`:''}${row('park','공원')}${row('lib','도서관')}${row('civ','주민센터·우체국')}${row('cul','영화관·체육')}</dl>
+<p class="src">시설 이름: OpenStreetMap(OpenFreeMap 타일, 매주 갱신) — 동네 의원·편의점은 빠진 곳이 많아 병원·약국 수는 상가(상권)정보(${sh?sh.ref:''}) 250m 칸 합계로 봅니다. 거리는 직선거리.</p></div>`};
+window._lifeScan=lifeScan;window._byds=bydsOf;
 async function tourStart(i){if(TR)tourEnd();const d=aptD.a[i],c=[d[1],d[2]],Y=new Date().getFullYear(),t=repT(d,'pm'),u=repT(d,'jm'),st=[],ft=[pt(c,{k:'a',n:d[0]})];
 const nm=d[0],src=`국토교통부 실거래가 ${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} · 거리는 직선거리 · 사이버 임장지도`;
 st.push({c,z:13,p:0,b:0,h:3200,em:'임장 시작',t:nm,s:`${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년차)`:''}`});
 st.push({c,z:16.6,p:60,b:-25,rot:70,h:6500,em:'단지',t:nm,s:[t&&`${t[0]}㎡ 최근 매매 ${eok(t[1])} (${ymdS(t[2])}, ${t[3]}층)`,u&&`전세 중앙값 ${eok(u[4])}`,d[8]>=0&&`전세가율 ${d[8]}%`].filter(Boolean).join(' · ')||'최근 12개월 매매·전세 거래 없음'});
+const byP=bydsOf(d);byP.then(o=>{const z=st.find(x=>x.em==='정리');if(z)z.s=`브역대신평초 ${o.n}/6 · `+z.s});const TG=['#ff8f6b','#ffd43b','#69db7c'];
+st.push({run:async me=>{const o=await byP;if(TR!==me)return;tSay('브역대신평초 평가',`${esc(nm)} — 6개 중 ${o.n}개 충족`,`<span class="bg">${o.R.map(r=>`<span class="k">${r[0]}</span><span class="k" style="color:${TG[r[1]]}">${G3[r[1]]}</span><span>${esc(r[2])}</span>`).join('')}</span>`,'이 지도 기준 · 브 2026 시공능력평가 10위 안 · 대 연면적 추정 · 평 AWS 표고');map.easeTo({center:c,zoom:16,pitch:45,bearing:-25+70,duration:1500});await tWait(9000)}});
 const seen=new Set(),stop=(q,em,name,extra)=>{const k=q[0].toFixed(4)+q[1].toFixed(4);if(seen.has(k))return;seen.add(k);const dk=km(c,q);
 st.push({c:q,z:16.2,p:50,b:15,ln:q,nm:name,h:4200,em,t:name,s:`단지에서 직선 ${dkm(dk)}${dk<=2.5?` · 실제 길로 약 ${dkm(dk*1.2)} · 걸어서 약 ${wmin(dk)}분`:''}${extra?`<br>${extra}`:''}`})};
 if(!d.ms){if(d.tr[0]>=0&&d.tr[1]<=10){const s=sts[d.tr[0]];stop([s[1],s[2]],'기차역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', '))}if(d.bt[0]>=0&&d.bt[1]<=10){const b=_term.t[d.bt[0]];stop([b[2],b[1]],'버스터미널',b[0])}}
 else if(d.st[0]>=0&&d.st[1]<=3){const s=sts[d.st[0]];stop([s[1],s[2]],'가까운 역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', '))}
 if(d.el[0]&&d.el[1]<=2)stop(xy(d.el[0]),'초등학교',sname(d.el[0]));
+// 상권: 가까운 상권 덩어리로 가서 그 일대 도로 이름 + 500m 안 업종 수
+st.push({run:async me=>{const sh=await shopNear(c);if(TR!==me||!sh)return;const q=sh.zn&&(!sh.best||sh.zn.dk<sh.best.dk)?sh.zn.c:sh.best?[sh.best.l[3],sh.best.l[2]]:c;
+tSay('상권','주변 상권 살펴보는 중…','');lifeInit();if(q!==c){ft.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[c,q]}},pt(q,{k:'s',n:'상권'}));map.getSource('tour').setData(FC(ft))}
+map.flyTo({center:q,zoom:16.3,pitch:45,bearing:0,duration:2400,essential:true});await tWait(2600);if(TR!==me)return;await idle(3000);
+const nb={};const P0=map.project(q);for(const f of map.queryRenderedFeatures([[P0.x-170,P0.y-130],[P0.x+170,P0.y+130]],{layers:['lifeqn']})){const n=f.properties['name:ko']||f.properties.name;if(!n||/고속|IC$|JC$/.test(n))continue;nb[n]=(nb[n]||0)+(/primary|secondary|tertiary/.test(f.properties.class)?3:1)}
+const roads=Object.entries(nb).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+const ttl=sh.zn&&(!sh.best||sh.zn.dk<sh.best.dk)?`${sh.zn.n} (${sh.zn.t})`:sh.best?`${sh.best.l[0]} 상권`:'단지 주변 상가';
+tSay('상권',esc(ttl),`${roads.length?esc(roads.join('·'))+' 일대 · ':''}단지에서 ${dkm(km(c,q))}${sh.best?` · 생활업종 점포 ${sh.best.l[1].toLocaleString()}곳`:''}<br>단지 500m 안: ${shopTxt(sh)}`,`소상공인시장진흥공단 상가(상권)정보 ${sh.ref} · 도로 이름 OpenStreetMap`);
+await tWait(7000)}});
+// 생활권: 1km 안 병원·마트·공원 등(지도 타일 OSM 이름) → 종류별로 비춤
+let LS=null;
+st.push({run:async me=>{tSay('생활권','단지 1km 안 시설 찾는 중…','');lifeInit();map.flyTo({center:c,zoom:14.6,pitch:0,bearing:0,duration:2400,essential:true});await tWait(2600);if(TR!==me)return;LS=await lifeScan(c,1);if(TR!==me)return;
+const all=Object.values(LS.by).flat();lifeMark(all);const n=k=>(LS.by[k]||[]).length;tSay('생활권','단지 1km 안',['hosp','mart','park','lib','civ','cul'].filter(k=>n(k)).map(k=>`${LK[k][0]} ${n(k)}곳`).join(' · ')||'지도에 올라온 시설이 적은 동네입니다','OpenStreetMap 기준 · 동네 의원·편의점은 빠진 곳이 많음');await tWait(4500)}});
+const kStep=(k,em,extra)=>st.push({run:async me=>{const a=LS&&LS.by[k];if(!a||!a.length)return;lifeMark(a.slice(0,8));const b=new maplibregl.LngLatBounds(c,c);a.slice(0,6).forEach(v=>b.extend(v.c));
+map.fitBounds(b,{padding:{top:120,bottom:220,left:100,right:100},maxZoom:16,pitch:30,bearing:0,duration:2200,essential:true});tSay(em,esc(a.slice(0,3).map(v=>v.n).join(' · ')),a.slice(0,6).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ')+(extra?'<br>'+extra():''),'OpenStreetMap 이름 · 직선거리');await tWait(6500)}});
+kStep('hosp','병원',()=>{const ph=LS.by.phar||[];return ph.length?'약국: '+ph.slice(0,3).map(v=>esc(v.n)).join(' · '):''});
+st.push({run:async me=>{const a=[...(LS&&LS.by.mart||[]),...(LS&&LS.by.lib||[]),...(LS&&LS.by.civ||[]),...(LS&&LS.by.cul||[])];if(!a.length)return;a.sort((x,y)=>x.dk-y.dk);lifeMark(a.slice(0,10));const b=new maplibregl.LngLatBounds(c,c);a.slice(0,8).forEach(v=>b.extend(v.c));
+map.fitBounds(b,{padding:{top:120,bottom:220,left:100,right:100},maxZoom:16,pitch:30,bearing:0,duration:2200,essential:true});const g=k=>(LS.by[k]||[]).slice(0,3).map(v=>`${esc(v.n)} ${dkm(v.dk)}`).join(' · ');
+tSay('편의시설',esc(a.slice(0,3).map(v=>v.n).join(' · ')),[['mart','마트·시장'],['lib','도서관'],['civ','주민센터·우체국'],['cul','영화관·체육']].filter(([k])=>(LS.by[k]||[]).length).map(([k,t])=>`${t}: ${g(k)}`).join('<br>')+(LS.cnt.conv?`<br>편의점 500m 안 ${LS.cnt.conv}곳(지도에 올라온 곳)`:''),'OpenStreetMap 이름 · 직선거리');await tWait(7000)}});
+kStep('park','공원');
+st.push({run:async me=>{map.getSource('life').setData(EMPTY)}});
 (d.hl||[]).slice(0,2).forEach(h=>{const f=_fut.s[h[1]];if(!f)return;stop([f[2],f[1]],'호재 역 · '+(f[4]==='c'?'공사 중':'계획'),(f[0]||'이름 미정')+(f[0]&&!/역$/.test(f[0])?'역':''),`${esc(f[11]||f[6]||'')} · ${f[8]?f[8]+'년 개통 목표':'개통 시기 미정'}${f[7]?' (기존 역에 노선 추가)':''}`)});
 st.push({c,z:14.7,p:42,b:0,all:1,h:6000,em:'정리',t:nm,s:[t&&`${t[0]}㎡ ${eok(t[1])}`,d[6]&&`3.3㎡당 ${eok(d[6])}`,trTxt(d),d.el[0]&&`초등학교 ${dkm(d.el[1])}`,d.tm&&d.tm[0]!=null&&`강남 ${d.tm[0]}분(추정)`,d.sr&&`지역 지난 하락기 ${PCT(d.sr.dn)}(전국 대비 ${d.sr.bt}배)`,d.hs&&`호재 점수 ${d.hs}/100`,`12개월 매매 ${d[7]}건`].filter(Boolean).join(' · '),sm:src});
 TR={pz:false,nx:false,p:map.getPitch(),b:map.getBearing(),m3on:false};const me=TR;
 aptSel=i;aptPills();document.body.classList.add('touring');tCap.hidden=false;tBar.hidden=false;map.resize();
 if(bOn&&!mode3&&baseMode!==2){me.m3on=true;await setDim(true)}map.stop();
 map.getSource('tour').setData(FC(ft));
-for(let k=0;k<st.length&&TR===me;k++){const s=st[k];$('tStep').textContent=`${k+1} / ${st.length}`;tSay(s.em,esc(s.t),s.s,s.sm);
+for(let k=0;k<st.length&&TR===me;k++){const s=st[k];$('tStep').textContent=`${k+1} / ${st.length}`;if(s.run){await s.run(me);continue}tSay(s.em,esc(s.t),s.s,s.sm);
 if(s.ln){ft.push({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:[c,s.ln]}},pt(s.ln,{k:'s',n:s.nm}));map.getSource('tour').setData(FC(ft));
 map.fitBounds(new maplibregl.LngLatBounds(c,c).extend(s.ln),{padding:{top:110,bottom:190,left:90,right:90},maxZoom:16,pitch:35,bearing:0,duration:2200,essential:true});await tWait(2800);if(TR!==me)break}
 if(s.all){const b=new maplibregl.LngLatBounds(c,c);ft.forEach(f=>f.geometry.type==='Point'&&b.extend(f.geometry.coordinates));map.fitBounds(b,{padding:{top:110,bottom:200,left:90,right:90},maxZoom:15.5,pitch:s.p,bearing:0,duration:2800,essential:true})}

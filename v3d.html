@@ -81,7 +81,7 @@ else{
    cam.setView({destination:C.Cartesian3.fromDegrees(c.lon,c.lat,c.h),orientation:{heading:c.head*RD,pitch:c.pitch*RD,roll:0}})};
   let okSent=false;const chk=setInterval(()=>{if(!(window.ws3d&&ws3d.viewer&&ws3d.common&&document.querySelector('#vmap canvas')))return;clearInterval(chk);
    // 실사 모델(facility_build)은 일부 지역만 있어 새 단지·지방은 빈 땅으로 나옴 → 전국 건물 입체(흰 상자, facility_build_all)를 함께 켬
-   const b3=()=>{try{const e=ws3d.viewer.map.getElementById('facility_build_all');if(e&&!e.visible)e.show()}catch(er){}};b3();setTimeout(b3,1500);setTimeout(b3,5000);
+   const b3=()=>{try{const e=ws3d.viewer.map.getElementById('facility_build_all');if(e&&!e.visible)e.show();const C=ws3d.common,P=ws3d.viewer.scene.primitives;for(let i=0;i<P.length;i++){const q=P.get(i);if(q&&/LoDALL/.test(q._url||'')&&!q._bmStyled){q.style=new C.Cesium3DTileStyle({color:"color('#efe2cc')"});q._bmStyled=1}}}catch(er){}};// 상자 건물은 회색 대신 밝은 베이지b3();setInterval(b3,2000);
    place();let k=0;const t=setInterval(()=>{try{if(ws3d.viewer.camera._currentFlight||k<3)place()}catch(e){}if(++k>=8){clearInterval(t);if(!okSent){okSent=true;tell('ok')}}},120)},150);
   // 45초 안에 3D 화면(캔버스)이 생기지 않으면 실패로 본다
   setTimeout(()=>{clearInterval(chk);if(!okSent)msg('<p>브이월드 3D 화면이 나타나지 않았습니다. 키의 활용 API(WebGL 3D 지도)와 서비스 URL을 확인해 주세요.</p>','3D 화면이 나타나지 않았습니다(키 권한·서비스 URL 확인)')},45000);

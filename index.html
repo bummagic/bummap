@@ -1108,7 +1108,7 @@ const bydsOf=d=>d._by||(d._by=(async()=>{const Y=new Date().getFullYear(),R=[];
 const b=brandOf(d[0]);R.push(['브',!b?0:b[3]<=10?2:1,b?`${b[1]} (${b[2]}, 2026 시공능력평가 ${b[3]}위) · ${brandScore(b)}점`:'시공능력평가 20위 안 브랜드 아님 (단지 이름 기준) · 30점']);
 const FW=await footT([d[1],d[2]],[d.st[0]>=0?[sts[d.st[0]][1],sts[d.st[0]][2]]:[d[1],d[2]],d.el[0]?xy(d.el[0]):[d[1],d[2]]]).catch(()=>null);d._fw=FW;const wsM=FW&&d.st[0]>=0?FW[0].m/1000:null,weM=FW&&d.el[0]?FW[1].m/1000:null;
 if(d.ms)R.push(['역',d.st[0]<0?0:(wsM!=null?wsM<=.6:d.st[1]<=.5)?2:(wsM!=null?wsM<=1.2:d.st[1]<=1)?1:0,d.st[0]>=0?`${sts[d.st[0]][0]}역 ${wsM!=null?wkTxt(FW[0]):dkm(d.st[1])+'(직선) · 걸어서 약 '+wmin(d.st[1])+'분'}`:'가까운 역 없음']);
-else R.push(['역',0,`지하철 없는 시 · ${trTxt(d)||'KTX역·터미널 멂'}`]);
+else{const kr=await Promise.race([kxRoute(d),new Promise(r=>setTimeout(()=>r(null),7000))]);R.push(['역',0,`지하철 없는 시 · ${kr&&kr.k?`KTX ${sts[kr.k.i][0]}역 차로 약 ${mins(kr.k.s)}분(도로 ${dkm(kr.k.m/1000)})`:trTxt(d)||'KTX역·터미널 멂'}${kr&&kr.t?` · 터미널 차로 약 ${mins(kr.t.s)}분`:''}`])}
 const bl=await bldOf(d).catch(()=>null),hh=bl&&bl.a?Math.round(bl.a/100/50)*50:0;d._bl=bl;d._hh=hh;
 let sb=null;if(!bl&&window._spbd){const F=await _spbd([[[d[1],d[2]],.004]],[d[1],d[2]],d[0],null,d[5]).catch(()=>null);const T=F?F.filter(f=>f.properties.t):[];if(T.length){sb={n:T.length,f:Math.max(...T.map(f=>f.properties.f))};d._bl={n:sb.n,f:sb.f,a:0};d._sb=1}}
 R.push(['대',bl?(hh>=1000?2:hh>=500?1:0):sb?(sb.n>=10?2:sb.n>=5?1:0):1,bl?`${bl.n}개 동 · 최고 ${bl.f}층${hh?` · 약 ${hh.toLocaleString()}세대 규모(연면적 ÷100㎡ 추정)`:''}`:sb?`${sb.n}개 동 · 최고 ${sb.f}층 (도로명주소 건물, 세대수 자료 없음 · 10개 동↑ ✓)`:'건물 자료에서 단지를 찾지 못함']);

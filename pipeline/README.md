@@ -164,6 +164,11 @@
 - 준비 화면: 로딩 바(cloudBar), 장면마다 + 회전 장면은 중간·끝 방향까지 jumpTo 후 idle(8초까지)로 타일을 받아 둠. 재생 중 settle은 2.5초 이내.
 - 회전은 '단지'(90°)·'정리'(−90°)만. 왼쪽 위 나침반(.tcomp, 지도 bearing·실사 3D getCam().b). 주변 주요 시설 이름 레이어 tlmc·tlmn(1.6km 안 역, 1.2km 안 초중고, 대학, 3km 안 상급종합병원, 생활권 병원·마트·공원·도서관·주민센터·영화관/체육), 실사 3D에서는 marks에 함께.
 
+## T-5. 단색 지도 상세·길 선 (2026-11-23)
+- 단색 배경(baseMode 0)일 때 vbInit()이 OpenFreeMap 원본('ofm')으로 vb_lc(landcover)·vb_lu(landuse)·vb_park·vb_wa(water)·vb_ww(waterway)·vb_rdc/vb_rd(도로 테두리·면, 터널 제외)·vb_bld(건물, z13.5↑)·vb_poi(병원·학교·공원·도서관·관공서·시장 등 이름, z14.5↑ rank 단계)를 'terr' 아래에 넣음. 이때 우리 산지(terr)·물(wb·rv)은 숨기고 물 이름(lw)은 둠. 임장 중 vb_poi는 숨기고 tlm 이름표를 씀.
+- 길 선: routeGeo(c,q,'foot'|'car') = routing.openstreetmap.de 보행 / OSRM 자동차 route(overview=full, geojson). rTicks로 걷기 250m(2km 넘으면 500m)·차 1km(12km 넘으면 2km) 눈금. 임장 장면은 단지·목적지·길을 cameraForBounds로 한 화면에(z 11.2~16.3), 2D는 tour 원본(tourlc 흰 테두리 + tourl 주황 걷기/파랑 차), 실사 3D는 marks line·눈금 점.
+- 우리 단지 주황: 이름이 같은 SPBD 건물의 지번(bd_mgt_sn 앞 19자리) 또는 실거래 지번(gu = 동, sn[11:15] 본번, sn[15:19] 부번)이 같은 5층 이상 건물.
+
 ## T-2. KTX역 실제 이동 시간 (데이터 갱신 없음, 2026-11-22)
 - KTX역 목록 = stations.json 중 t='ktx' + 운행 중 KTX 노선(rail.json k='ktx')이 지나는 역 + `KXN`(수서·동탄·평택지제(2026.9 KTX·SRT 통합), 행신, 서대전·계룡·논산(기존선 KTX), 원주·제천·단양(중앙선 KTX-이음), 서울). 노선·정차역이 바뀌면 KXN을 고친다. 단지마다 직선 가장 가까운 KTX역 a.kx, 지하철 없는 시는 a.tr = a.kx.
 - 단지 카드·임장 코스·관심 단지 비교: OSRM 공개 서버(router.project-osrm.org, table/v1/driving, 브라우저에서 바로 호출, 키 없음)로 직선 가까운 KTX역 3곳 + 가까운 버스터미널까지 자동차 시간·도로 거리를 받아 가장 빠른 KTX역을 보여 줌. 막힘·신호 대기 반영 안 됨, 서버에 닿지 않으면 직선거리. 카카오맵 '길찾기' 링크(map.kakao.com/link/to).

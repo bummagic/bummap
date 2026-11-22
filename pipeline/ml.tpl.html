@@ -420,6 +420,7 @@ body.touring .app{grid-template-columns:minmax(0,1fr)}body.touring .fig{inset:0!
 <label><input type="checkbox" class="lbl" data-l="busn" checked><span>버스정류장 이름</span></label>
 <label><input type="checkbox" class="lbl" data-l="pll" checked><span>내 장소 이름</span></label>
 <label><input type="checkbox" class="lbl" data-l="aptnm" checked><span>단지 이름 <small>가격표 위, 크게 확대했을 때</small></span></label>
+<label><input type="checkbox" class="lbl" data-l="vb_poi" checked><span>단색 지도의 시설 이름 <small>병원·학교·공원·도서관·시장 등, 크게 확대하면</small></span></label>
 <label><input type="checkbox" class="lbl" data-l="baseover" checked><span>위성 배경의 지명·도로명 <small>브이월드 위성일 때</small></span></label>
 </div></details>
 <details class="grp"><summary><span class="gt">노선별 선택</span></summary><div id="lines">
@@ -950,7 +951,7 @@ const s0=aptSel>=0&&aptVis.find(x=>x.i===aptSel);if(s0&&b.contains([s0.d[1],s0.d
 for(const x of aptVis){if(n>=260)break;if(x.i===aptSel||!b.contains([x.d[1],x.d[2]]))continue;one(x,false)}}
 else for(const r of aptReg[t]){if(n>=140)break;if(!b.contains([r.x,r.y]))continue;const tx=fmtV(k,r.v);
 put(r.x,r.y,(r.nm.length+tx.length)*10+52,34,'rpl',`<i></i><span>${r.nm}</span><b>${tx}</b>`,colOf(k,r.v),()=>map.flyTo({center:[r.x,r.y],zoom:t==='s'?9.6:t==='m'?12:14.9,duration:700}),false)}}
-map.on('moveend',aptPills);window._aptPills=aptPills;window._aptUnsel=()=>{if(aptSel>=0){aptSel=-1;aptPills()}};
+map.on('moveend',aptPills);window._aptPills=aptPills;window._aptUnsel=()=>{if(aptSel>=0){aptSel=-1;aptPills();if(!TR&&map.getSource('tour'))map.getSource('tour').setData(EMPTY)}};
 async function aptApply(){const on=onId('L_apt');aptBarSync();try{localStorage.setItem('krmap_ui',JSON.stringify({apt:on,k:$('aptc').value,a:aptArea}))}catch(e){}window._bcSet&&_bcSet();$('mlg').hidden=!on;if(!on){aptPills();$('alg').textContent='';return}
 if(!aptD&&!(await aptLoad())){$('alg').textContent='자료를 불러오지 못했습니다';return}
 const k=$('aptc').value,f=$('aptf').value,Y=new Date().getFullYear(),c=APC[k];
@@ -1050,7 +1051,9 @@ $('aTour').onclick=()=>tourStart(p.i);
 kxRoute(d).then(r=>{const el=$('aKx');if(!el)return;const k=d.kx;if(r&&r.k){const st=sts[r.k.i];el.innerHTML=`<b>${st[0]}역</b> 차로 약 <b>${mins(r.k.s)}분</b> · 도로 ${dkm(r.k.m/1000)} ${kxLink(st[0]+'역',st[2],st[1])}<small class="muted" style="display:block">${kxNote}</small>`}else el.querySelector('small').textContent='· 경로 서버에 닿지 않아 직선거리만 표시';
 const eb=$('aBt');if(eb&&r&&r.t)eb.innerHTML=`${esc(_term.t[d.bt[0]][0])} 차로 약 <b>${mins(r.t.s)}분</b> · 도로 ${dkm(r.t.m/1000)} ${kxLink(_term.t[d.bt[0]][0],_term.t[d.bt[0]][1],_term.t[d.bt[0]][2])}`});
 map.getSource('life')&&map.getSource('life').setData(EMPTY);
-bydsOf(d).then(o=>{const fw=d._fw;if(fw){const a=$('aStD'),b=$('aElD');if(a&&d.st[0]>=0&&fw[0].m!=null)a.innerHTML=`${sts[d.st[0]][0]}역 <b>${wkTxt(fw[0])}</b>`;if(b&&d.el[0]&&fw[1].m!=null)b.innerHTML=`${sname(d.el[0])} <b>${wkTxt(fw[1])}</b>`}const el=$('aBy');if(!el)return;el.classList.remove('muted');el.innerHTML=bydsHtml(o)+`<p class="src" style="margin-top:4px">${BYNOTE}</p>`;$('aByN').textContent=`${o.n}/6 충족`});
+bydsOf(d).then(o=>{const c0=[d[1],d[2]],RQ=[];if(d.st[0]>=0&&d.st[1]<=3)RQ.push([[sts[d.st[0]][1],sts[d.st[0]][2]],sts[d.st[0]][0]+'역']);if(d.el[0]&&d.el[1]<=2)RQ.push([xy(d.el[0]),sname(d.el[0])]);
+Promise.all(RQ.map(([q])=>routeGeo(c0,q,'foot'))).then(rs=>{if(aptSel!==p.i||TR)return;const F=[pt(c0,{k:'a',n:''})];rs.forEach((r,k)=>{if(!r)return;F.push({type:'Feature',properties:{m:'foot'},geometry:{type:'LineString',coordinates:r.g}},pt(RQ[k][0],{k:'s',n:`${RQ[k][1]} ${dkm(r.m/1000)}·${Math.max(1,Math.round(r.s/60))}분`}),...rTicks(r.g,r.m>2000?500:250).map(t=>pt(t.c,{k:'t',n:t.n})))});map.getSource('tour').setData(FC(F))});
+const fw=d._fw;if(fw){const a=$('aStD'),b=$('aElD');if(a&&d.st[0]>=0&&fw[0].m!=null)a.innerHTML=`${sts[d.st[0]][0]}역 <b>${wkTxt(fw[0])}</b>`;if(b&&d.el[0]&&fw[1].m!=null)b.innerHTML=`${sname(d.el[0])} <b>${wkTxt(fw[1])}</b>`}const el=$('aBy');if(!el)return;el.classList.remove('muted');el.innerHTML=bydsHtml(o)+`<p class="src" style="margin-top:4px">${BYNOTE}</p>`;$('aByN').textContent=`${o.n}/6 충족`});
 const scRender=async L=>{const c0=[d[1],d[2]],[,kr,sh,bh]=await Promise.all([bydsOf(d),race(kxRoute(d),7000),race(shopNear(c0),8000),race(bigHosp(c0),8000)]);if(!$('aSc')||aptSel!==p.i)return;const P=scoreParts(d,{kr,sh,L,bh}),o=wsum(P,OBJW),sj=await race(subjOf(d,P),9000);const el=$('aSc');if(!el||aptSel!==p.i)return;el.innerHTML=scoreHtml(P,o,sj);const b=$('aMe');if(b)b.onclick=async()=>{await meAsk();scRender(L)}};scRender(null);
 $('aLife').onclick=async()=>{const B=$('aLifeBox'),bt=$('aLife');bt.disabled=true;bt.textContent='찾는 중…';map.flyTo({center:[d[1],d[2]],zoom:14.6,pitch:0,bearing:0,duration:900});await new Promise(r=>setTimeout(r,1000));
 const [L,sh,bh]=await Promise.all([lifeScan([d[1],d[2]],1),shopNear([d[1],d[2]]),race(bigHosp([d[1],d[2]]),8000)]);const its=Object.values(L.by).flatMap(a=>a.slice(0,6)),wr=await race(footT([d[1],d[2]],its.map(v=>v.c)),10000);if(wr)its.forEach((v,k)=>v.w=wr[k]);if(!$('aLifeBox'))return;lifeMark(Object.values(L.by).flat());B.innerHTML=lifeHtml(L,sh,bh);bt.disabled=false;bt.textContent='주변 생활권 다시';B.scrollIntoView({block:'nearest',behavior:'smooth'});scRender(L)};
@@ -1058,9 +1061,10 @@ if(d.el[0])bigRoad([d[1],d[2]],xy(d.el[0])).then(x=>{const el=$('aRd');if(el&&x!
 const cb=()=>{if(has()&&!$('aCmp')){const b=document.createElement('button');b.id='aCmp';b.textContent='관심 단지 비교';b.onclick=()=>{window._showTab('me');_cmpDraw();setTimeout(()=>$('cmp').scrollIntoView({block:'start',behavior:'smooth'}),80)};sv.after(b)}};cb()};
 // ── 임장 코스 자동 재생: 동네 → 단지(돌며 보기) → 가까운 역 → 초등학교 → 호재 역 → 정리. 틀을 숨기고 자막·경로만 보여 화면 녹화로 임장 영상을 만들 수 있게
 S('tour',EMPTY);
-L({id:'tourl',type:'line',source:'tour',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#fab005','line-width':4.5,'line-dasharray':[1.4,1.1]}});
-L({id:'tourp',type:'circle',source:'tour',filter:['==',['geometry-type'],'Point'],paint:{'circle-color':['match',['get','k'],'a','#e8590c','#fff'],'circle-radius':['match',['get','k'],'a',9,7],'circle-stroke-color':['match',['get','k'],'a','#fff','#14232b'],'circle-stroke-width':2.5}});
-L({id:'tourn',type:'symbol',source:'tour',filter:['==',['geometry-type'],'Point'],layout:{'text-field':['get','n'],'text-size':14,'text-font':['Noto Sans Medium'],'text-anchor':'top','text-offset':[0,1],'text-allow-overlap':true},paint:{'text-color':'#14232b','text-halo-color':'#fff','text-halo-width':2.4}});
+L({id:'tourlc',type:'line',source:'tour',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#ffffff','line-width':['interpolate',['linear'],['zoom'],12,5,17,10]}});
+L({id:'tourl',type:'line',source:'tour',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['match',['get','m'],'car','#1c7ed6','#e8590c'],'line-width':['interpolate',['linear'],['zoom'],12,3,17,6.5]}});
+L({id:'tourp',type:'circle',source:'tour',filter:['==',['geometry-type'],'Point'],paint:{'circle-color':['match',['get','k'],'a','#e8590c','t','#14232b','#fff'],'circle-radius':['match',['get','k'],'a',9,'t',4,7],'circle-stroke-color':['match',['get','k'],'a','#fff','t','#fff','#14232b'],'circle-stroke-width':['match',['get','k'],'t',1.5,2.5]}});
+L({id:'tourn',type:'symbol',source:'tour',filter:['==',['geometry-type'],'Point'],layout:{'text-field':['get','n'],'text-size':['match',['get','k'],'t',12,14],'text-font':['Noto Sans Medium'],'text-anchor':['match',['get','k'],'t','left','top'],'text-offset':['match',['get','k'],'t',['literal',[.6,0]],['literal',[0,1]]],'text-allow-overlap':true},paint:{'text-color':'#14232b','text-halo-color':'#fff','text-halo-width':2.4}});
 const tCap=document.createElement('div');tCap.className='tourcap';tCap.hidden=true;tCap.setAttribute('aria-live','polite');fig.appendChild(tCap);
 const tBar=document.createElement('div');tBar.className='tourbar';tBar.hidden=true;tBar.innerHTML='<span id="tStep"></span><button id="tPause">일시정지</button><button id="tNext">다음</button><button id="tEnd">끝내기</button>';fig.appendChild(tBar);
 let TR=null;
@@ -1077,6 +1081,12 @@ const BRD=[[/래미안|레미안/,'래미안','삼성물산',1],[/디에이치/,
 // 걷는 길(OpenStreetMap 보행 경로, FOSSGIS routing.openstreetmap.de) — 여러 목적지 한 번에, 거리 m·시간 초(시속 약 5km)
 const footP=new Map();const footT=(c,P)=>{if(!P.length)return Promise.resolve(null);const key=[c,...P].map(p=>(+p[0]).toFixed(5)+','+(+p[1]).toFixed(5)).join(';');if(footP.has(key))return footP.get(key);
 const ctl=new AbortController();setTimeout(()=>ctl.abort(),8000);const pr=fetch(`https://routing.openstreetmap.de/routed-foot/table/v1/driving/${key}?sources=0&annotations=duration,distance`,{signal:ctl.signal}).then(r=>r.json()).then(j=>j.code==='Ok'?P.map((p,k)=>({s:j.durations[0][k+1],m:j.distances[0][k+1]})):null).catch(()=>null);footP.set(key,pr);return pr};
+// 실제 길 모양(걷기 = routing.openstreetmap.de 보행, 차 = OSRM) + 거리 눈금(걷기 250m·차 1km마다)
+const routeP=new Map();const routeGeo=(c,q,mode)=>{const key=mode+[c,q].map(p=>(+p[0]).toFixed(5)+','+(+p[1]).toFixed(5)).join(';');if(routeP.has(key))return routeP.get(key);
+const u=(mode==='car'?'https://router.project-osrm.org/route/v1/driving/':'https://routing.openstreetmap.de/routed-foot/route/v1/driving/')+[c,q].map(p=>(+p[0]).toFixed(5)+','+(+p[1]).toFixed(5)).join(';')+'?overview=full&geometries=geojson';
+const ctl=new AbortController();setTimeout(()=>ctl.abort(),9000);const pr=fetch(u,{signal:ctl.signal}).then(r=>r.json()).then(j=>j.code==='Ok'&&j.routes[0]?{g:j.routes[0].geometry.coordinates,m:j.routes[0].distance,s:j.routes[0].duration,mode}:null).catch(()=>null);routeP.set(key,pr);return pr};
+const rTicks=(g,step,mx)=>{const out=[];let acc=0,nx=step;for(let i=1;i<g.length&&out.length<(mx||40);i++){const a=g[i-1],b=g[i],L=km(a,b)*1000;while(acc+L>=nx){const t=(nx-acc)/L;out.push({c:[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],n:nx>=1000?(+(nx/1000).toFixed(nx%1000?2:0))+'km':nx+'m'});nx+=step}acc+=L}return out};
+window._routeGeo=routeGeo;
 const wkTxt=r=>r&&r.m!=null?`걷는 길 ${dkm(r.m/1000)} · 약 ${Math.max(1,Math.round(r.s/60))}분`:'';
 window._footT=footT;
 const brandOf=n=>{for(const b of BRD)if(b[0].test(n))return b;return null};
@@ -1097,7 +1107,7 @@ const FW=await footT([d[1],d[2]],[d.st[0]>=0?[sts[d.st[0]][1],sts[d.st[0]][2]]:[
 if(d.ms)R.push(['역',d.st[0]<0?0:(wsM!=null?wsM<=.6:d.st[1]<=.5)?2:(wsM!=null?wsM<=1.2:d.st[1]<=1)?1:0,d.st[0]>=0?`${sts[d.st[0]][0]}역 ${wsM!=null?wkTxt(FW[0]):dkm(d.st[1])+'(직선) · 걸어서 약 '+wmin(d.st[1])+'분'}`:'가까운 역 없음']);
 else R.push(['역',0,`지하철 없는 시 · ${trTxt(d)||'KTX역·터미널 멂'}`]);
 const bl=await bldOf(d).catch(()=>null),hh=bl&&bl.a?Math.round(bl.a/100/50)*50:0;d._bl=bl;d._hh=hh;
-let sb=null;if(!bl&&window._spbd){const F=await _spbd([[[d[1],d[2]],.004]],[d[1],d[2]],d[0]).catch(()=>null);const T=F?F.filter(f=>f.properties.t):[];if(T.length){sb={n:T.length,f:Math.max(...T.map(f=>f.properties.f))};d._bl={n:sb.n,f:sb.f,a:0};d._sb=1}}
+let sb=null;if(!bl&&window._spbd){const F=await _spbd([[[d[1],d[2]],.004]],[d[1],d[2]],d[0],null,d[5]).catch(()=>null);const T=F?F.filter(f=>f.properties.t):[];if(T.length){sb={n:T.length,f:Math.max(...T.map(f=>f.properties.f))};d._bl={n:sb.n,f:sb.f,a:0};d._sb=1}}
 R.push(['대',bl?(hh>=1000?2:hh>=500?1:0):sb?(sb.n>=10?2:sb.n>=5?1:0):1,bl?`${bl.n}개 동 · 최고 ${bl.f}층${hh?` · 약 ${hh.toLocaleString()}세대 규모(연면적 ÷100㎡ 추정)`:''}`:sb?`${sb.n}개 동 · 최고 ${sb.f}층 (도로명주소 건물, 세대수 자료 없음 · 10개 동↑ ✓)`:'건물 자료에서 단지를 찾지 못함']);
 const age=d[3]?Y-d[3]:null;R.push(['신',age==null?1:age<=10?2:age<=20?1:0,age==null?'준공 연도 모름':`${d[3]}년 준공 · ${age}년차${age<=5?' (신축)':age<=10?' (준신축)':age>=30?' (재건축 연한)':''}`]);
 const sl=await slopeOf([d[1],d[2]]).catch(()=>null);d._sl=sl?sl.r:null;let sx='';if(sl&&d.ms&&d.st[0]>=0&&d.st[1]<=1.5){const h2=await ele(sts[d.st[0]][1],sts[d.st[0]][2]);if(h2!=null){const dh=Math.round(sl.h-h2);sx=` · 역까지 ${Math.abs(dh)<3?'거의 평지':dh>0?`내리막 ${dh}m`:`오르막 ${-dh}m`}`;d._dh=dh}}
@@ -1201,14 +1211,14 @@ const cloud=async(on,b,sp)=>{tCloud.querySelector('b').textContent=b||'';tCloud.
 const cloudBar=f=>{const pb=tCloud.querySelector('.pb');pb.hidden=f==null;if(f!=null){pb.querySelector('i').style.width=Math.round(f*100)+'%';pb.querySelector('em').textContent=Math.round(f*100)+'%'}};
 const cloudTx=(b,sp)=>{tCloud.querySelector('b').textContent=b||'';tCloud.querySelector('span').textContent=sp||''};
 // ── 임장 코스 시작 전 선택지(브라우저에 기억)
-const TOPT0={real:false,price:false,base:-1,b3:true,dem:true,sky:true,sp:1,g:{sc:1,by:1,st:1,el:1,shop:1,life:1,fut:1}};
-let TOPT=(()=>{try{const o=JSON.parse(localStorage.getItem('krmap_tour')||'{}');return {...TOPT0,...o,g:{...TOPT0.g,...(o.g||{})}}}catch(e){return {...TOPT0}}})();
+const TOPT0={v:2,real:false,price:false,base:0,b3:true,dem:true,sky:true,sp:1,g:{sc:1,by:1,st:1,el:1,shop:1,life:1,fut:1}};
+let TOPT=(()=>{try{const o=JSON.parse(localStorage.getItem('krmap_tour')||'{}');const r={...TOPT0,...o,g:{...TOPT0.g,...(o.g||{})}};if(o.v!==2){r.base=0;r.v=2}return r}catch(e){return {...TOPT0}}})();
 const tDlg=document.createElement('div');tDlg.className='tdlg';tDlg.hidden=true;fig.appendChild(tDlg);
 function tourStart(i){const o=TOPT,G=[['sc','점수(객관·내 조건)'],['by','브역대신평초'],['st','역·KTX역'],['el','초등학교'],['shop','상권'],['life','병원·편의시설·공원'],['fut','호재 역']];
 const meTxt=()=>ME?[ME.work&&'직장 '+ME.work.n,ME.fam&&FAM[ME.fam]&&FAM[ME.fam][0],ME.car===1?'차량 있음':ME.car===0?'차량 없음':''].filter(Boolean).join(' · '):'입력 안 함';
 tDlg.innerHTML=`<div role="dialog" aria-label="임장 코스 설정"><h3>임장 코스</h3><p class="muted" style="margin:0 0 8px;font-size:12.5px">${esc(aptD.a[i][0])} · 화면 녹화용으로 틀을 숨기고 자동으로 둘러봅니다. 시작 전에 자료·걷는 길·3D 건물을 받고 장면을 돌며 보는 방향까지 미리 그려 두느라 1~3분쯤 걸립니다(로딩 바 표시, 재생 중에는 기다림 없음).</p>
 <div class="r">화면<select id="tReal"><option value="0">지도 3D (가볍고 빠름)</option><option value="1" ${VK?'':'disabled'}>실사 3D (브이월드${VK?'':' · 인증키 필요'})</option></select></div>
-<div class="r">배경(지도 3D)<select id="tBase"><option value="-1">지금 그대로</option><option value="0">단색</option><option value="1">일반지도</option><option value="2">위성</option></select></div>
+<div class="r">배경(지도 3D)<select id="tBase"><option value="-1">지금 그대로</option><option value="0">단색 (추천)</option><option value="1">일반지도</option><option value="2">위성</option></select></div>
 <div class="r">건물 3D · 산·언덕 입체 · 하늘<span><input type="checkbox" id="tB3" ${o.b3?'checked':''}> <input type="checkbox" id="tDem" ${o.dem?'checked':''}> <input type="checkbox" id="tSky" ${o.sky?'checked':''}></span></div>
 <div class="r">시세 보이기(가격표·자막의 가격)<input type="checkbox" id="tPrice" ${o.price?'checked':''}></div>
 <div class="r">속도<select id="tSp"><option value="0.7">빠르게</option><option value="1">보통</option><option value="1.4">느리게</option></select></div>
@@ -1218,7 +1228,7 @@ tDlg.innerHTML=`<div role="dialog" aria-label="임장 코스 설정"><h3>임장 
 $('tReal').value=o.real&&VK?'1':'0';$('tBase').value=String(o.base);$('tSp').value=String(o.sp);tDlg.hidden=false;
 $('tMe').onclick=async()=>{tDlg.hidden=true;await meAsk();tDlg.hidden=false;$('tMeT').textContent=meTxt()};
 $('tCancel').onclick=()=>tDlg.hidden=true;
-$('tGo').onclick=()=>{TOPT={real:$('tReal').value==='1',price:$('tPrice').checked,base:+$('tBase').value,b3:$('tB3').checked,dem:$('tDem').checked,sky:$('tSky').checked,sp:+$('tSp').value,g:Object.fromEntries([...tDlg.querySelectorAll('[data-g]')].map(x=>[x.dataset.g,x.checked?1:0]))};try{localStorage.setItem('krmap_tour',JSON.stringify(TOPT))}catch(e){}tDlg.hidden=true;tourRun(i,TOPT)}}
+$('tGo').onclick=()=>{TOPT={v:2,real:$('tReal').value==='1',price:$('tPrice').checked,base:+$('tBase').value,b3:$('tB3').checked,dem:$('tDem').checked,sky:$('tSky').checked,sp:+$('tSp').value,g:Object.fromEntries([...tDlg.querySelectorAll('[data-g]')].map(x=>[x.dataset.g,x.checked?1:0]))};try{localStorage.setItem('krmap_tour',JSON.stringify(TOPT))}catch(e){}tDlg.hidden=true;tourRun(i,TOPT)}}
 // 건물 미리 받기(목적지 둘레 z13 타일 3×3) → 도착하자마자 3D 건물이 서 있게
 const bPre=async c=>{if(!bIdx)bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}));const [x0,y0]=tileOf(c[0],c[1],bIdx.z),ks=[];for(let x=x0-1;x<=x0+1;x++)for(let y=y0-1;y<=y0+1;y++){const k=x+'_'+y;if(bIdx.t[k]&&!bCache.has(k))ks.push(k)}
 await Promise.all(ks.map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}))};
@@ -1229,17 +1239,20 @@ const v3Ask=(m,ms=3000)=>new Promise(r=>{const id=++v3Id;v3Wait.set(id,r);v3({..
 const race=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
 // 브이월드 도로명주소 건물(JSONP, 1,000개씩 여러 쪽) → 높이 = 지상층수 × 3.1m, 이 단지(이름 같음, 600m 안 · 없으면 120m 안 10층 이상) = t 1
 let spN=0;const vwJ=u=>new Promise(res=>{const cb='_vwj'+(++spN),s=document.createElement('script');let done=false;window[cb]=x=>{done=true;delete window[cb];s.remove();res(x)};s.onerror=()=>{if(!done){delete window[cb];res(null)}};s.src=u+'&callback='+cb;document.head.appendChild(s);setTimeout(()=>{if(!done){window[cb]=()=>{};res(null)}},12000)});
-window._spbd=(...a)=>spbdLoad(...a);const spbdLoad=async(boxes,c,nm,tick)=>{if(!VK)return null;const seen=new Set(),out=[],N=x=>String(x||'').replace(/\s|아파트/g,'');const tn=N(nm);
+window._spbd=(...a)=>spbdLoad(...a);const spbdLoad=async(boxes,c,nm,tick,jb)=>{if(!VK)return null;const seen=new Set(),out=[],N=x=>String(x||'').replace(/\s|아파트/g,'');const tn=N(nm);
 for(const [q,r] of boxes){for(let pg=1;pg<=6;pg++){const j=await vwJ(`https://api.vworld.kr/req/data?service=data&request=GetFeature&data=LT_C_SPBD&key=${encodeURIComponent(VK)}&domain=${location.hostname}&format=json&size=1000&page=${pg}&crs=EPSG:4326&geometry=true&attribute=true&geomFilter=BOX(${q[0]-r},${q[1]-r*.82},${q[0]+r},${q[1]+r*.82})`);
 const R=j&&j.response;if(!R||R.status!=='OK')break;for(const f of R.result.featureCollection.features){const p=f.properties;if(seen.has(p.bd_mgt_sn))continue;seen.add(p.bd_mgt_sn);const fl=+p.gro_flo_co||1;
 const g=f.geometry,ring=(g.type==='MultiPolygon'?g.coordinates[0][0]:g.coordinates[0]),cx=ring.reduce((s,x)=>s+x[0],0)/ring.length,cy=ring.reduce((s,x)=>s+x[1],0)/ring.length,bn=N(p.buld_nm);
-out.push({type:'Feature',properties:{h:Math.min(fl,80)*3.1,f:fl,t:bn&&(bn===tn||bn===tn+'아파트')&&km(c,[cx,cy])<=.6?1:0,cx,cy},geometry:g})}tick&&tick(out.length);if(pg>=(+R.page.total||1))break}}
+out.push({type:'Feature',properties:{h:Math.min(fl,80)*3.1,f:fl,t:bn&&(bn===tn||bn===tn+'아파트')&&km(c,[cx,cy])<=.6?1:0,cx,cy,sn:String(p.bd_mgt_sn||'').slice(0,19),gu:p.gu||''},geometry:g})}tick&&tick(out.length);if(pg>=(+R.page.total||1))break}}
+// 같은 단지 = 이름이 같은 동들의 지번(건물관리번호 앞 19자리) 또는 실거래 지번(동·본번·부번)이 같은 5층 이상 건물
+{const J=String(jb||'').match(/^(\S+)\s+(\d+)(?:-(\d+))?/),SN=new Set(out.filter(f=>f.properties.t).map(f=>f.properties.sn));
+out.forEach(f=>{const p=f.properties;if(p.t||p.f<5||km(c,[p.cx,p.cy])>.8)return;if(SN.has(p.sn)||(J&&p.gu===J[1]&&p.sn.slice(11,15)===J[2].padStart(4,'0')&&p.sn.slice(15,19)===(J[3]||'0').padStart(4,'0')))p.t=1})}
 if(!out.some(f=>f.properties.t))out.forEach(f=>{if(f.properties.f>=10&&km(c,[f.properties.cx,f.properties.cy])<=.12)f.properties.t=1});return out};
 async function tourRun(i,O){if(TR)tourEnd();const d=aptD.a[i],c=[d[1],d[2]],Y=new Date().getFullYear(),t=repT(d,'pm'),u=repT(d,'jm'),nm=d[0];
 TR={pz:false,nx:false,p:map.getPitch(),b:map.getBearing(),sp:O.sp,base0:baseMode,bOn0:bOn,m30:mode3,real:false};const me=TR;
 aptSel=i;aptPills();document.body.classList.add('touring');document.body.classList.toggle('tnopill',!O.price);tBar.hidden=false;map.resize();
 await cloud(true,'임장 준비 중',nm);let pf=0;const prog=(t,f)=>{if(f!=null)pf=Math.max(pf,f);cloudTx('임장 준비 중',`${nm} · ${t}`);cloudBar(pf)};prog('시작',.02);
-me.hid=['ysf','ysl','sch','schn','hp','rec','recn','dline','mline','pline','zfill','zA','zB','zW','fz','ldong','lmuni','lsido','candf','candl',...(O.price?[]:['apt'])].filter(l=>map.getLayer(l)&&map.getLayoutProperty(l,'visibility')!=='none');me.hid.forEach(l=>map.setLayoutProperty(l,'visibility','none'));
+me.hid=['vb_poi','ysf','ysl','sch','schn','hp','rec','recn','dline','mline','pline','zfill','zA','zB','zW','fz','ldong','lmuni','lsido','candf','candl',...(O.price?[]:['apt'])].filter(l=>map.getLayer(l)&&map.getLayoutProperty(l,'visibility')!=='none');me.hid.forEach(l=>map.setLayoutProperty(l,'visibility','none'));
 // 1) 자료 모으기(지도는 구름 뒤에서 움직임)
 prog('단지 평가',.05);const by=await race(bydsOf(d),15000);
 prog('KTX역·병원까지 길 찾기',.14);const [kr,bh,sh]=await Promise.all([race(kxRoute(d),7000),race(bigHosp(c),8000),race(shopNear(c),8000)]);
@@ -1250,30 +1263,36 @@ const P=scoreParts(d,{kr,sh,L,bh}),OB=wsum(P,OBJW);prog('내 조건 점수',.3);
 prog('걷는 길 찾기',.33);const WP=[],aw=q=>q&&WP.push([+q[0],+q[1]]);if(d.st[0]>=0)aw([sts[d.st[0]][1],sts[d.st[0]][2]]);if(d.el[0])aw(xy(d.el[0]));if(kr&&kr.k)aw([sts[kr.k.i][1],sts[kr.k.i][2]]);if(d.bt&&d.bt[0]>=0)aw([_term.t[d.bt[0]][2],_term.t[d.bt[0]][1]]);if(bh&&bh.a[0])aw(bh.a[0].c);if(sq)aw(sq);
 if(L)Object.values(L.by).forEach(a=>a.slice(0,6).forEach(v=>aw(v.c)));(d.hl||[]).slice(0,2).forEach(h=>{const f=_fut.s[h[1]];if(f)aw([f[2],f[1]])});
 const WR=new Map(),wkey=q=>(+q[0]).toFixed(5)+','+(+q[1]).toFixed(5);for(let k=0;k<WP.length;k+=60){const part=WP.slice(k,k+60),r=await race(footT(c,part),10000);if(r)part.forEach((q,j)=>WR.set(wkey(q),r[j]))}
-const wk=(q,sh)=>{const r=WR.get(wkey(q));if(r&&r.m!=null){const mm=Math.max(1,Math.round(r.s/60));return r.m<=4000?(sh?`${dkm(r.m/1000)}·${mm}분`:`걷는 길 ${dkm(r.m/1000)} · 걸어서 약 ${mm}분`):(sh?`길 ${dkm(r.m/1000)}`:`길로 ${dkm(r.m/1000)}`)}const dk=km(c,q);return sh?`약 ${dkm(dk*1.2)}`:`길로 약 ${dkm(dk*1.2)}(추정)`};
+prog('길 모양 그리기',.345);const RG=new Map(),RT=[];if(d.st[0]>=0)RT.push([sts[d.st[0]][1],sts[d.st[0]][2]]);if(d.el[0])RT.push(xy(d.el[0]));if(kr&&kr.k)RT.push([sts[kr.k.i][1],sts[kr.k.i][2]]);if(d.bt&&d.bt[0]>=0)RT.push([_term.t[d.bt[0]][2],_term.t[d.bt[0]][1]]);if(bh&&bh.a[0])RT.push(bh.a[0].c);if(sq)RT.push(sq);
+if(L&&L.by.park&&L.by.park[0])RT.push(L.by.park[0].c);if(L&&L.by.hosp&&L.by.hosp[0])RT.push(L.by.hosp[0].c);(d.hl||[]).slice(0,2).forEach(h=>{const f=_fut.s[h[1]];if(f)RT.push([f[2],f[1]])});
+await Promise.all(RT.map(async q=>{const r=await race(routeGeo(c,q,km(c,q)<=3?'foot':'car'),11000);if(r)RG.set(wkey(q),r)}));
+const wk=(q,sh)=>{const g=RG.get(wkey(q));if(g){const mm=Math.max(1,Math.round(g.s/60));if(g.mode==='car')return sh?`차 ${mm}분`:`길로 ${dkm(g.m/1000)} · 차로 약 ${mm}분(막힘 반영 안 됨)`;return sh?`${dkm(g.m/1000)}·${mm}분`:`걷는 길 ${dkm(g.m/1000)} · 걸어서 약 ${mm}분`}const r=WR.get(wkey(q));if(r&&r.m!=null){const mm=Math.max(1,Math.round(r.s/60));return r.m<=4000?(sh?`${dkm(r.m/1000)}·${mm}분`:`걷는 길 ${dkm(r.m/1000)} · 걸어서 약 ${mm}분`):(sh?`길 ${dkm(r.m/1000)}`:`길로 ${dkm(r.m/1000)}`)}const dk=km(c,q);return sh?`약 ${dkm(dk*1.2)}`:`길로 약 ${dkm(dk*1.2)}(추정)`};
 // 2) 장면 만들기
 const st=[];let G0='base';const add=o=>st.push({g:G0,...o});const TG=['#ff8f6b','#ffd43b','#69db7c'];
 const priceTxt=[t&&`${t[0]}㎡ 최근 매매 ${eok(t[1])} (${ymdS(t[2])})`,u&&`전세 중앙값 ${eok(u[4])}`].filter(Boolean).join(' · ');
 add({at:c,z:15.8,p:50,b:0,rot:0,h:5000,em:'임장 시작',t:nm,s:`${d[5]}${d[3]?` · ${d[3]}년 준공 (${Y-d[3]}년차)`:''}`,mk:[{c,n:nm,big:1}]});
-add({at:c,z:16.9,p:60,b:0,rot:90,h:8500,em:'단지',t:nm,s:[d._bl&&`${d._bl.n}개 동 · 최고 ${d._bl.f}층${d._hh?` · 약 ${d._hh.toLocaleString()}세대 규모`:''}`,brandOf(d[0])&&brandOf(d[0])[1]+' ('+brandOf(d[0])[2]+')',O.price&&priceTxt].filter(Boolean).join(' · ')||esc(d[5])});
+add({at:c,z:16.9,p:60,b:0,rot:0,h:8500,em:'단지',t:nm,s:[d._bl&&`${d._bl.n}개 동 · 최고 ${d._bl.f}층${d._hh?` · 약 ${d._hh.toLocaleString()}세대 규모`:''}`,brandOf(d[0])&&brandOf(d[0])[1]+' ('+brandOf(d[0])[2]+')',O.price&&priceTxt].filter(Boolean).join(' · ')||esc(d[5])});
 G0='sc';if(OB!=null)add({same:1,h:8500,em:'점수 · 이 지도 기준',t:`객관 ${OB}점${SJ&&SJ.v!=null?` · 내 조건 ${SJ.v}점`:''}`,s:`<span class="bg">${['T','E','L','C','N'].map(k=>`<span class="k">${P[k].n}</span><span class="k" style="color:#ffd8a8">${P[k].v==null?'—':Math.round(P[k].v)}</span><span>${esc(P[k].why)}</span>`).join('')}${SJ&&SJ.P.W?`<span class="k">직장</span><span class="k" style="color:#a5d8ff">${Math.round(SJ.P.W.v)}</span><span>${esc(SJ.P.W.why)}</span>`:''}</span>${SJ?`<small style="display:block;margin-top:4px">${esc(SJ.why.join(' · '))}</small>`:''}`,sm:'교통 30·교육 20·생활 20·단지 20·환경 10 가중 · 사이버 임장지도 기준'});
 G0='by';if(by)add({same:1,h:9000,em:'브역대신평초',t:`6개 중 ${by.n}개 충족`,s:`<span class="bg">${by.R.map(r=>`<span class="k">${r[0]}</span><span class="k" style="color:${TG[r[1]]}">${G3[r[1]]}</span><span>${esc(r[2])}</span>`).join('')}</span>`,sm:'이 지도 기준 · 브 2026 시공능력평가 10위 안 · 대 연면적 추정 · 평 AWS 표고'});
 const seen=new Set(),stop=(q,em,name,extra,col)=>{const k=q[0].toFixed(4)+q[1].toFixed(4);if(seen.has(k))return;seen.add(k);const dk=km(c,q);
-add({at:q,z:16.3,p:50,b:0,rot:0,h:5200,ln:1,em,t:name,s:`${(w=>/^길로/.test(w)&&/차로/.test(extra||'')?'':w)(wk(q))}${extra?`${/^길로/.test(wk(q))&&/차로/.test(extra||'')?'':'<br>'}${extra}`:''}`,mk:[{c,n:nm},{c:q,n:name,col:col||'#1c7ed6',big:1}]})};
+add({at:q,z:16.3,p:50,b:-20,rot:40,h:5200,ln:1,em,t:name,s:`${(w=>/^길로/.test(w)&&/차로/.test(extra||'')?'':w)(wk(q))}${extra?`${/^길로/.test(wk(q))&&/차로/.test(extra||'')?'':'<br>'}${extra}`:''}`,mk:[{c,n:nm},{c:q,n:name,col:col||'#1c7ed6',big:1}]})};
 G0='st';if(!d.ms){const ki=kr&&kr.k?kr.k.i:d.tr[0];if(ki>=0){const s=sts[ki];stop([s[1],s[2]],'KTX역',s[0]+'역',(kr&&kr.k?`차로 약 ${mins(kr.k.s)}분 · 도로 ${dkm(kr.k.m/1000)} (막힘 반영 안 됨)`:''))}if(d.bt[0]>=0&&d.bt[1]<=10){const b=_term.t[d.bt[0]];stop([b[2],b[1]],'버스터미널',b[0],kr&&kr.t?`차로 약 ${mins(kr.t.s)}분 · 도로 ${dkm(kr.t.m/1000)}`:'')}}
 else if(d.st[0]>=0&&d.st[1]<=3){const s=sts[d.st[0]];stop([s[1],s[2]],'가까운 역',s[0]+'역',(s[4]||[]).map(j=>RAIL[j]&&RAIL[j].s==='open'?RAIL[j].n:'').filter(Boolean).slice(0,3).join(', ')+(d._dh!=null&&Math.abs(d._dh)>=3?` · 단지에서 ${d._dh>0?'내리막':'오르막'} ${Math.abs(d._dh)}m`:''))}
 G0='el';if(d.el[0]&&d.el[1]<=2)stop(xy(d.el[0]),'초등학교',sname(d.el[0]),d._rd?`왕복 8차선 큰길(${esc(d._rd)})을 건넘`:d._rd===''?'큰길을 건너지 않음':'','#2f9e44');
 G0='shop';if(sh&&sq){const ttl=sh.zn&&(!sh.best||sh.zn.dk<sh.best.dk)?`${sh.zn.n} (${sh.zn.t})`:`${sh.best.l[0]} 상권`;seen.add(sq[0].toFixed(4)+sq[1].toFixed(4));
-add({at:sq,z:16.4,p:50,b:0,rot:0,h:7000,ln:1,em:'상권',t:ttl,s:`${roads.length?esc(roads.join('·'))+' 일대 · ':''}${wk(sq)}${sh.best?` · 생활업종 점포 ${sh.best.l[1].toLocaleString()}곳`:''}<br>단지 500m 안: ${shopTxt(sh)}`,sm:`소상공인시장진흥공단 상가(상권)정보 ${sh.ref} · 도로 이름 OpenStreetMap`,mk:[{c,n:nm},{c:sq,n:ttl,col:'#7048e8',big:1}]})}
+add({at:sq,z:16.4,p:50,b:-20,rot:40,h:7000,ln:1,em:'상권',t:ttl,s:`${roads.length?esc(roads.join('·'))+' 일대 · ':''}${wk(sq)}${sh.best?` · 생활업종 점포 ${sh.best.l[1].toLocaleString()}곳`:''}<br>단지 500m 안: ${shopTxt(sh)}`,sm:`소상공인시장진흥공단 상가(상권)정보 ${sh.ref} · 도로 이름 OpenStreetMap`,mk:[{c,n:nm},{c:sq,n:ttl,col:'#7048e8',big:1}]})}
 G0='life';if(bh&&bh.a[0]&&bh.a[0].dk<=10){const h=bh.a[0];stop(h.c,'상급종합병원',h.n,`${h.s!=null?`차로 약 ${mins(h.s)}분 · 도로 ${dkm(h.m/1000)}`:''}${(L&&L.by.hosp||[]).length?`<br>1km 안 병원: ${L.by.hosp.slice(0,3).map(v=>esc(v.n)).join(' · ')}`:''}`,'#e03131')}
 else if(L&&(L.by.hosp||[]).length){const h=L.by.hosp[0];stop(h.c,'병원',h.n,L.by.hosp.slice(1,4).map(v=>`${esc(v.n)} ${wk(v.c,1)}`).join(' · ')+(bh&&bh.a[0]?`<br>가까운 상급종합병원: ${esc(bh.a[0].n)} ${bh.a[0].s!=null?'차로 약 '+mins(bh.a[0].s)+'분':wk(bh.a[0].c,1)}`:''),'#e03131')}
 if(L){const a=[...(L.by.mart||[]),...(L.by.lib||[]),...(L.by.civ||[]),...(L.by.cul||[])].sort((x,y)=>x.dk-y.dk);if(a.length){const g=k=>(L.by[k]||[]).slice(0,3).map(v=>`${esc(v.n)} ${wk(v.c,1)}`).join(' · ');
 add({at:c,z:15.4,p:40,b:0,h:7000,em:'편의시설',t:a.slice(0,3).map(v=>v.n).join(' · '),s:[['mart','마트·시장'],['lib','도서관'],['civ','주민센터·우체국'],['cul','영화관·체육']].filter(([k])=>(L.by[k]||[]).length).map(([k,tt])=>`${tt}: ${g(k)}`).join('<br>')+(L.cnt.conv?`<br>편의점 500m 안 ${L.cnt.conv}곳(지도에 올라온 곳)`:''),sm:'OpenStreetMap 이름 · 걷는 길(OpenStreetMap 보행 경로)',mk:[{c,n:nm},...a.slice(0,8).map(v=>({c:v.c,n:v.n,col:LK[v.k][1]}))]})}
-const pk=L.by.park||[];if(pk.length){const q=pk[0];add({at:q.c,z:16.2,p:50,b:0,rot:0,h:6000,ln:1,em:'공원',t:pk.slice(0,2).map(v=>v.n).join(' · '),s:pk.slice(0,5).map(v=>`${esc(v.n)} ${wk(v.c,1)}`).join(' · '),sm:'OpenStreetMap 이름 · 걷는 길(OpenStreetMap 보행 경로)',mk:[{c,n:nm},...pk.slice(0,5).map(v=>({c:v.c,n:v.n,col:'#2f9e44'}))]})}}
+const pk=L.by.park||[];if(pk.length){const q=pk[0];add({at:q.c,z:16.2,p:50,b:-20,rot:40,h:6000,ln:1,em:'공원',t:pk.slice(0,2).map(v=>v.n).join(' · '),s:pk.slice(0,5).map(v=>`${esc(v.n)} ${wk(v.c,1)}`).join(' · '),sm:'OpenStreetMap 이름 · 걷는 길(OpenStreetMap 보행 경로)',mk:[{c,n:nm},...pk.slice(0,5).map(v=>({c:v.c,n:v.n,col:'#2f9e44'}))]})}}
 G0='fut';(d.hl||[]).slice(0,2).forEach(h=>{const f=_fut.s[h[1]];if(!f)return;stop([f[2],f[1]],'호재 역 · '+(f[4]==='c'?'공사 중':'계획'),(f[0]||'이름 미정')+(f[0]&&!/역$/.test(f[0])?'역':''),`${esc(f[11]||f[6]||'')} · ${f[8]?f[8]+'년 개통 목표':'개통 시기 미정'}${f[7]?' (기존 역에 노선 추가)':''}`,'#e8590c')});
 G0='sum';add({at:c,z:16.2,p:55,b:90,rot:-90,h:7000,em:'정리',t:nm,s:[OB!=null&&`객관 ${OB}점${SJ&&SJ.v!=null?` · 내 조건 ${SJ.v}점`:''}`,by&&`브역대신평초 ${by.n}/6`,O.price&&t&&`${t[0]}㎡ ${eok(t[1])}`,trTxt(d),d.el[0]&&`초등학교 ${dkm(d.el[1])}`,d.hs&&`호재 점수 ${d.hs}/100`].filter(Boolean).join(' · '),sm:`국토교통부 실거래가 ${aptD.from.slice(0,4)}.${aptD.from.slice(4)}~${aptD.to.slice(0,4)}.${aptD.to.slice(4)} · 상가(상권)정보 · OpenStreetMap · 사이버 임장지도`,mk:[{c,n:nm,big:1}]});
 for(let k=st.length-1;k>=0;k--)if(st[k].g!=='base'&&st[k].g!=='sum'&&!O.g[st[k].g])st.splice(k,1);
 if(TR!==me)return;
+// 길이 있는 장면은 단지~목적지 길 전체가 한눈에 들어오게 카메라를 맞춤(먼 곳은 축척이 넓어져 거리가 가늠되게)
+st.forEach(x=>{if(!x.ln||!x.at)return;x.tgt=x.at;x.rt=RG.get(wkey(x.at));const b=new maplibregl.LngLatBounds(c,c);b.extend(x.at);(x.rt?x.rt.g:[]).forEach(q=>b.extend(q));
+const cm=map.cameraForBounds(b,{padding:{top:140,bottom:270,left:120,right:120}});if(cm){x.at=[cm.center.lng,cm.center.lat];x.z=Math.min(16.3,Math.max(11.2,cm.zoom-.35))}});
 // 3) 화면 준비: 실사 3D(브이월드) 또는 지도 3D
 const real=O.real&&VK;if(real){prog('실사 3D 불러오기',.4);map.jumpTo({center:c,zoom:st[0].z,pitch:st[0].p,bearing:st[0].b});vw3On();let t0=Date.now();while(TR===me&&!fig.classList.contains('v3ok')&&vw3&&Date.now()-t0<30000)await new Promise(r=>setTimeout(r,300));me.real=vw3&&fig.classList.contains('v3ok');if(!me.real&&vw3)vw3Off()}
 if(me.real){v3({v3c:'clean',on:1});st.forEach(x=>x.sm=(x.sm?x.sm+' · ':'')+'3D: 브이월드(국토교통부)')}
@@ -1281,7 +1300,7 @@ if(!me.real){if(O.base>=0&&O.base!==baseMode){const m0=mode3;mode3=false;await s
 if(O.b3){if(!bOn){bOn=true;$('bbtn').classList.add('on')}mode3=true;rot(true);sty();
 // 임장용 건물: 브이월드 도로명주소 건물(LT_C_SPBD, 지상층수) — 국토부 건물자료에 빠진 신축 단지도 서게. 모두 회색, 이 단지만 주황
 prog('3D 건물',.36);const pts=[...new Map(st.filter(s=>s.at).map(s=>[s.at[0].toFixed(3)+','+s.at[1].toFixed(3),s.at])).values()];
-const BS=await race(spbdLoad(pts.map((q,k)=>[q,k?.005:.008]),c,nm,n=>prog(`3D 건물 ${n.toLocaleString()}동`,Math.min(.55,.36+n/20000))),60000);
+const BS=await race(spbdLoad(pts.map((q,k)=>[q,k?.005:.008]),c,nm,n=>prog(`3D 건물 ${n.toLocaleString()}동`,Math.min(.55,.36+n/20000)),d[5]),60000);
 if(BS&&BS.length){if(!map.getSource('bs'))map.addSource('bs',{type:'geojson',data:EMPTY});map.getSource('bs').setData(FC(BS));
 if(!map.getLayer('b3s'))map.addLayer({id:'b3s',type:'fill-extrusion',source:'bs',paint:{'fill-extrusion-color':['case',['==',['get','t'],1],'#ff7a1a',dark?'#6b7a82':'#d5d8da'],'fill-extrusion-height':['get','h'],'fill-extrusion-opacity':.96,'fill-extrusion-vertical-gradient':true}},'sel');
 map.setLayoutProperty('b3s','visibility','visible');me.attr0=attrEl.textContent;attrEl.textContent=attrEl.textContent.replace(/건물: [^·]*$/,'').replace(/ · $/,'')+' · 건물: 브이월드 도로명주소 건물(층수)';['b2','b2l','b3','b3h'].forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility','none'));me.bs=1;window._bOff=1}
@@ -1298,8 +1317,8 @@ if(me.real){v3({v3c:'view',lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b});await new Pro
 else{map.jumpTo({center:s.at,zoom:s.z,pitch:s.p,bearing:b});await idle(8000);await new Promise(r=>setTimeout(r,300))}}}
 prog('준비 끝',1);await new Promise(r=>setTimeout(r,500));cloudBar(null);
 // 4) 재생: 멀면 구름으로 가렸다가(그동안 화면 준비) 펼치고, 가까우면 부드럽게 이동
-const ft=[];const marks=s=>{const pts=(s.mk||[]).map(m=>({lon:m.c[0],lat:m.c[1],n:m.n,c:m.col||'#e8590c',big:m.big?1:0})).concat(me.real&&typeof LM!=='undefined'?LM.filter(x=>!(s.mk||[]).some(m=>m.n===x.n)).map(x=>({lon:x.c[0],lat:x.c[1],n:x.n,c:x.col,big:0})):[]),line=s.ln&&s.at?[[c,s.at]]:[];
-if(me.real)v3({v3c:'marks',pts,line});else{map.getSource('tour').setData(FC([...line.map(l=>({type:'Feature',properties:{},geometry:{type:'LineString',coordinates:l}})),...pts.filter(p=>p.big).map(p=>pt([p.lon,p.lat],{k:p.lon===c[0]&&p.lat===c[1]?'a':'s',n:p.n}))]));map.getSource('life').setData(FC(pts.filter(p=>!p.big).map(p=>pt([p.lon,p.lat],{n:p.n,col:p.c}))))}};
+const ft=[];const marks=s=>{const pts=(s.mk||[]).map(m=>({lon:m.c[0],lat:m.c[1],n:m.n,c:m.col||'#e8590c',big:m.big?1:0})).concat(me.real&&typeof LM!=='undefined'?LM.filter(x=>!(s.mk||[]).some(m=>m.n===x.n)).map(x=>({lon:x.c[0],lat:x.c[1],n:x.n,c:x.col,big:0})):[]),line=s.rt?[s.rt.g]:s.ln&&s.at?[[c,s.tgt||s.at]]:[],tk=s.rt?rTicks(s.rt.g,s.rt.mode==='car'?(s.rt.m>12000?2000:1000):(s.rt.m>2000?500:250)):[];
+if(me.real)v3({v3c:'marks',pts:pts.concat(tk.map(t=>({lon:t.c[0],lat:t.c[1],n:t.n,c:'#14232b',big:0}))),line});else{map.getSource('tour').setData(FC([...line.map(l=>({type:'Feature',properties:{m:s.rt?s.rt.mode:'foot'},geometry:{type:'LineString',coordinates:l}})),...tk.map(t=>pt(t.c,{k:'t',n:t.n})),...pts.filter(p=>p.big).map(p=>pt([p.lon,p.lat],{k:p.lon===c[0]&&p.lat===c[1]?'a':'s',n:p.n}))]));map.getSource('life').setData(FC(pts.filter(p=>!p.big).map(p=>pt([p.lon,p.lat],{n:p.n,col:p.c}))))}};
 const view=(s,fly)=>{const o={lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b};if(me.real){v3({v3c:fly?'fly':'view',...o,dur:2.2})}else if(fly)map.flyTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b,duration:2200,essential:true});else map.jumpTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b})};
 const settle=async()=>{if(me.real){const t0=Date.now();await new Promise(r=>setTimeout(r,1200));while(Date.now()-t0<3000){const r=await v3Ask({v3c:'tiles'},1500);if(!r||r.ok)break;await new Promise(r=>setTimeout(r,300))}}else{if(O.b3&&!me.bs)await race(bLoad(),3000);await idle(2500)}await new Promise(r=>setTimeout(r,250))};
 const orbit=s=>{if(!s.rot||TR.pz)return;if(me.real)v3({v3c:'orbit',lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b,deg:s.rot,dur:s.h*(TR.sp||1)/1000});else map.easeTo({bearing:s.b+s.rot,duration:s.h*(TR.sp||1),easing:x=>x})};
@@ -1316,8 +1335,7 @@ if(!map.getLayer('tlmc')){map.addLayer({id:'tlmc',type:'circle',source:'tlm',pai
 map.getSource('tlm').setData(FC(LM.map(x=>pt(x.c,{n:x.n,col:x.col,r:km(c,x.c)}))));['tlmc','tlmn'].forEach(l=>map.setLayoutProperty(l,'visibility','visible'));
 for(let k=0;k<st.length&&TR===me;k++){const s=st[k];$('tStep').textContent=`${k+1} / ${st.length}`;
 if(s.same){tSay(s.em,esc(s.t),s.s,s.sm);await tWait(s.h);continue}
-const far=!cur||km(cur.at,s.at)>.7||Math.abs(cur.z-s.z)>1.2;tCap.classList.remove('on');
-if(far){await cloud(true,'',s.em);if(TR!==me)break;marks(s);view(s,false);await settle();if(TR!==me)break;cloud(false)}else{marks(s);view(s,true);await tWait(2300)}
+tCap.classList.remove('on');marks(s);if(!cur){view(s,false);await settle();await cloud(false)}else{const dk=km(cur.at,s.at),du=Math.min(4,2+dk/4);if(me.real)v3({v3c:'fly',lon:s.at[0],lat:s.at[1],z:s.z,p:s.p,b:s.b,dur:du});else map.flyTo({center:s.at,zoom:s.z,pitch:s.p,bearing:s.b,duration:du*1000,essential:true,curve:1.2});await tWait(du*1000+200)}
 if(TR!==me)break;cur=s;tSay(s.em,esc(s.t),s.s,s.sm);orbit(s);await tWait(s.h)}
 if(TR===me){$('tStep').textContent='끝';await tWait(1200);if(TR===me)tourEnd()}}
 window._tour=i=>tourStart(i);
@@ -1603,8 +1621,28 @@ document.querySelectorAll('input.lbl').forEach(c=>{c.checked=!c.dataset.l.split(
 $('lblAll').onclick=()=>{document.querySelectorAll('input.lbl').forEach(c=>c.checked=true);$('L_dong').checked=true;lblApply();_grpSync()};
 $('lblNone').onclick=()=>{document.querySelectorAll('input.lbl').forEach(c=>c.checked=false);$('L_dong').checked=false;lblApply();_grpSync()};
 const tog=(id,fn)=>$(id).addEventListener('change',e=>fn(e.target.checked));
-const terrOn=()=>onId('L_tr')&&baseMode!==2,watOn=()=>onId('L_wa')&&baseMode!==2;
-window._applyVis=()=>{const z=onId('L_zone');['zfill','zA','zB','zW'].forEach(i=>vis(i,z));vis('fz',onId('L_fz'));vis('terr',terrOn());['wb','rv','lw1','lw2','lw3','lw4','lw5'].forEach(i=>vis(i,watOn()));vis('ldong',onId('L_dong'));vis('land',!baseMode);['stc','stn'].forEach(i=>vis(i,onId('L_st')));const ym=+$('ysm').value;vis('ysf',ym>0);vis('ysl',ym>0);map.getLayer('ysl')&&map.setFilter('ysl',ym===2?null:['==',['get','m'],500]);window._ph3Apply&&_ph3Apply()};
+// ── 단색 지도 상세(OpenFreeMap 벡터 타일, OpenMapTiles): 땅 쓰임·숲·풀밭·공원·물·강·도로·건물·주요 시설 이름을 차분한 색으로
+const VB=dark?{res:'#1b2a32',com:'#232f37',ind:'#1f292f',edu:'#1f3030',hos:'#2e2329',wood:'#1c3227',grass:'#1f352a',farm:'#1f2d27',sand:'#2b2a22',water:'#13384b',ww:'#1f5872',rd:'#34505d',rdc:'#152730',mn:'#2b434e',mw:'#7a5f2a',mwc:'#3a2c14',bld:'#22343e',bldl:'#2c434e',lab:'#c9d4d8',halo:'#13262f'}
+:{res:'#f1efe8',com:'#f5ebe8',ind:'#ecebe5',edu:'#efece0',hos:'#f7e6e6',wood:'#d3e5c6',grass:'#dfeccf',farm:'#eef1e0',sand:'#f2ead0',water:'#a9d2e8',ww:'#8cc2dc',rd:'#ffffff',rdc:'#d6d2c7',mn:'#ffffff',mw:'#fbd38d',mwc:'#e3a64a',bld:'#e4e1d9',bldl:'#d3cfc4',lab:'#5b6870',halo:'#ffffff'};
+let vbOK=false;const vbOn=()=>vbOK&&baseMode===0;
+function vbInit(){if(vbOK)return;osrInit();const B='terr',cl=['get','class'],src={source:'ofm'},A=(o)=>{try{map.addLayer({...src,...o},B)}catch(e){console.warn(e)}};
+A({id:'vb_lc',type:'fill','source-layer':'landcover',paint:{'fill-color':['match',cl,'wood',VB.wood,'grass',VB.grass,'farmland',VB.farm,'sand',VB.sand,'wetland',VB.grass,VB.grass],'fill-opacity':['interpolate',['linear'],['zoom'],6,.5,10,.9]}});
+A({id:'vb_lu',type:'fill','source-layer':'landuse',minzoom:9,paint:{'fill-color':['match',cl,'residential',VB.res,['commercial','retail'],VB.com,['industrial','railway'],VB.ind,['school','university','college','kindergarten'],VB.edu,'hospital',VB.hos,['cemetery','park','pitch','stadium'],VB.grass,VB.res],'fill-opacity':['interpolate',['linear'],['zoom'],9,0,11,1]}});
+A({id:'vb_park',type:'fill','source-layer':'park',paint:{'fill-color':VB.wood,'fill-opacity':.5}});
+A({id:'vb_wa',type:'fill','source-layer':'water',paint:{'fill-color':VB.water}});
+A({id:'vb_ww',type:'line','source-layer':'waterway',minzoom:8,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':VB.ww,'line-width':['interpolate',['linear'],['zoom'],8,['match',cl,'river',1,.3],13,['match',cl,'river',2.5,1],17,['match',cl,'river',6,2.5]]}});
+const RC=['motorway','trunk','primary','secondary','tertiary','minor','service'],rf=['all',['match',['geometry-type'],['LineString','MultiLineString'],true,false],['in',cl,['literal',RC]],['!=',['get','brunnel'],'tunnel']];
+const rw=k=>['interpolate',['exponential',1.4],['zoom'],8,['match',cl,['motorway','trunk'],1*k,'primary',.8*k,'secondary',.5*k,0],12,['match',cl,['motorway','trunk'],3*k,'primary',2.6*k,'secondary',2*k,'tertiary',1.6*k,'minor',.8*k,0],15,['match',cl,['motorway','trunk'],7*k,'primary',6*k,'secondary',5*k,'tertiary',4.4*k,'minor',3*k,'service',1.6*k,0],18,['match',cl,['motorway','trunk'],18*k,'primary',16*k,'secondary',14*k,'tertiary',12*k,'minor',9*k,'service',5*k,0]];
+A({id:'vb_rdc',type:'line','source-layer':'transportation',minzoom:8,filter:rf,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['match',cl,['motorway','trunk'],VB.mwc,VB.rdc],'line-width':['+',rw(1),['interpolate',['linear'],['zoom'],8,.6,15,1.6,18,2.4]],'line-opacity':['interpolate',['linear'],['zoom'],8,.6,12,1]}});
+A({id:'vb_rd',type:'line','source-layer':'transportation',minzoom:8,filter:rf,layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['match',cl,['motorway','trunk'],VB.mw,['minor','service'],VB.mn,VB.rd],'line-width':rw(1)}});
+A({id:'vb_bld',type:'fill','source-layer':'building',minzoom:13.5,paint:{'fill-color':VB.bld,'fill-outline-color':VB.bldl,'fill-opacity':['interpolate',['linear'],['zoom'],13.5,0,14.5,1]}});
+// 주요 시설 이름(큰 곳부터): 병원·학교·대학·공원·도서관·관공서·시장·백화점
+const PC=['hospital','school','college','park','library','town_hall','grocery','shop','museum','stadium','attraction'];
+A({id:'vb_poi',type:'symbol','source-layer':'poi',minzoom:14.5,filter:['all',['in',cl,['literal',PC]],['has','name'],['<=',['get','rank'],['step',['zoom'],8,16,20,17,40]]],layout:{'text-field':['coalesce',['get','name:ko'],['get','name']],'text-size':['interpolate',['linear'],['zoom'],14.5,10.5,18,12.5],'text-font':['Noto Sans Medium'],'text-max-width':7,'text-padding':4,'symbol-sort-key':['get','rank']},paint:{'text-color':['match',cl,'hospital','#c92a2a',['school','college'],'#2f7d4f','park','#2f7d4f','library','#6741d9',['grocery','shop'],'#1c6fb8',VB.lab],'text-halo-color':VB.halo,'text-halo-width':1.6}});
+vbOK=true}
+window._vbApply=()=>{if(baseMode===0&&!vbOK&&map.getLayer('terr'))vbInit();['vb_lc','vb_lu','vb_park','vb_wa','vb_ww','vb_rdc','vb_rd','vb_bld','vb_poi'].forEach(l=>vis(l,vbOn()))};
+const terrOn=()=>onId('L_tr')&&baseMode!==2&&!vbOn(),watOn=()=>onId('L_wa')&&baseMode!==2&&!vbOn();
+window._applyVis=()=>{window._vbApply&&_vbApply();const z=onId('L_zone');['zfill','zA','zB','zW'].forEach(i=>vis(i,z));vis('fz',onId('L_fz'));vis('terr',terrOn());['wb','rv'].forEach(i=>vis(i,watOn()));['lw1','lw2','lw3','lw4','lw5'].forEach(i=>vis(i,(watOn()||vbOn())&&!LOFF.has(i)));vis('ldong',onId('L_dong'));vis('land',!baseMode);['stc','stn'].forEach(i=>vis(i,onId('L_st')));const ym=+$('ysm').value;vis('ysf',ym>0);vis('ysl',ym>0);map.getLayer('ysl')&&map.setFilter('ysl',ym===2?null:['==',['get','m'],500]);window._ph3Apply&&_ph3Apply()};
 ['L_zone','L_fz','L_tr','L_wa','L_dong','L_st'].forEach(id=>tog(id,()=>_applyVis()));$('ysm').addEventListener('change',()=>_applyVis());
 const TY={BZ101:'신속통합기획',BZ102:'재개발(도시정비형)',BZ103:'재개발(주택정비형)',BZ104:'재건축(단독)',BZ105:'재건축(공동)',BZ107:'주거환경개선(관리형)',BZ108:'주거환경개선(정비형)',BZ201:'모아타운',BZ202:'가로주택정비',BZ203:'자율주택정비',BZ204:'소규모재건축',BZ205:'소규모재개발',BZ301:'장기전세주택',BZ302:'역세권 활성화',BZ303:'청년안심주택',BZ306:'미리내집',BZ401:'재정비촉진지구',BZ402:'재정비촉진구역',BZ403:'존치정비구역',BZ404:'존치관리구역',BZ501:'공공주택지구',BZ502:'도심 공공주택 복합사업',BZ601:'도시개발사업',BZ602:'리모델링',BZ603:'시장정비사업',BZ604:'도시재생활성화지역',BZ606:'사전협상제'};
 var jbD=null;

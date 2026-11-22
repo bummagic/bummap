@@ -62,7 +62,7 @@ addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v
   (m.line||[]).forEach(L=>MK.push(v.entities.add({polyline:{positions:C.Cartesian3.fromDegreesArray(L.flat()),width:6,material:C.Color.fromCssColorString('#fab005'),clampToGround:true}})));
   (m.pts||[]).forEach(q=>{let gh=0;try{gh=v.scene.globe.getHeight(C.Cartographic.fromDegrees(q.lon,q.lat))||0}catch(er){}try{MK.push(v.entities.add({position:C.Cartesian3.fromDegrees(q.lon,q.lat,gh+(q.big?40:25)),point:{pixelSize:q.big?16:12,color:C.Color.fromCssColorString(q.c||'#e8590c'),outlineColor:C.Color.WHITE,outlineWidth:3,disableDepthTestDistance:Number.POSITIVE_INFINITY},
    label:{text:q.n||'',font:'bold 17px "Noto Sans KR",sans-serif',fillColor:C.Color.WHITE,outlineColor:C.Color.fromCssColorString('#14232b'),outlineWidth:4,style:C.LabelStyle.FILL_AND_OUTLINE,verticalOrigin:C.VerticalOrigin.BOTTOM,pixelOffset:new C.Cartesian2(0,-16),disableDepthTestDistance:Number.POSITIVE_INFINITY}}))}catch(er){}});kick(1500)}}
- else if(m.v3c==='tiles'){let ok=true;try{ok=v.scene.globe.tilesLoaded}catch(er){}parent.postMessage({v3d:'tiles',ok,id:m.id},location.origin)}
+ else if(m.v3c==='tiles'){let ok=true;try{ok=v.scene.globe.tilesLoaded;const P=v.scene.primitives;for(let i=0;i<P.length;i++){const q=P.get(i);if(q&&q.show&&q.tilesLoaded===false)ok=false}}catch(er){}parent.postMessage({v3d:'tiles',ok,id:m.id},location.origin)}
 }catch(err){try{parent.postMessage({v3d:'err',why:String(err),id:m.id},location.origin)}catch(e2){}}});
 window.getCenter=function(){try{const C=window.ws3d&&ws3d.common,v=ws3d.viewer,cv=v.scene.canvas;const p=v.camera.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2));if(!p)return null;const g=C.Cartographic.fromCartesian(p);return [g.longitude*180/Math.PI,g.latitude*180/Math.PI]}catch(e){return null}};
 if(!VK)msg('<p><b>브이월드 인증키가 없습니다.</b></p><p>사이버 임장지도 화면 오른쪽 패널의 ‘배경지도 설정’에 인증키를 넣고 저장한 뒤 다시 들어와 주세요.</p>','브이월드 인증키가 없습니다');
@@ -80,6 +80,8 @@ else{
   const place=()=>{const C=ws3d.common,cam=ws3d.viewer.camera;try{cam.cancelFlight()}catch(e){}const c=camFor(cam.frustum.fovy||fovyOf());
    cam.setView({destination:C.Cartesian3.fromDegrees(c.lon,c.lat,c.h),orientation:{heading:c.head*RD,pitch:c.pitch*RD,roll:0}})};
   let okSent=false;const chk=setInterval(()=>{if(!(window.ws3d&&ws3d.viewer&&ws3d.common&&document.querySelector('#vmap canvas')))return;clearInterval(chk);
+   // 실사 모델(facility_build)은 일부 지역만 있어 새 단지·지방은 빈 땅으로 나옴 → 전국 건물 입체(흰 상자, facility_build_all)를 함께 켬
+   const b3=()=>{try{const e=ws3d.viewer.map.getElementById('facility_build_all');if(e&&!e.visible)e.show()}catch(er){}};b3();setTimeout(b3,1500);setTimeout(b3,5000);
    place();let k=0;const t=setInterval(()=>{try{if(ws3d.viewer.camera._currentFlight||k<3)place()}catch(e){}if(++k>=8){clearInterval(t);if(!okSent){okSent=true;tell('ok')}}},120)},150);
   // 45초 안에 3D 화면(캔버스)이 생기지 않으면 실패로 본다
   setTimeout(()=>{clearInterval(chk);if(!okSent)msg('<p>브이월드 3D 화면이 나타나지 않았습니다. 키의 활용 API(WebGL 3D 지도)와 서비스 URL을 확인해 주세요.</p>','3D 화면이 나타나지 않았습니다(키 권한·서비스 URL 확인)')},45000);

@@ -1085,7 +1085,7 @@ return {T,S,best,zn,ref:D.ref}};
 const shopTxt=o=>`음식점·카페 ${o.S.I2.toLocaleString()} · 소매 ${o.S.G2.toLocaleString()} · 병원·약국 ${o.S.Q1.toLocaleString()} · 학원 등 교육 ${o.S.P1.toLocaleString()} · 미용·수리 등 ${o.S.S2.toLocaleString()}`;
 // 생활권 시설: 지도 타일(OpenFreeMap · OpenStreetMap) poi에서 1km 안 병원·마트·공원·도서관 등 이름
 const LK={hosp:['병원','#e03131'],phar:['약국','#f06595'],mart:['마트·시장','#1c7ed6'],park:['공원','#2f9e44'],lib:['도서관','#7048e8'],civ:['주민센터·우체국','#495057'],cul:['영화관·체육','#f08c00']};
-const lkOf=p=>{const c=p.class,s=p.subclass;return c==='hospital'||c==='doctors'||c==='dentist'?'hosp':c==='pharmacy'?'phar':c==='grocery'&&s!=='convenience'?'mart':c==='shop'&&/^(mall|department_store|supermarket)$/.test(s)?'mart':c==='park'||c==='garden'?'park':c==='library'?'lib':c==='town_hall'||c==='post'?'civ':c==='cinema'||c==='sports_centre'||c==='theatre'?'cul':null};
+const lkOf=p=>{const c=p.class,s=p.subclass;return c==='hospital'||c==='doctors'||c==='dentist'?'hosp':c==='pharmacy'?'phar':c==='grocery'&&s!=='convenience'?'mart':c==='shop'&&/^(mall|department_store|supermarket)$/.test(s)?'mart':c==='park'||c==='garden'?'park':c==='library'?'lib':c==='town_hall'||c==='post'?'civ':c==='cinema'||c==='sports_centre'?'cul':null};
 S('life',EMPTY);
 L({id:'lifec',type:'circle',source:'life',paint:{'circle-color':['get','col'],'circle-radius':6,'circle-stroke-color':'#fff','circle-stroke-width':2}});
 L({id:'lifen',type:'symbol',source:'life',layout:{'text-field':['get','n'],'text-size':12,'text-font':['Noto Sans Medium'],'text-anchor':'top','text-offset':[0,.8],'text-optional':true,'text-max-width':8},paint:{'text-color':['get','col'],'text-halo-color':'#fff','text-halo-width':2}});

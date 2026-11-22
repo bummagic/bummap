@@ -48,3 +48,5 @@ json.dump({'o': [L0, O0, DL, DO], 'k': K, 'g': g, 'L': L, 'ref': os.environ.get(
           open('data/shop.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 print('cells', len(g), 'zones', len(L), 'size', os.path.getsize('data/shop.json'))
 print(L[:15])
+# 단지 카드·지표 '큰 상권까지 거리'용 작은 파일(생활업종 1,000곳 이상 상권 이름표만)
+json.dump({'ref': os.environ.get('SHOPDATE', ''), 'L': [l[:4] for l in L if l[1] >= 1000]}, open('data/shop_big.json', 'w'), ensure_ascii=False, separators=(',', ':'))

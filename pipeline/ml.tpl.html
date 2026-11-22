@@ -1154,7 +1154,7 @@ if(!map.getLayer('lifeqn'))map.addLayer({id:'lifeqn',type:'line',source:'ofm','s
 const idle=ms=>new Promise(r=>{let t=setTimeout(r,ms);map.once('idle',()=>{clearTimeout(t);setTimeout(r,200)})});
 const lifeScan=async(c,R=1)=>{lifeInit();await idle(4500);const seen=new Map(),cnt={conv:0};
 for(const f of map.querySourceFeatures('ofm',{sourceLayer:'poi'})){const g=f.geometry;if(g.type!=='Point')continue;const p=f.properties;if(p.class==='shop'&&p.subclass==='convenience'){if(km(c,g.coordinates)<=.5)cnt.conv++;continue}
-const n=p['name:ko']||p.name;if(!n)continue;const k=lkOf(p,n);if(!k)continue;const dk=km(c,g.coordinates);if(dk>R)continue;const key=k+n;if(seen.has(key)&&seen.get(key).dk<=dk)continue;seen.set(key,{k,n,dk,c:g.coordinates,big:p.subclass==='hospital'})}
+const n=p['name:ko']||p.name;if(!n)continue;const k=lkOf(p,n);if(!k)continue;const dk=km(c,g.coordinates),bp=k==='park'&&/수변|호수|저수지|체육공원|중앙공원|생태|숲|기념공원|시민공원/.test(n);if(dk>(bp?2.2:R))continue;const key=k+n;if(seen.has(key)&&seen.get(key).dk<=dk)continue;seen.set(key,{k,n,dk,c:g.coordinates,big:p.subclass==='hospital'||bp})}
 // 큰 공원(기지제 수변공원 등)은 점이 아니라 면으로만 있는 경우가 많아 공원 면에서도 찾음(단지에서 가장 가까운 가장자리까지)
 for(const f of map.querySourceFeatures('ofm',{sourceLayer:'park'})){const p=f.properties,n=p['name:ko']||p.name;if(!n)continue;const G=f.geometry;const rings=G.type==='Polygon'?G.coordinates:G.type==='MultiPolygon'?G.coordinates.flat():[];let bq=null,bd=1e9;
 for(const r of rings)for(const q of r){const dk=km(c,q);if(dk<bd){bd=dk;bq=q}}if(!bq||bd>R)continue;const k=/어린이공원|소공원|쉼터|놀이터/.test(n)?'park2':'park',key=k+n;if(seen.has(key)&&seen.get(key).dk<=bd)continue;seen.set(key,{k,n,dk:bd,c:bq,big:rings.length&&rings[0].length>40})}

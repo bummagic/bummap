@@ -49,7 +49,16 @@ const camAt=(lon,lat,Zm,Pt,Br,fovy)=>{const h=innerHeight||700,mpp=40075016.7*Ma
  return {lon:lon+de/(111320*Math.cos(lat*RD)),lat:lat+dn/111320,h:Math.max(30,up),head:Br,pitch:-(90-Pt),range}};
 let ORB=null,KICK=null;const kick=ms=>{clearInterval(KICK);const t0=Date.now();KICK=setInterval(()=>{try{ws3d.viewer.scene.requestRender()}catch(e){}if(Date.now()-t0>ms)clearInterval(KICK)},60)};
 const stopOrb=()=>{if(ORB){clearInterval(ORB);ORB=null;try{ws3d.viewer.camera.lookAtTransform(ws3d.common.Matrix4.IDENTITY)}catch(e){}}};
-let MK=[];
+let MK=[];const FS=innerWidth<600?12:14;
+// 이름표 겹침 풀기: 화면 좌표로 상자를 재서 겹치면 옆·위로 비켜 놓음(중요한 이름표 먼저), 카메라가 움직이면 다시 계산
+let dclT=0,dclHook=false;const DCL=force=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene;if(!dclHook){dclHook=true;sc.postRender.addEventListener(()=>{const t=performance.now();if(t-dclT>300){dclT=t;DCL()}})}
+const L=MK.filter(e=>e.label&&e._q).sort((a,b)=>(b._q.big||0)-(a._q.big||0)),box=[],now=C.JulianDate.now();
+L.forEach(e=>{const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(p)box.push([p.x-8,p.y-8,16,16])});
+L.forEach(e=>{const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(!p)return;const q=e._q,fs=FS+(q.big?2:0),w=(q.n||'').length*fs*.95+18,h=fs+12;
+const cand=[[0,-14],[w/2+12,h/2],[-(w/2+12),h/2],[0,h+16]];for(let k=1;k<6;k++)cand.push([0,-14-k*(h+4)],[w/2+12,h/2-k*(h+4)],[-(w/2+12),h/2-k*(h+4)]);
+let b=null;for(const [dx,dy] of cand){const x=p.x+dx-w/2,y=p.y+dy-h;if(x<2||x+w>sc.canvas.clientWidth-2||y<2)continue;if(!box.some(r=>x<r[0]+r[2]&&x+w>r[0]&&y<r[1]+r[3]&&y+h>r[1])){b=[dx,dy,x,y];break}}
+if(!b)b=[0,-14,p.x-w/2,p.y-14-h];box.push([b[2],b[3],w,h]);const o=e.label.pixelOffset&&e.label.pixelOffset.getValue?e.label.pixelOffset.getValue(now):null;
+if(!o||o.x!==b[0]||o.y!==b[1]){e.label.pixelOffset=new C.Cartesian2(b[0],b[1]);sc.requestRender()}})}catch(er){}};
 addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v3c)return;const m=e.data;try{
  const C=ws3d.common,v=ws3d.viewer,cam=v.camera,fy=cam.frustum.fovy||fovyOf();
  if(m.v3c==='view'||m.v3c==='fly'){stopOrb();const c=camAt(m.lon,m.lat,m.z,m.p,m.b,fy),dest=C.Cartesian3.fromDegrees(c.lon,c.lat,c.h+(m.alt||0)),ori={heading:c.head*RD,pitch:c.pitch*RD,roll:0};
@@ -60,15 +69,15 @@ addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v
  else if(m.v3c==='clean'){document.body.classList.toggle('clean',!!m.on);['poi_base','poi_bound','poi_road'].forEach(id=>{try{const e2=v.map.getElementById(id);if(e2)m.on?e2.hide():e2.show()}catch(er){}})}
  else if(m.v3c==='marks'){if(v.entities){MK.forEach(x=>v.entities.remove(x));MK=[];
   (m.line||[]).forEach(L=>MK.push(v.entities.add({polyline:{positions:C.Cartesian3.fromDegreesArray(L.flat()),width:6,material:C.Color.fromCssColorString('#fab005'),clampToGround:true}})));
-  const PL=[];(m.pts||[]).forEach(q=>{const kk=PL.filter(o=>Math.abs(o[0]-q.lon)<.0009&&Math.abs(o[1]-q.lat)<.0007).length;PL.push([q.lon,q.lat]);q._dy=-16-27*kk;let gh=0;try{gh=v.scene.globe.getHeight(C.Cartographic.fromDegrees(q.lon,q.lat))||0}catch(er){}try{MK.push(v.entities.add({position:C.Cartesian3.fromDegrees(q.lon,q.lat,gh+(q.big?40:25)),point:{pixelSize:q.big?16:12,color:C.Color.fromCssColorString(q.c||'#e8590c'),outlineColor:C.Color.WHITE,outlineWidth:3,disableDepthTestDistance:Number.POSITIVE_INFINITY},
-   label:{text:q.n||'',font:(q.big?'bold 16px':'500 14px')+' "Noto Sans KR",sans-serif',fillColor:C.Color.WHITE,style:C.LabelStyle.FILL,showBackground:true,backgroundColor:C.Color.fromCssColorString(q.c||'#14232b').withAlpha(.88),backgroundPadding:new C.Cartesian2(8,5),verticalOrigin:C.VerticalOrigin.BOTTOM,pixelOffset:new C.Cartesian2(0,q._dy),disableDepthTestDistance:Number.POSITIVE_INFINITY}}))}catch(er){}});kick(1500)}}
+  (m.pts||[]).forEach(q=>{q._dy=-16;let gh=0;try{gh=v.scene.globe.getHeight(C.Cartographic.fromDegrees(q.lon,q.lat))||0}catch(er){}try{const en=(v.entities.add({position:C.Cartesian3.fromDegrees(q.lon,q.lat,gh+(q.big?40:25)),point:{pixelSize:q.big?16:12,color:C.Color.fromCssColorString(q.c||'#e8590c'),outlineColor:C.Color.WHITE,outlineWidth:3,disableDepthTestDistance:Number.POSITIVE_INFINITY},
+   label:{text:q.n||'',font:(q.big?'bold ':'500 ')+(FS+(q.big?2:0))+'px "Noto Sans KR",sans-serif',fillColor:C.Color.WHITE,style:C.LabelStyle.FILL,showBackground:true,backgroundColor:C.Color.fromCssColorString(q.c||'#14232b').withAlpha(.88),backgroundPadding:new C.Cartesian2(8,5),verticalOrigin:C.VerticalOrigin.BOTTOM,pixelOffset:new C.Cartesian2(0,q._dy),disableDepthTestDistance:Number.POSITIVE_INFINITY}}));en._q=q;MK.push(en)}catch(er){}});DCL(1);kick(1500)}}
  else if(m.v3c==='blds'){// 도로명주소 건물을 직접 세움(지형 높이 위에 지상층수×3.1m) — 실사 모델이 없는 지역도 입체로, 이 단지만 주황
   const sc=v.scene;if(window._BP){sc.primitives.remove(window._BP);window._BP=null}
   const lay=on=>['facility_build','facility_build_all'].forEach(id=>{try{const e2=v.map.getElementById(id);if(e2)on?e2.show():e2.hide()}catch(er){}});
   if(!m.f||!m.f.length){window._noB3=0;lay(1);parent.postMessage({v3d:'blds',ok:true,id:m.id},location.origin);return}
   window._noB3=1;lay(0);const F=m.f.filter(f=>f[0]&&f[0].length>=4),ctr=F.map(f=>{const r=f[0];let x=0,y=0;r.forEach(q=>{x+=q[0];y+=q[1]});return C.Cartographic.fromDegrees(x/r.length,y/r.length)});
   const build=()=>{const I=[];F.forEach((f,k)=>{let gh=null;try{gh=sc.globe.getHeight(ctr[k])}catch(er){}if(gh==null||!isFinite(gh))gh=+f[3]||0;try{I.push(new C.GeometryInstance({geometry:new C.PolygonGeometry({polygonHierarchy:{positions:C.Cartesian3.fromDegreesArray(f[0].flat()),holes:[]},height:gh-3,extrudedHeight:gh+Math.max(3,f[1]),vertexFormat:C.PerInstanceColorAppearance.VERTEX_FORMAT}),
-   attributes:{color:C.ColorGeometryInstanceAttribute.fromColor(C.Color.fromCssColorString(f[2]?'#ff7a1a':'#ece4d6'))}}))}catch(er){}});
+   attributes:{color:C.ColorGeometryInstanceAttribute.fromColor(C.Color.fromCssColorString(f[2]?'#ff6a00':f[1]>=45?'#a9c8e6':f[1]>=15?'#f2deb8':'#e3c49a'))}}))}catch(er){}});
    window._BP=sc.primitives.add(new C.Primitive({geometryInstances:I,appearance:new C.PerInstanceColorAppearance({flat:false,translucent:false,closed:true}),asynchronous:false}));kick(4000);parent.postMessage({v3d:'blds',ok:true,n:I.length,id:m.id},location.origin)};
   build()}
  else if(m.v3c==='tiles'){let ok=true;try{ok=v.scene.globe.tilesLoaded;const P=v.scene.primitives;for(let i=0;i<P.length;i++){const q=P.get(i);if(q&&q.show&&q.tilesLoaded===false)ok=false}}catch(er){}parent.postMessage({v3d:'tiles',ok,id:m.id},location.origin)}

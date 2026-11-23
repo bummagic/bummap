@@ -1378,7 +1378,7 @@ if(O.b3){if(!bOn){bOn=true;$('bbtn').classList.add('on')}mode3=true;rot(true);st
 prog('3D 건물',.36);const pts=[...new Map(st.filter(s=>s.at).map(s=>[s.at[0].toFixed(3)+','+s.at[1].toFixed(3),s.at])).values()];
 const BS=await race(spbdLoad(pts.map((q,k)=>[q,k?.005:.008]),c,nm,n=>prog(`3D 건물 ${n.toLocaleString()}동`,Math.min(.55,.36+n/20000)),d[5]),60000);
 if(BS&&BS.length){if(!map.getSource('bs'))map.addSource('bs',{type:'geojson',data:EMPTY});map.getSource('bs').setData(FC(BS));
-if(!map.getLayer('b3s'))map.addLayer({id:'b3s',type:'fill-extrusion',source:'bs',paint:{'fill-extrusion-color':['case',['==',['get','t'],1],'#ff7a1a',dark?'#6b7a82':'#d5d8da'],'fill-extrusion-height':['get','h'],'fill-extrusion-opacity':.96,'fill-extrusion-vertical-gradient':true}},'sel');
+if(!map.getLayer('b3s'))map.addLayer({id:'b3s',type:'fill-extrusion',source:'bs',paint:{'fill-extrusion-color':['case',['==',['get','t'],1],'#ff6a00',dark?['step',['get','h'],'#6b5a45',15,'#7a6b55',45,'#4f6b85']:['step',['get','h'],'#e3c49a',15,'#f2deb8',45,'#a9c8e6']],'fill-extrusion-height':['get','h'],'fill-extrusion-opacity':.96,'fill-extrusion-vertical-gradient':true}},'sel');
 map.setLayoutProperty('b3s','visibility','visible');me.attr0=attrEl.textContent;attrEl.textContent=attrEl.textContent.replace(/건물: [^·]*$/,'').replace(/ · $/,'')+' · 건물: 브이월드 도로명주소 건물(층수)';['b2','b2l','b3','b3h'].forEach(l=>map.getLayer(l)&&map.setLayoutProperty(l,'visibility','none'));me.bs=1;window._bOff=1}
 else{window._bMax=9;map.setPaintProperty('b3','fill-extrusion-color',dark?'#6b7a82':'#d5d8da');const bm=String(d[5]).match(/^(\S+)\s+(\S+)/);
 if(!map.getLayer('b3h'))map.addLayer({id:'b3h',type:'fill-extrusion',source:'b',paint:{'fill-extrusion-color':'#ff7a1a','fill-extrusion-height':['+',['/',['get','h'],10],.6],'fill-extrusion-opacity':.97,'fill-extrusion-vertical-gradient':true}},'sel');
@@ -1394,7 +1394,7 @@ else{map.jumpTo({center:s.at,zoom:s.z,pitch:s.p,bearing:b});await idle(4500)}}}
 prog('준비 끝',1);await new Promise(r=>setTimeout(r,500));cloudBar(null);
 // 4) 재생: 멀면 구름으로 가렸다가(그동안 화면 준비) 펼치고, 가까우면 부드럽게 이동
 const ft=[];let SHD=null;const marks=s=>{const pts=(s.mk||[]).map(m=>({lon:m.c[0],lat:m.c[1],n:m.n,c:m.col||'#e8590c',big:m.big?1:0})).concat(me.real&&typeof LM!=='undefined'&&!s.multi&&(s.z||15)>=15?LM.filter(x=>!(s.mk||[]).some(m=>m.n===x.n)).map(x=>({lon:x.c[0],lat:x.c[1],n:x.n,c:x.col,big:0})):[]),
-RS=s.lines||[],line=RS.map(r=>r.g),tk=RS.flatMap(r=>me.real?(r.mode==='car'?[]:rTicks(r.g,r.m>1200?500:250,4)):rTicks(r.g,r.mode==='car'?(r.m>12000?2000:1000):(r.m>2000?500:250),12));
+RS=s.lines||[],line=RS.map(r=>r.g),tk=RS.flatMap(r=>me.real?[]:rTicks(r.g,r.mode==='car'?(r.m>12000?2000:1000):(r.m>2000?500:250),12));
 // 상권 장면: 상가 점포가 많은 250m 칸을 보라색으로(진할수록 많음)
 if(!me.real&&map.getSource('tshop')){let F=[];if(s.shop&&SHD){const [L0,O0,DL,DO]=SHD.o,q=s.multi[0].c;SHD.g.forEach(g=>{const x=O0+(g[0]+.5)*DO,y=L0+(g[1]+.5)*DL;if(Math.abs(x-q[0])>.008||Math.abs(y-q[1])>.006||km(q,[x,y])>.6)return;const v=['I2','G2','S2','Q1','R1','I1'].reduce((a,k)=>a+(g[3+SHD.k.indexOf(k)]||0),0);if(v>=8)F.push({type:'Feature',properties:{v},geometry:rect(O0+g[0]*DO,L0+g[1]*DL,O0+(g[0]+1)*DO,L0+(g[1]+1)*DL)})})}map.getSource('tshop').setData(FC(F))}
 // 가까운 곳끼리 이름이 겹치면 말꼬리(가는 선)를 달아 바깥으로 빼고, 이름 옆에 거리·시간
@@ -1847,7 +1847,7 @@ const camSet=c=>c&&map.jumpTo({center:[c.lon,c.lat],zoom:Math.min(22,Math.max(3,
 addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data.v3d)return;if(e.data.v3d==='ok'&&vw3){fig.classList.add('v3ok');bst.textContent='실사 3D · 끌어서 이동, 오른쪽 버튼(또는 Ctrl+끌기)으로 회전·기울이기, 휠로 확대';return}
 if(e.data.v3d==='fail'&&vw3){vw3Fail=true;vw3Off();sty();attrEl.textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');bst.textContent='⚠ 실사 3D 실패: '+(e.data.why||'')+' · 3D 버튼을 다시 누르면 재시도';vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
 function vw3On(){const c=camNow();vw3=true;vw3C=c;fig.classList.remove('v3ok');fig.classList.add('vw3');$('vrot').style.display='none';
-v3f.src=`v3d.html?v=20261123e&embed=1&lat=${c.lat.toFixed(6)}&lon=${c.lon.toFixed(6)}&z=${c.z.toFixed(2)}&p=${c.p.toFixed(1)}&b=${c.b.toFixed(1)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
+v3f.src=`v3d.html?v=20261123f&embed=1&lat=${c.lat.toFixed(6)}&lon=${c.lon.toFixed(6)}&z=${c.z.toFixed(2)}&p=${c.p.toFixed(1)}&b=${c.b.toFixed(1)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
 function vw3Off(){let c=null;try{c=v3f.contentWindow.getCam&&v3f.contentWindow.getCam()}catch(e){}vw3=false;fig.classList.remove('vw3','v3ok');v3f.src='about:blank';setBaseLayer();c=c||vw3C;camSet(c);if(mode3)$('vrot').style.display='';return c}
 const rot=on=>{if(on){map.dragRotate.enable();map.touchZoomRotate.enableRotation()}else{map.dragRotate.disable();map.touchZoomRotate.disableRotation()}};
 // 2D→3D: 배율은 건물이 보이는 축척(z14) 이상이면 그대로, 기울기는 이미 기울어 있으면 그대로(아니면 55°)

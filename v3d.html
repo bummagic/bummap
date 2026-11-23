@@ -88,6 +88,9 @@ addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v
    attributes:{color:C.ColorGeometryInstanceAttribute.fromColor(C.Color.fromCssColorString(f[2]?'#ff6a00':f[1]>=45?'#a9c8e6':f[1]>=15?'#f2deb8':'#e3c49a'))}}))}catch(er){}});
    window._BP=sc.primitives.add(new C.Primitive({geometryInstances:I,appearance:new C.PerInstanceColorAppearance({flat:false,translucent:false,closed:true}),asynchronous:false}));kick(4000);parent.postMessage({v3d:'blds',ok:true,n:I.length,id:m.id},location.origin)};
   build()}
+ else if(m.v3c==='hasReal'){// 이 화면에 브이월드 실사(사진 입힌) 건물 모델이 있는지: 있으면 상자 건물 층을 끄고 실사 모델만
+  let n=0,r=0;const P=v.scene.primitives;for(let i=0;i<P.length;i++){const q=P.get(i);if(q&&/TG9ENA/.test(q._url||'')){const S=q._statistics||q.statistics||{};n=S.selected||0;r=S.numberOfTilesWithContentReady||0}}
+  if(n>=3&&r>=3){window._noB3=1;try{const e2=v.map.getElementById('facility_build_all');if(e2)e2.hide()}catch(er){}}parent.postMessage({v3d:'hasReal',n,r,id:m.id},location.origin)}
  else if(m.v3c==='tiles'){let ok=true;try{ok=v.scene.globe.tilesLoaded;const P=v.scene.primitives;for(let i=0;i<P.length;i++){const q=P.get(i);if(q&&q.show&&q.tilesLoaded===false)ok=false}}catch(er){}parent.postMessage({v3d:'tiles',ok,id:m.id},location.origin)}
 }catch(err){try{parent.postMessage({v3d:'err',why:String(err),id:m.id},location.origin)}catch(e2){}}});
 window.getCenter=function(){try{const C=window.ws3d&&ws3d.common,v=ws3d.viewer,cv=v.scene.canvas;const p=v.camera.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2));if(!p)return null;const g=C.Cartographic.fromCartesian(p);return [g.longitude*180/Math.PI,g.latitude*180/Math.PI]}catch(e){return null}};

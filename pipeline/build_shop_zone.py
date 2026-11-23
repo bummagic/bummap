@@ -24,7 +24,8 @@ for sr in r.iterShapeRecords():
     xs, ys = zip(*pts); lon, lat = T.transform(xs, ys)
     c = ring(list(zip(lon, lat)))
     if c: out.append({'n': d['TRDAR_CD_N'], 't': d['TRDAR_SE_1'], 's': d['SIGNGU_CD_'], 'c': c})
-KEEP = {'인천광역시', '경기도', '대전광역시', '세종특별자치시', '충청북도', '충청남도', '전북특별자치도'}
+from regions import FULL
+KEEP = FULL - {'서울특별시'}  # 서울은 위의 상권분석서비스 경계를 씀
 rows = csv.reader(open('raw/major_zones.csv', encoding='cp949')); h = next(rows)
 mref = ''
 for row in rows:

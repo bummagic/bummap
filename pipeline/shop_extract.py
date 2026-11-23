@@ -1,6 +1,6 @@
 import zipfile,io,csv,sys,collections
 z=zipfile.ZipFile(sys.argv[1])
-KEEP=['서울','인천','경기','대전','세종','충북','충남','전북']
+from regions import SHORT as KEEP  # 대상 시도 — regions.py
 L0,O0,DL,DO=33.0,124.5,0.00225,0.0028
 C=collections.defaultdict(collections.Counter); D=collections.defaultdict(collections.Counter)
 big=collections.Counter(); n=0

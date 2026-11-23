@@ -5,7 +5,8 @@ root, out = sys.argv[1], sys.argv[2]
 idx = json.load(open(f'{root}/index.json'))
 bund = {}
 A = {}
-SD = {'서울': '11', '인천': '28', '대전': '30', '세종': '36', '경기': '41', '충청': None, '충북': '43', '충남': '44', '전라': None, '전북': '52'}
+from regions import SHORT2BJD
+SD = dict(SHORT2BJD, **{'충청': None, '전라': None, '경상': None})  # 대상 시도 — regions.py
 norm = lambda s: re.sub(r'\s', '', s)
 for k, v in idx['t'].items():
     bk, off, ln = v[:3]
@@ -21,7 +22,7 @@ for k, v in idx['t'].items():
         parts = d.split()
         if len(parts) < 3: continue
         mid = [p for p in parts[1:-1] if not re.search(r'[읍면]$', p)]
-        sd = {'충청북도': '43', '충청남도': '44', '전라북도': '52'}.get(parts[0]) or SD.get(parts[0][:2]) or parts[0]
+        sd = {'충청북도': '43', '충청남도': '44', '전라북도': '52', '전라남도': '46', '경상북도': '47', '경상남도': '48'}.get(parts[0]) or SD.get(parts[0][:2]) or parts[0]
         key = sd + '|' + (norm(''.join(mid)) or '-') + '|' + parts[-1] + '|' + jb   # 시군구(읍면 제외, 붙여씀)|법정동·리|지번
         w = (2 if r[0] == 1 else 1) * (r[7] or 1)                    # 공동주택·큰 건물 우선
         if key not in A or w > A[key][2]: A[key] = [round(lon, 6), round(lat, 6), w]

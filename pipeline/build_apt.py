@@ -10,7 +10,7 @@ A = json.load(open(sys.argv[2])); SG = json.load(open(sys.argv[3]))
 GX = json.load(open(sys.argv[4])) if os.path.exists(sys.argv[4]) else {}
 OUT = sys.argv[5]; UNM = sys.argv[6] if len(sys.argv) > 6 else None
 OLD = {'28110': '중구', '28140': '동구', '28260': '서구', '41590': '화성시'}
-SDN = {'11': '서울특별시', '28': '인천광역시', '30': '대전광역시', '36': '세종특별자치시', '41': '경기도', '43': '충청북도', '44': '충청남도', '52': '전북특별자치도'}
+from regions import NAME as SDN  # 시도코드 → 이름(17개 시도) — regions.py
 # 지번 사전 보조: 시도|동리|지번 (시군구 이름이 바뀐 곳용, 시도 안에서 유일할 때만)
 A2 = collections.defaultdict(list)
 for k, v in A.items():

@@ -7,7 +7,7 @@ from shapely.strtree import STRtree
 
 SUB = sys.argv[1] if len(sys.argv) > 1 else 'data/sub.json'
 REF = os.environ.get('EDUDATE', '2026-10-01')
-KEEP = ('11', '23', '25', '29', '31', '33', '34', '35')  # 서울 인천 대전 세종 경기 충북 충남 전북
+from regions import SGIS as KEEP  # 대상 시도(통계청 코드) — regions.py
 
 # --- 대상 지역 폴리곤 (topojson -> shapely)
 t = json.load(open(SUB))

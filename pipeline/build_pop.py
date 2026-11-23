@@ -10,7 +10,7 @@ from shapely.geometry import shape, Point, mapping
 from shapely.ops import unary_union
 
 SUB = sys.argv[1] if len(sys.argv) > 1 else 'data/sub.json'
-KEEP = ('11', '23', '25', '29', '31', '33', '34', '35')
+from regions import SGIS as KEEP  # 대상 시도(통계청 코드) — regions.py
 T = Transformer.from_crs(5179, 4326, always_xy=True)
 L = '가나다라마바사아'
 

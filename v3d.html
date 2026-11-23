@@ -49,7 +49,7 @@ const camAt=(lon,lat,Zm,Pt,Br,fovy)=>{const h=innerHeight||700,mpp=40075016.7*Ma
  return {lon:lon+de/(111320*Math.cos(lat*RD)),lat:lat+dn/111320,h:Math.max(30,up),head:Br,pitch:-(90-Pt),range}};
 let ORB=null,KICK=null;const kick=ms=>{clearInterval(KICK);const t0=Date.now();KICK=setInterval(()=>{try{ws3d.viewer.scene.requestRender()}catch(e){}if(Date.now()-t0>ms)clearInterval(KICK)},60)};
 const stopOrb=()=>{if(ORB){clearInterval(ORB);ORB=null;try{ws3d.viewer.camera.lookAtTransform(ws3d.common.Matrix4.IDENTITY)}catch(e){}}};
-let MK=[];const FS=innerWidth<600?12:14,FAR=1800;
+let MK=[];const FS=innerWidth<600?11:14,FAR=1800;
 // 이름표 겹침 풀기: 화면 좌표로 상자를 재서 겹치면 옆·위로 비켜 놓음(중요한 이름표 먼저), 카메라가 움직이면 다시 계산
 let dclT=0,dclHook=false,LC=null;
 // 말꼬리: 이름표를 비켜 놓았으면 점에서 이름표까지 가는 선(화면 위 투명 캔버스에 매 프레임 그림)

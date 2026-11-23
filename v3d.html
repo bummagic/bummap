@@ -51,7 +51,15 @@ let ORB=null,KICK=null;const kick=ms=>{clearInterval(KICK);const t0=Date.now();K
 const stopOrb=()=>{if(ORB){clearInterval(ORB);ORB=null;try{ws3d.viewer.camera.lookAtTransform(ws3d.common.Matrix4.IDENTITY)}catch(e){}}};
 let MK=[];const FS=innerWidth<600?12:14;
 // 이름표 겹침 풀기: 화면 좌표로 상자를 재서 겹치면 옆·위로 비켜 놓음(중요한 이름표 먼저), 카메라가 움직이면 다시 계산
-let dclT=0,dclHook=false;const DCL=force=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene;if(!dclHook){dclHook=true;sc.postRender.addEventListener(()=>{const t=performance.now();if(t-dclT>300){dclT=t;DCL()}})}
+let dclT=0,dclHook=false,LC=null;
+// 말꼬리: 이름표를 비켜 놓았으면 점에서 이름표까지 가는 선(화면 위 투명 캔버스에 매 프레임 그림)
+const LDR=()=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene,cv=sc.canvas,W=cv.clientWidth,H=cv.clientHeight,r=devicePixelRatio||1;
+if(!LC){LC=document.createElement('canvas');LC.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:500';document.getElementById('vmap').appendChild(LC)}
+if(LC.width!==Math.round(W*r)||LC.height!==Math.round(H*r)){LC.width=Math.round(W*r);LC.height=Math.round(H*r);LC.style.width=W+'px';LC.style.height=H+'px'}
+const g=LC.getContext('2d');g.setTransform(r,0,0,r,0,0);g.clearRect(0,0,W,H);const now=C.JulianDate.now();
+MK.forEach(e=>{if(!e.label||!e._q)return;const o=e.label.pixelOffset.getValue(now);if(!o||(o.x===0&&o.y>=-16))return;const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(!p)return;
+const fs=FS+(e._q.big?2:0),h=fs+12,ty=p.y+o.y-(o.x?h/2:0),tx=p.x+o.x-(o.x>0?(e._q.n||'').length*fs*.475+9:o.x<0?-((e._q.n||'').length*fs*.475+9):0);
+g.strokeStyle='rgba(255,255,255,.95)';g.lineWidth=3;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke();g.strokeStyle=e._q.c||'#14232b';g.lineWidth=1.5;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke()})}catch(er){}};const DCL=force=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene;if(!dclHook){dclHook=true;sc.postRender.addEventListener(()=>{const t=performance.now();if(t-dclT>300){dclT=t;DCL()}LDR()})}
 const L=MK.filter(e=>e.label&&e._q).sort((a,b)=>(b._q.big||0)-(a._q.big||0)),box=[],now=C.JulianDate.now();
 L.forEach(e=>{const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(p)box.push([p.x-8,p.y-8,16,16])});
 L.forEach(e=>{const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(!p)return;const q=e._q,fs=FS+(q.big?2:0),w=(q.n||'').length*fs*.95+18,h=fs+12;

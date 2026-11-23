@@ -60,14 +60,14 @@ const g=LC.getContext('2d');g.setTransform(r,0,0,r,0,0);g.clearRect(0,0,W,H);con
 MK.forEach(e=>{if(!e.label||!e._q||(e.label.show&&e.label.show.getValue&&!e.label.show.getValue(now)))return;const o=e.label.pixelOffset.getValue(now);if(!o||(o.x===0&&o.y>=-6))return;const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(!p)return;
 const fs=FS+(e._q.big?2:0),h=fs+12,ty=p.y+o.y-(o.x?h/2:0),tx=p.x+o.x-(o.x>0?(e._q.n||'').length*fs*.475+9:o.x<0?-((e._q.n||'').length*fs*.475+9):0);
 g.strokeStyle='rgba(255,255,255,.95)';g.lineWidth=3;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke();g.strokeStyle=e._q.c||'#14232b';g.lineWidth=1.5;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke()})}catch(er){}};const DCL=force=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene;if(!dclHook){dclHook=true;sc.postRender.addEventListener(()=>{const t=performance.now();if(t-dclT>300){dclT=t;DCL()}LDR()})}
-const L=MK.filter(e=>e.label&&e._q).sort((a,b)=>(b._q.big||0)-(a._q.big||0)),box=[],now=C.JulianDate.now(),cp=v.camera.positionWC;
+const L=MK.filter(e=>e.label&&e._q).sort((a,b)=>(b._q.hero||0)-(a._q.hero||0)||(b._q.big||0)-(a._q.big||0)),box=[],now=C.JulianDate.now(),cp=v.camera.positionWC;
 const vis=(e,on)=>{const was=e.label.show&&e.label.show.getValue?e.label.show.getValue(now):true;if(was!==on){e.label.show=on;sc.requestRender()}};
 L.forEach(e=>{const pos=e.position.getValue(now),p=sc.cartesianToCanvasCoordinates(pos);if(!p){vis(e,false);return}
-// 멀리서 볼 때(카메라에서 FAR m 넘게)는 이름표 숨김 — 단지 자신(big)은 항상 표시
-if(!e._q.big&&C.Cartesian3.distance(cp,pos)>FAR){vis(e,false);return}const q=e._q,fs=FS+(q.big?2:0),w=(q.n||'').length*fs*.95+18,h=fs+12;
+// 멀리서 볼 때(카메라에서 FAR m 넘게)는 이름표 숨김 — 단지 자신과 이 장면의 주인공(hero)은 항상 표시
+if(!e._q.hero&&C.Cartesian3.distance(cp,pos)>FAR){vis(e,false);return}const q=e._q,fs=FS+(q.big?2:0),w=(q.n||'').length*fs*.95+18,h=fs+12;
 const cand=[[0,-4],[w/2+12,h/2],[-(w/2+12),h/2],[0,h+16]];for(let k=1;k<6;k++)cand.push([0,-14-k*(h+4)],[w/2+12,h/2-k*(h+4)],[-(w/2+12),h/2-k*(h+4)]);
 let b=null;for(const [dx,dy] of cand){const x=p.x+dx-w/2,y=p.y+dy-h;if(x<2||x+w>sc.canvas.clientWidth-2||y<2)continue;if(!box.some(r=>x<r[0]+r[2]&&x+w>r[0]&&y<r[1]+r[3]&&y+h>r[1])){b=[dx,dy,x,y];break}}
-if(!b){if(!e._q.big){vis(e,false);return}b=[0,-4,p.x-w/2,p.y-4-h]}vis(e,true);box.push([b[2],b[3],w,h]);const o=e.label.pixelOffset&&e.label.pixelOffset.getValue?e.label.pixelOffset.getValue(now):null;
+if(!b){if(!e._q.hero){vis(e,false);return}b=[0,-4,p.x-w/2,p.y-4-h]}vis(e,true);box.push([b[2],b[3],w,h]);const o=e.label.pixelOffset&&e.label.pixelOffset.getValue?e.label.pixelOffset.getValue(now):null;
 if(!o||o.x!==b[0]||o.y!==b[1]){e.label.pixelOffset=new C.Cartesian2(b[0],b[1]);sc.requestRender()}})}catch(er){}};
 addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v3c)return;const m=e.data;try{
  const C=ws3d.common,v=ws3d.viewer,cam=v.camera,fy=cam.frustum.fovy||fovyOf();

@@ -1,0 +1,28 @@
+name: K-apt 커뮤니티 시설 모으기
+# 매일 새벽 3시 17분(한국 시간)에 돌고, 하루 호출 한도에 걸리면 다음 날 이어서 채운다.
+# 필요: 저장소 Settings → Secrets and variables → Actions → DATA_GO_KR_KEY (공공데이터포털 인증키, 인코딩 키)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 18 * * *'
+permissions:
+  contents: write
+concurrency: kapt-fac
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - name: 모으기
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python3 pipeline/build_kapt_fac.py
+      - name: 저장
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/kapt_fac.json pipeline/kapt_fac_cache.json.gz 2>/dev/null || true
+          if git diff --cached --quiet; then echo "바뀐 것 없음"; exit 0; fi
+          git commit -m "K-apt 커뮤니티 시설 자료 갱신"
+          git pull --rebase -q origin main && git push origin HEAD:main

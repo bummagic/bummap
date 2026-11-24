@@ -203,3 +203,8 @@
 - 원본: K-apt 자료실(https://www.k-apt.go.kr/web/board/webReference/boardList.do) '관리비공개의무단지 기본정보(날짜)' 엑셀(매주 금요일, 전국 약 2.2만 단지, 88개 항목: 세대수 14·동수 13·총주차 52·지상 53·지하 54·시공사 22·최고층 69 등). 글을 열고 `dx5.get('BOARD_FILE').getItems()[0].url`을 fetch → 페이지 안에서 xlsx(zip)를 풀어(시트는 inlineStr) 읽는다.
 - 같은 페이지에서 사이트의 data/apt.json을 받아 시도코드|동리|지번(안 되면 시도|동리|단지명)으로 잇고, apt.json 순서대로 '세대,주차,지하' 줄을 만든다. 컨테이너로 옮길 때 PC 폴더 접근이 없으면 gzip한 바이트를 화면에 흑백 4px 칸으로 그려 확대 캡처(zoom) 이미지로 받아 풀 수 있다(조각마다 해시 검산, /home/claude/work/dec.py 방식).
 - data/kapt.json = {ref, k:{"시군구코드|동 지번"(겹치면 |단지명): [세대수, 총주차, 지하주차]}}. 전국 확대 때는 apt.json만 넓히면 같은 방법으로 붙는다(원본이 전국).
+
+## V. 커뮤니티 시설(부대복리시설) — GitHub Actions가 매일 자동
+- `.github/workflows/kapt-fac.yml`이 매일 새벽 3:17(한국)에 `pipeline/build_kapt_fac.py`를 돌려 `data/kapt_fac.json`과 캐시(`pipeline/kapt_fac_cache.json.gz`)를 커밋한다. 하루 호출 한도에 걸리면 멈췄다가 다음 날 이어서 채운다(전국 처음 채우기 3~4일).
+- 필요: 공공데이터포털 활용신청 2개(단지목록 15057332, 공동주택 기본·상세 15058453) → 인증키(인코딩)를 저장소 Secret `DATA_GO_KR_KEY`로 등록. 키가 없으면 그냥 건너뛴다.
+- data/kapt_fac.json = {ref, src, t:[시설 13종], k:{"시군구코드|동 지번":[시설 비트, 전기차충전기 수]}}. 앞 9종을 '커뮤니티 N종'으로 센다.

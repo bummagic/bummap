@@ -49,7 +49,7 @@ const camAt=(lon,lat,Zm,Pt,Br,fovy)=>{const h=innerHeight||700,mpp=40075016.7*Ma
  return {lon:lon+de/(111320*Math.cos(lat*RD)),lat:lat+dn/111320,h:Math.max(30,up),head:Br,pitch:-(90-Pt),range}};
 let ORB=null,KICK=null;const kick=ms=>{clearInterval(KICK);const t0=Date.now();KICK=setInterval(()=>{try{ws3d.viewer.scene.requestRender()}catch(e){}if(Date.now()-t0>ms)clearInterval(KICK)},60)};
 const stopOrb=()=>{if(ORB){clearInterval(ORB);ORB=null;try{ws3d.viewer.camera.lookAtTransform(ws3d.common.Matrix4.IDENTITY)}catch(e){}}};
-let MK=[];const FS=innerWidth<600?11:14,FAR=1800;
+let MK=[];const FS=innerWidth<600?12:14,FAR=1800;
 // 이름표 겹침 풀기: 화면 좌표로 상자를 재서 겹치면 옆·위로 비켜 놓음(중요한 이름표 먼저), 카메라가 움직이면 다시 계산
 let dclT=0,dclHook=false,LC=null;
 // 말꼬리: 이름표를 비켜 놓았으면 점에서 이름표까지 가는 선(화면 위 투명 캔버스에 매 프레임 그림)
@@ -57,6 +57,10 @@ const LDR=()=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene,cv=sc.canvas,W=c
 if(!LC){LC=document.createElement('canvas');LC.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:500';document.getElementById('vmap').appendChild(LC)}
 if(LC.width!==Math.round(W*r)||LC.height!==Math.round(H*r)){LC.width=Math.round(W*r);LC.height=Math.round(H*r);LC.style.width=W+'px';LC.style.height=H+'px'}
 const g=LC.getContext('2d');g.setTransform(r,0,0,r,0,0);g.clearRect(0,0,W,H);const now=C.JulianDate.now();
+// 이름표 글씨는 3D 캔버스(휴대폰에서는 해상도가 낮아 뭉개짐)가 아니라 그 위 HTML 글상자로 그림
+MK.forEach(e=>{if(!e.label||!e._q)return;const on=!(e.label.show&&e.label.show.getValue&&!e.label.show.getValue(now)),p=on?sc.cartesianToCanvasCoordinates(e.position.getValue(now)):null;
+if(!e._el){const d=e._el=document.createElement('div');d.textContent=e._q.n||'';d.style.cssText='position:absolute;left:0;top:0;z-index:501;pointer-events:none;white-space:nowrap;color:#fff;font:'+(e._q.big?'700 ':'600 ')+(FS+(e._q.big?2:0))+'px/1.25 "Noto Sans KR",system-ui,sans-serif;padding:4px 8px;border-radius:7px;box-shadow:0 1px 4px rgba(0,0,0,.45);border:1.5px solid rgba(255,255,255,.9);background:'+(e._q.c||'#14232b');document.getElementById('vmap').appendChild(d)}
+if(!p){e._el.style.display='none';return}const o=e.label.pixelOffset.getValue(now)||{x:0,y:0};e._el.style.display='';e._el.style.transform='translate('+Math.round(p.x+o.x)+'px,'+Math.round(p.y+o.y)+'px) translate(-50%,-100%)'});
 MK.forEach(e=>{if(!e.label||!e._q||(e.label.show&&e.label.show.getValue&&!e.label.show.getValue(now)))return;const o=e.label.pixelOffset.getValue(now);if(!o||(o.x===0&&o.y>=-6))return;const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(!p)return;
 const fs=FS+(e._q.big?2:0),h=fs+12,ty=p.y+o.y-(o.x?h/2:0),tx=p.x+o.x-(o.x>0?(e._q.n||'').length*fs*.475+9:o.x<0?-((e._q.n||'').length*fs*.475+9):0);
 g.strokeStyle='rgba(255,255,255,.95)';g.lineWidth=3;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke();g.strokeStyle=e._q.c||'#14232b';g.lineWidth=1.5;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke()})}catch(er){}};const DCL=force=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene;if(!dclHook){dclHook=true;sc.postRender.addEventListener(()=>{const t=performance.now();if(t-dclT>300){dclT=t;DCL()}LDR()})}
@@ -77,9 +81,9 @@ addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v
   ORB=setInterval(()=>{const k=Math.min(1,(Date.now()-t0)/dur);try{cam.lookAt(tgt,new C.HeadingPitchRange((m.b+m.deg*k)*RD,-(90-m.p)*RD,c.range));v.scene.requestRender()}catch(er){}if(k>=1)stopOrb()},33)}
  else if(m.v3c==='stop')stopOrb();
  else if(m.v3c==='clean'){document.body.classList.toggle('clean',!!m.on);['poi_base','poi_bound','poi_road'].forEach(id=>{try{const e2=v.map.getElementById(id);if(e2)m.on?e2.hide():e2.show()}catch(er){}})}
- else if(m.v3c==='marks'){if(v.entities){MK.forEach(x=>v.entities.remove(x));MK=[];
+ else if(m.v3c==='marks'){if(v.entities){MK.forEach(x=>{v.entities.remove(x);if(x._el)x._el.remove()});MK=[];
   (m.line||[]).forEach(L=>MK.push(v.entities.add({polyline:{positions:C.Cartesian3.fromDegreesArray(L.flat()),width:6,material:C.Color.fromCssColorString('#fab005'),clampToGround:true}})));
-  (m.pts||[]).forEach(q=>{q._dy=-4;let gh=0;try{gh=v.scene.globe.getHeight(C.Cartographic.fromDegrees(q.lon,q.lat))||0}catch(er){}try{const en=(v.entities.add({position:C.Cartesian3.fromDegrees(q.lon,q.lat,gh+(q.big?40:25)),label:{text:q.n||'',font:(q.big?'bold ':'500 ')+(FS+(q.big?2:0))+'px "Noto Sans KR",sans-serif',fillColor:C.Color.WHITE,style:C.LabelStyle.FILL,showBackground:true,backgroundColor:C.Color.fromCssColorString(q.c||'#14232b').withAlpha(.88),backgroundPadding:new C.Cartesian2(8,5),verticalOrigin:C.VerticalOrigin.BOTTOM,pixelOffset:new C.Cartesian2(0,q._dy),disableDepthTestDistance:Number.POSITIVE_INFINITY}}));en._q=q;MK.push(en)}catch(er){}});DCL(1);kick(1500)}}
+  (m.pts||[]).forEach(q=>{q._dy=-4;let gh=0;try{gh=v.scene.globe.getHeight(C.Cartographic.fromDegrees(q.lon,q.lat))||0}catch(er){}try{const en=(v.entities.add({position:C.Cartesian3.fromDegrees(q.lon,q.lat,gh+(q.big?40:25)),label:{text:q.n||'',font:(q.big?'bold ':'500 ')+(FS+(q.big?2:0))+'px "Noto Sans KR",sans-serif',fillColor:C.Color.WHITE.withAlpha(0),style:C.LabelStyle.FILL,showBackground:false,verticalOrigin:C.VerticalOrigin.BOTTOM,pixelOffset:new C.Cartesian2(0,q._dy),disableDepthTestDistance:Number.POSITIVE_INFINITY}}));en._q=q;MK.push(en)}catch(er){}});DCL(1);kick(1500)}}
  else if(m.v3c==='blds'){// 도로명주소 건물을 직접 세움(지형 높이 위에 지상층수×3.1m) — 실사 모델이 없는 지역도 입체로, 이 단지만 주황
   const sc=v.scene;if(window._BP){sc.primitives.remove(window._BP);window._BP=null}
   const lay=on=>['facility_build','facility_build_all'].forEach(id=>{try{const e2=v.map.getElementById(id);if(e2)on?e2.show():e2.hide()}catch(er){}});

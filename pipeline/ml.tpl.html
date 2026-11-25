@@ -1929,7 +1929,7 @@ const camSet=c=>c&&map.jumpTo({center:[c.lon,c.lat],zoom:Math.min(22,Math.max(3,
 addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data.v3d)return;if(e.data.v3d==='ok'&&vw3){fig.classList.add('v3ok');bst.textContent='실사 3D · 끌어서 이동, 오른쪽 버튼(또는 Ctrl+끌기)으로 회전·기울이기, 휠로 확대';return}
 if(e.data.v3d==='fail'&&vw3){vw3Fail=true;vw3Off();sty();attrEl.textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');bst.textContent='⚠ 실사 3D 실패: '+(e.data.why||'')+' · 3D 버튼을 다시 누르면 재시도';vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
 function vw3On(){const c=camNow();vw3=true;vw3C=c;fig.classList.remove('v3ok');fig.classList.add('vw3');$('vrot').style.display='none';
-v3f.src=`v3d.html?v=20261124b&embed=1&lat=${c.lat.toFixed(6)}&lon=${c.lon.toFixed(6)}&z=${c.z.toFixed(2)}&p=${c.p.toFixed(1)}&b=${c.b.toFixed(1)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
+v3f.src=`v3d.html?v=20261125a&embed=1&lat=${c.lat.toFixed(6)}&lon=${c.lon.toFixed(6)}&z=${c.z.toFixed(2)}&p=${c.p.toFixed(1)}&b=${c.b.toFixed(1)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
 function vw3Off(){let c=null;try{c=v3f.contentWindow.getCam&&v3f.contentWindow.getCam()}catch(e){}vw3=false;fig.classList.remove('vw3','v3ok');v3f.src='about:blank';setBaseLayer();c=c||vw3C;camSet(c);if(mode3)$('vrot').style.display='';return c}
 const rot=on=>{if(on){map.dragRotate.enable();map.touchZoomRotate.enableRotation()}else{map.dragRotate.disable();map.touchZoomRotate.disableRotation()}};
 // 2D→3D: 배율은 건물이 보이는 축척(z14) 이상이면 그대로, 기울기는 이미 기울어 있으면 그대로(아니면 55°)

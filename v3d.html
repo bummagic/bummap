@@ -47,8 +47,8 @@ return {lon:g.longitude/RD,lat:g.latitude/RD,z:Math.log2(40075016.7*Math.cos(g.l
 // 임장 코스용 카메라 명령(부모 지도에서 postMessage): view·fly·orbit·marks·tiles
 const camAt=(lon,lat,Zm,Pt,Br,fovy)=>{const h=innerHeight||700,mpp=40075016.7*Math.cos(lat*RD)/(512*2**Zm),range=(h/2*mpp)/Math.tan(fovy/2),up=range*Math.cos(Pt*RD),hz=range*Math.sin(Pt*RD),dn=-hz*Math.cos(Br*RD),de=-hz*Math.sin(Br*RD);
  return {lon:lon+de/(111320*Math.cos(lat*RD)),lat:lat+dn/111320,h:Math.max(30,up),head:Br,pitch:-(90-Pt),range}};
-let ORB=null,KICK=null;const kick=ms=>{clearInterval(KICK);const t0=Date.now();KICK=setInterval(()=>{try{ws3d.viewer.scene.requestRender()}catch(e){}if(Date.now()-t0>ms)clearInterval(KICK)},60)};
-const stopOrb=()=>{if(ORB){clearInterval(ORB);ORB=null;try{ws3d.viewer.camera.lookAtTransform(ws3d.common.Matrix4.IDENTITY)}catch(e){}}};
+let ORB=0,ORBN=0,KICK=null;const kick=ms=>{clearInterval(KICK);const t0=Date.now();KICK=setInterval(()=>{try{ws3d.viewer.scene.requestRender()}catch(e){}if(Date.now()-t0>ms)clearInterval(KICK)},60)};
+const stopOrb=()=>{if(ORB){ORB=0;try{ws3d.viewer.camera.lookAtTransform(ws3d.common.Matrix4.IDENTITY)}catch(e){}}};
 let MK=[];const FS=innerWidth<600?12:14,FAR=1800;
 // 이름표 겹침 풀기: 화면 좌표로 상자를 재서 겹치면 옆·위로 비켜 놓음(중요한 이름표 먼저), 카메라가 움직이면 다시 계산
 let dclT=0,dclHook=false,LC=null;
@@ -60,7 +60,7 @@ const g=LC.getContext('2d');g.setTransform(r,0,0,r,0,0);g.clearRect(0,0,W,H);con
 // 이름표 글씨는 3D 캔버스(휴대폰에서는 해상도가 낮아 뭉개짐)가 아니라 그 위 HTML 글상자로 그림
 MK.forEach(e=>{if(!e.label||!e._q)return;const on=!(e.label.show&&e.label.show.getValue&&!e.label.show.getValue(now)),p=on?sc.cartesianToCanvasCoordinates(e.position.getValue(now)):null;
 if(!e._el){const d=e._el=document.createElement('div');d.textContent=e._q.n||'';d.style.cssText='position:absolute;left:0;top:0;z-index:501;pointer-events:none;white-space:nowrap;color:#fff;font:'+(e._q.big?'700 ':'600 ')+(FS+(e._q.big?2:0))+'px/1.25 "Noto Sans KR",system-ui,sans-serif;padding:4px 8px;border-radius:7px;box-shadow:0 1px 4px rgba(0,0,0,.45);border:1.5px solid rgba(255,255,255,.9);background:'+(e._q.c||'#14232b');document.getElementById('vmap').appendChild(d)}
-if(!p){e._el.style.display='none';return}const o=e.label.pixelOffset.getValue(now)||{x:0,y:0};e._el.style.display='';e._el.style.transform='translate('+Math.round(p.x+o.x)+'px,'+Math.round(p.y+o.y)+'px) translate(-50%,-100%)'});
+if(!p){e._el.style.display='none';return}const o=e.label.pixelOffset.getValue(now)||{x:0,y:0};e._el.style.display='';e._el.style.transform='translate('+(p.x+o.x).toFixed(1)+'px,'+(p.y+o.y).toFixed(1)+'px) translate(-50%,-100%)'});
 MK.forEach(e=>{if(!e.label||!e._q||(e.label.show&&e.label.show.getValue&&!e.label.show.getValue(now)))return;const o=e.label.pixelOffset.getValue(now);if(!o||(o.x===0&&o.y>=-6))return;const p=sc.cartesianToCanvasCoordinates(e.position.getValue(now));if(!p)return;
 const fs=FS+(e._q.big?2:0),h=fs+12,ty=p.y+o.y-(o.x?h/2:0),tx=p.x+o.x-(o.x>0?(e._q.n||'').length*fs*.475+9:o.x<0?-((e._q.n||'').length*fs*.475+9):0);
 g.strokeStyle='rgba(255,255,255,.95)';g.lineWidth=3;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke();g.strokeStyle=e._q.c||'#14232b';g.lineWidth=1.5;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(tx,ty);g.stroke()})}catch(er){}};const DCL=force=>{try{const v=ws3d.viewer,C=ws3d.common,sc=v.scene;if(!dclHook){dclHook=true;sc.postRender.addEventListener(()=>{const t=performance.now();if(t-dclT>300){dclT=t;DCL()}LDR()})}
@@ -70,15 +70,15 @@ L.forEach(e=>{const pos=e.position.getValue(now),p=sc.cartesianToCanvasCoordinat
 // 멀리서 볼 때(카메라에서 FAR m 넘게)는 이름표 숨김 — 단지 자신과 이 장면의 주인공(hero)은 항상 표시
 if(!e._q.hero&&C.Cartesian3.distance(cp,pos)>FAR){vis(e,false);return}const q=e._q,fs=FS+(q.big?2:0),w=(q.n||'').length*fs*.95+18,h=fs+12;
 const cand=[[0,-4],[w/2+12,h/2],[-(w/2+12),h/2],[0,h+16]];for(let k=1;k<6;k++)cand.push([0,-14-k*(h+4)],[w/2+12,h/2-k*(h+4)],[-(w/2+12),h/2-k*(h+4)]);
-let b=null;for(const [dx,dy] of cand){const x=p.x+dx-w/2,y=p.y+dy-h;if(x<2||x+w>sc.canvas.clientWidth-2||y<2)continue;if(!box.some(r=>x<r[0]+r[2]&&x+w>r[0]&&y<r[1]+r[3]&&y+h>r[1])){b=[dx,dy,x,y];break}}
-if(!b){if(!e._q.hero){vis(e,false);return}b=[0,-4,p.x-w/2,p.y-4-h]}vis(e,true);box.push([b[2],b[3],w,h]);const o=e.label.pixelOffset&&e.label.pixelOffset.getValue?e.label.pixelOffset.getValue(now):null;
+if(e._o)cand.unshift(e._o);let b=null;for(const [dx,dy] of cand){const x=p.x+dx-w/2,y=p.y+dy-h;if(x<2||x+w>sc.canvas.clientWidth-2||y<2)continue;if(!box.some(r=>x<r[0]+r[2]&&x+w>r[0]&&y<r[1]+r[3]&&y+h>r[1])){b=[dx,dy,x,y];break}}
+if(!b){if(!e._q.hero){vis(e,false);return}b=[0,-4,p.x-w/2,p.y-4-h]}vis(e,true);e._o=[b[0],b[1]];box.push([b[2],b[3],w,h]);const o=e.label.pixelOffset&&e.label.pixelOffset.getValue?e.label.pixelOffset.getValue(now):null;
 if(!o||o.x!==b[0]||o.y!==b[1]){e.label.pixelOffset=new C.Cartesian2(b[0],b[1]);sc.requestRender()}})}catch(er){}};
 addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v3c)return;const m=e.data;try{
  const C=ws3d.common,v=ws3d.viewer,cam=v.camera,fy=cam.frustum.fovy||fovyOf();
  if(m.v3c==='view'||m.v3c==='fly'){stopOrb();const c=camAt(m.lon,m.lat,m.z,m.p,m.b,fy),dest=C.Cartesian3.fromDegrees(c.lon,c.lat,c.h+(m.alt||0)),ori={heading:c.head*RD,pitch:c.pitch*RD,roll:0};
   if(m.v3c==='view'){cam.setView({destination:dest,orientation:ori});kick(3000)}else{cam.flyTo({destination:dest,orientation:ori,duration:m.dur||2});kick((m.dur||2)*1000+1500)}}
  else if(m.v3c==='orbit'){stopOrb();const c=camAt(m.lon,m.lat,m.z,m.p,m.b,fy),tgt=C.Cartesian3.fromDegrees(m.lon,m.lat,m.alt||0),t0=Date.now(),dur=(m.dur||8)*1000;
-  ORB=setInterval(()=>{const k=Math.min(1,(Date.now()-t0)/dur);try{cam.lookAt(tgt,new C.HeadingPitchRange((m.b+m.deg*k)*RD,-(90-m.p)*RD,c.range));v.scene.requestRender()}catch(er){}if(k>=1)stopOrb()},33)}
+  const id=ORB=++ORBN,step=()=>{if(ORB!==id)return;const k=Math.min(1,(Date.now()-t0)/dur);try{cam.lookAt(tgt,new C.HeadingPitchRange((m.b+m.deg*k)*RD,-(90-m.p)*RD,c.range));v.scene.requestRender()}catch(er){}if(k>=1)stopOrb();else requestAnimationFrame(step)};step()}
  else if(m.v3c==='stop')stopOrb();
  else if(m.v3c==='clean'){document.body.classList.toggle('clean',!!m.on);['poi_base','poi_bound','poi_road'].forEach(id=>{try{const e2=v.map.getElementById(id);if(e2)m.on?e2.hide():e2.show()}catch(er){}})}
  else if(m.v3c==='marks'){if(v.entities){MK.forEach(x=>{v.entities.remove(x);if(x._el)x._el.remove()});MK=[];

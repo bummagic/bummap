@@ -1,0 +1,47 @@
+name: 아파트 실거래가 매일 갱신
+# 매일 새벽 5시 23분(한국 시간). 최근 3개월은 매일 다시 받고, 36개월까지 빈 달은 하루 호출 한도 안에서 이어서 채운다.
+# 필요: Settings → Secrets and variables → Actions
+#   DATA_GO_KR_KEY  공공데이터포털 인증키(인코딩) — 활용신청: 아파트 매매 실거래가 상세, 아파트 전월세 실거래가
+#   (알림, 선택) WATCH_KEYS 지도 '즐겨찾는 단지 → 알림 목록 복사' 내용, TELEGRAM_TOKEN 봇 토큰, TELEGRAM_CHAT 대화방 번호
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 20 * * *'
+permissions:
+  contents: write
+concurrency: apt-update
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      # 원본 월 묶음은 저장소가 아니라 Actions 캐시에 둔다(저장소가 커지지 않게). 캐시가 지워지면 다시 받아 채움
+      - uses: actions/cache/restore@v4
+        with:
+          path: rtcache
+          key: rt-${{ github.run_id }}
+          restore-keys: rt-
+      - name: 받기·알림·빌드
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          WATCH_KEYS: ${{ secrets.WATCH_KEYS }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.TELEGRAM_CHAT }}
+          RTDIR: rtcache
+        run: |
+          if [ -z "$DATA_GO_KR_KEY" ]; then echo "DATA_GO_KR_KEY 없음 — 건너뜀"; exit 0; fi
+          python3 pipeline/update_apt.py
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: rtcache
+          key: rt-${{ github.run_id }}
+      - name: 저장
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/apt.json data/apt_h pipeline/apt_loc.json 2>/dev/null || true
+          if git diff --cached --quiet; then echo "바뀐 것 없음"; exit 0; fi
+          git commit -m "아파트 실거래가 자동 갱신 $(TZ=Asia/Seoul date +%F)"
+          git pull --rebase -q origin main && git push origin HEAD:main

@@ -97,6 +97,15 @@
 - 위치: 실거래 자료에 좌표가 없다. ① `python3 build_bld_addr.py ../bld /tmp/bld_addr.json`(건물자료의 '시도|시군구|동리|지번' → 건물 중심, 경기 제외) ② 못 찾은 주소(경기 대부분)는 브이월드 지오코더(`api.vworld.kr/req/address`, type=PARCEL, 브이월드 탭에서 vwkey.js를 fetch해 키를 씀)로 찾아 `{주소:[lon,lat]}`를 다운로드 → geo_extra.json. 주소 목록은 공개 주소뿐이라 임시 브랜치(geo-tmp)에 올려 raw.githubusercontent.com에서 브라우저로 읽는다. 브이월드는 6개 동시·무지연으로 돌리면 IP가 몇 분 막힌다 → 3개 동시·400ms 간격. 건물 매칭 검증(지오코더 대비 120곳): 중앙값 15m, 90% 70m, 최대 160m.
 - `APTDATE=YYYY-MM-DD python3 build_apt.py rt_raw.json.gz bld_addr.json sgg_codes.json geo_extra.json ../data/apt.json [unmatched.json]` → data/apt.json(단지: 이름·좌표·준공연도·시군구코드·동 지번·평당가(전용 3.3㎡, 최근 6개월 매매 중앙값, 없으면 12개월)·12개월 매매 수·전세가율(같은 면적끼리 전세 중앙값÷매매 중앙값, 건수 가중)·최근 3개월 변동(평당가 중앙값, 7~12개월 전 대비, 최근 3개월 2건 이상일 때)·전세·월세 수·면적별 [전용㎡, 최근 매매가, 날짜, 층, 전세 중앙값, 전세 수, 매매 수, 최근 월세 보증금, 월세]). gen.py가 기간(__APTFROM__·__APTTO__)을 채운다.
 
+### N-1. 실거래가 매일 자동 갱신(GitHub Actions `.github/workflows/apt.yml`, 2026-11-27~)
+- 매일 05:23(KST) `pipeline/update_apt.py`가 돈다. **저장소 Secret `DATA_GO_KR_KEY`**(공공데이터포털 인코딩 키, 활용신청: 아파트 매매 실거래가 상세·아파트 전월세 실거래가)가 있어야 한다. 키는 Secret에만 두고 파일·문서에 쓰지 않는다.
+- 원본 월 묶음(`T_YYYYMM.json.gz`·`R_YYYYMM.json.gz`)은 저장소가 아니라 Actions 캐시(`rtcache`)에 둔다. 최근 3개월은 매일 다시 받고(신고 30일·해제 반영), 36개월까지 빈 달은 API별 하루 9,500회 안에서 최근 달부터 채운다(처음 한두 날). 캐시가 지워지면 다시 채운다.
+- 최근 12개월이 다 모이면 `build_apt.py`로 `data/apt.json`(한 줄에 한 단지 — git이 바뀐 줄만 저장)과 **`data/apt_h/<시군구코드>.json`**(전체 기간 면적별 월별 [월 번호, 매매 중앙값(만원), 건수]·전세 같은 꼴, 키 "동 지번|단지명")을 만든다. 12개월이 덜 모였으면 빌드하지 않는다(지도 자료가 줄지 않게).
+- 위치: `pipeline/apt_loc.json`("시군구코드|동 지번" → [lon,lat], 기존 apt.json에서 만듦). 새 단지는 브이월드 지오코더(PARCEL, vwkey.js의 키, 시군구 이름은 `pipeline/sgg_names.json`)로 찾아 보탠다(하루 600곳까지, 실패하면 다음 날 다시).
+- 관심 단지 알림(선택): Secret `WATCH_KEYS`(지도 아파트 탭 '즐겨찾는 단지 → 알림 목록 복사' 내용: 줄마다 `시군구코드|동 지번|단지명`), `TELEGRAM_TOKEN`(텔레그램 @BotFather로 만든 봇 토큰), `TELEGRAM_CHAT`(내 대화방 번호: 봇에게 아무 말을 보낸 뒤 `https://api.telegram.org/bot<토큰>/getUpdates`의 chat.id). 다시 받은 달에 새로 생긴 매매가 있으면 보낸다.
+- 화면: 지도 문구의 실거래 기간은 apt.json의 from·to·ref를 읽어 표시. 단지 카드 '면적별 흐름'(최대 36개월, 면적 고르기), 즐겨찾기 비교 그림 '최대 3년 · 대표 면적'.
+- 시험: `RTDIR=<원본 폴더> APT_DRY=1 python3 pipeline/update_apt.py`(받기 없이 캐시만으로 빌드).
+
 ## O. 호재 역 (철도 B와 함께 매월)
 - `FUTDATE=YYYY-MM-DD python3 build_future.py data/rail.json future_st_osm.json data/future.json kr-rail-map/data` → data/future.json: kr-rail-map 역 중 공사·계획·제안 노선이 지나는 역(기존 운행역에 새 노선이 들어오는 경우 포함) + OSM 공사·계획 역(Overpass: railway=construction+construction=station, construction:railway=station, railway=proposed+proposed=station, proposed:railway=station 등, overpass-api.de를 내장 브라우저에서 fetch) 중 250m 안 중복 제외. 2026-11: 247곳. 신안산선·대장홍대선·9호선 4단계·7호선 청라·옥정포천선 역은 아직 일부만 있음.
 - 지도: '공사 중'·'계획' 체크 시 주황/보라 테 동그라미, 아파트 정보창 '호재 역', 아파트 색 기준 '호재 역 거리', 보기 '호재 역 1km 안', 후보지 찾기·내 조건으로 아파트 찾기의 호재 역 조건.

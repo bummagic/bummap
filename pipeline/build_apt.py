@@ -40,7 +40,11 @@ for r in raw['R']:
     if not ar: continue
     get(seq, nm, sgg, umd, jb, by)['R'].append((ymd, dep, mon, ar, fl))
 PY = 3.305785
+# 이미 위치를 아는 단지("시군구코드|동 지번" → [lon,lat], update_apt.py가 관리) — 매일 자동 갱신 때는 이것만으로 찾음
+LOC = json.load(open(os.environ['APTLOC'])) if os.environ.get('APTLOC') and os.path.exists(os.environ['APTLOC']) else {}
 def loc(c):
+    v = LOC.get(c['s'] + '|' + (c['u'] + ' ' + c['j']).strip())
+    if v: return v, 'b'
     sd = c['s'][:2]; sgn = re.sub(r'\s', '', SG.get(c['s']) or OLD.get(c['s'], ''))
     umd = c['u'].split()[-1] if c['u'] else ''; jb = c['j']
     if sd == '36': sgn = '-'
@@ -99,6 +103,34 @@ for k, c in C.items():
     if not lastd: continue
     out.append([c['n'], round(p[0], 5), round(p[1], 5), int(c['y'] or 0), c['s'], (c['u'] + ' ' + c['j']).strip(),
                 round(ppy) if ppy else 0, len(T12), jr if jr is not None else -1, g if g is not None else -999, len(J), len(W), types, ms(T12, J)])
-json.dump({'ref': os.environ.get('APTDATE', ''), 'from': str(M12), 'to': last, 'm': [str(m) for m in MS], 'a': out}, open(OUT, 'w'), ensure_ascii=False, separators=(',', ':'))
+# 한 줄에 한 단지(매일 갱신해도 git이 바뀐 줄만 저장하게)
+def jl(o): return json.dumps(o, ensure_ascii=False, separators=(',', ':'))
+with open(OUT, 'w') as f:
+    f.write('{"ref":%s,"from":%s,"to":%s,"m":%s,"a":[\n' % (jl(os.environ.get('APTDATE', '')), jl(str(M12)), jl(str(last)), jl([str(m) for m in MS])))
+    f.write(',\n'.join(jl(x) for x in out)); f.write('\n]}\n')
+# 긴 기간 면적별 흐름: data/apt_h/<시군구코드>.json — 원본 전체 기간(최대 60개월) 월별 [월 번호, 매매 중앙값(만원), 건수], 전세도 같은 꼴
+HD = os.environ.get('APTHIST')
+if HD:
+    os.makedirs(HD, exist_ok=True)
+    HM = sorted({int(m) for m in M}); HI = {m: i for i, m in enumerate(HM)}
+    placed = {(o[4], o[5], o[0]) for o in out}; H = collections.defaultdict(dict)
+    for k, c in C.items():
+        kk = (c['s'], (c['u'] + ' ' + c['j']).strip(), c['n'])
+        if kk not in placed: continue
+        by = collections.defaultdict(lambda: (collections.defaultdict(list), collections.defaultdict(list)))
+        for t in c['T']:
+            if t[0] // 100 in HI: by[round(t[2])][0][HI[t[0] // 100]].append(t[1])
+        for x in c['R']:
+            if x[2] == 0 and x[0] // 100 in HI: by[round(x[3])][1][HI[x[0] // 100]].append(x[1])
+        rows = []
+        for a in sorted(by):
+            tt, jj = by[a]
+            if sum(len(v) for v in tt.values()) < 2 and sum(len(v) for v in jj.values()) < 2: continue
+            rows.append([a, [[i, round(med(v)), len(v)] for i, v in sorted(tt.items())], [[i, round(med(v)), len(v)] for i, v in sorted(jj.items())]])
+        if rows: H[kk[0]][kk[1] + '|' + kk[2]] = rows
+    for sg, D in H.items():
+        with open(os.path.join(HD, sg + '.json'), 'w') as f:
+            f.write('{"m":%s,"k":{\n' % jl([str(m) for m in HM])); f.write(',\n'.join(jl(k) + ':' + jl(v) for k, v in sorted(D.items()))); f.write('\n}}\n')
+    print('history', len(H), 'sgg', len(HM), 'months')
 print('complexes', len(C), 'out', len(out), 'bld', nb, 'geo', ng, 'unmatched', len(unm))
 if UNM: json.dump(sorted(unm), open(UNM, 'w'), ensure_ascii=False)

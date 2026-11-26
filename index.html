@@ -462,7 +462,7 @@ window.open('https://github.com/bummagic/bummap/new/main?filename=vwkey.js&value
 </div>
 <div class="lay" id="fav">
 <h3>즐겨찾는 단지</h3>
-<p class="muted" style="margin:0 0 8px;font-size:12.5px">단지 카드의 ☆ 즐겨찾기로 넣습니다. 최근 실거래·흐름(오름세·보합·내림세)·전세가율과 직접 적은 호가를 한눈에 봅니다. 이 브라우저에만 저장되니 다른 기기로는 내보내기·가져오기로 옮기세요.</p>
+<p class="muted" style="margin:0 0 8px;font-size:12.5px">단지 카드의 ☆ 즐겨찾기로 넣습니다. 단지끼리 가격 흐름을 한 그림에서 비교하고, 단지마다 12개월 추세선·3·6개월 변동·전세가율·거래량·새 거래·직접 적은 호가를 봅니다. 이 브라우저에만 저장되니 다른 기기로는 내보내기·가져오기로 옮기세요.</p>
 <div id="favList"></div>
 <p style="margin:8px 0 0;font-size:12.5px"><button id="favEx" style="height:28px;font-size:12px">내보내기</button> <button id="favIm" style="height:28px;font-size:12px">가져오기</button></p>
 </div>
@@ -1043,11 +1043,37 @@ ${A.length?`<div class="at">${A.slice().reverse().map((r,j)=>{const g=askGap(d,r
 <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:13px"><select id="akA" aria-label="면적" style="font:inherit">${T.map(x=>`<option value="${x[0]}">${x[0]}㎡</option>`).join('')||'<option value="84">84㎡</option>'}</select><input id="akP" inputmode="decimal" placeholder="호가(억)" style="width:76px;font:inherit"><input id="akF" inputmode="numeric" placeholder="층" style="width:44px;font:inherit"><input id="akM" placeholder="메모" style="width:90px;font:inherit"><button id="akSave">기록</button><a href="${nvUrl(d)}" target="_blank" rel="noopener">네이버 부동산</a></div></div>`}
 function askBind(d,re){const box=info.querySelector('.ask');if(!box)return;box.querySelectorAll('[data-akdel]').forEach(b=>b.onclick=()=>{const A=askOf(d);A.splice(+b.dataset.akdel,1);ASK[akey(d)]=A;favSave();re()});
 $('akSave').onclick=()=>{const v=parseFloat(String($('akP').value).replace(/[^\d.]/g,''));if(!v)return $('akP').focus();const r=[new Date().toISOString().slice(0,10),+$('akA').value,Math.round(v*10000),+$('akF').value||0,$('akM').value.trim()];(ASK[akey(d)]=askOf(d)).push(r);if(!isFav(d))FAV.push({k:akey(d),n:d[0],t:r[0]});favSave();re();favDraw()}}
-// 즐겨찾기 목록(아파트 탭)
+// 즐겨찾기 목록(아파트 탭): 가격 흐름 비교 그림 + 단지별 작은 추세선·변동·새 거래 표시, 정렬
+// 흐름 값 = 월별 3.3㎡당 매매 중앙값을 3개월 이동(거래 수 가중)으로 고른 것 — 한두 건 거래로 튀는 것을 줄임
+const favSer=d=>{const M=d[13]||[];return M.map((_,i)=>{let s=0,n=0;for(let k=Math.max(0,i-2);k<=i;k++){const x=M[k];if(x&&x[0]&&x[1]){s+=x[0]*x[1];n+=x[1]}}return n?s/n:null})};
+const favLast=d=>Math.max(0,...(d[12]||[]).flatMap(t=>[t[1]?t[2]:0,t[4]?t[2]:0]));
+const FCOL=['#e8590c','#1c7ed6','#2f9e44','#ae3ec9','#f08c00','#0c8599','#c2255c','#5c940d','#495057','#364fc7'];
+let favSort=(()=>{try{return localStorage.getItem('krmap_favs')||'add'}catch(e){return 'add'}})();
+function favChart(R){const S=R.map(r=>({r,v:favSer(r.d)})).filter(x=>x.v.filter(v=>v).length>=3);if(!S.length)return '';
+const mm=aptD.m||[],W=320,H=150,L=30,B=18,T=8,n=Math.max(...S.map(x=>x.v.length));
+// 각 단지 첫 값을 100으로 맞춘 지수(가격대가 달라도 오르내림을 한 그림에서 비교)
+S.forEach(x=>{const b=x.v.find(v=>v);x.ix=x.v.map(v=>v?v/b*100:null)});const all=S.flatMap(x=>x.ix).filter(v=>v!=null),lo=Math.min(95,...all)-1,hi=Math.max(105,...all)+1;
+const X=i=>L+i*(W-L-8)/Math.max(1,n-1),Y=v=>T+(H-B-T)*(1-(v-lo)/(hi-lo));
+const gr=[lo,100,hi].map(v=>Math.round(v)).filter((v,i,a)=>a.indexOf(v)===i).map(v=>`<line x1="${L}" x2="${W-6}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="currentColor" stroke-opacity="${v===100?.35:.12}" ${v===100?'stroke-dasharray="3 3"':''}/><text x="${L-4}" y="${(Y(v)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="currentColor" fill-opacity=".6">${v}</text>`).join('');
+const xl=[0,n>>1,n-1].map(i=>mm[i]?`<text x="${X(i).toFixed(1)}" y="${H-4}" text-anchor="${i?i===n-1?'end':'middle':'start'}" font-size="10" fill="currentColor" fill-opacity=".6">${String(mm[i]).slice(2,4)}.${String(mm[i]).slice(4)}</text>`:'').join('');
+const ln=S.map(x=>{let p='',on=false;x.ix.forEach((v,i)=>{if(v==null){on=false;return}p+=(on?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);on=true});const li=x.ix.map((v,i)=>v!=null?i:-1).filter(i=>i>=0).pop();return `<path d="${p}" fill="none" stroke="${x.r.c}" stroke-width="2" stroke-linejoin="round"/><circle cx="${X(li).toFixed(1)}" cy="${Y(x.ix[li]).toFixed(1)}" r="3" fill="${x.r.c}"/>`}).join('');
+return `<div style="margin:2px 0 8px"><div class="muted" style="font-size:12px;margin-bottom:2px">가격 흐름 비교 <small>(3.3㎡당 매매, 각 단지 첫 달 = 100, 3개월 이동)</small></div><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:420px;display:block;color:var(--ink)" role="img" aria-label="즐겨찾는 단지 가격 흐름 비교">${gr}${xl}${ln}</svg>
+<div style="display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px">${S.map(x=>{const li=x.ix.filter(v=>v!=null).pop();return `<span><i style="display:inline-block;width:10px;height:3px;background:${x.r.c};vertical-align:middle;margin-right:3px"></i>${esc(x.r.d[0])} <b>${li>=100?'+':''}${(li-100).toFixed(1)}%</b></span>`}).join('')}</div></div>`}
+const favSpark=(d,c)=>{const v=favSer(d),P=v.map((x,i)=>[i,x]).filter(x=>x[1]);if(P.length<2)return '';const lo=Math.min(...P.map(x=>x[1])),hi=Math.max(...P.map(x=>x[1])),W=72,H=22,X=i=>1+i*(W-2)/Math.max(1,v.length-1),Y=x=>2+(H-4)*(1-(x-lo)/((hi-lo)||1));
+return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="vertical-align:middle;float:right;margin:2px 6px 0 0" aria-hidden="true"><polyline points="${P.map(x=>X(x[0]).toFixed(1)+','+Y(x[1]).toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/></svg>`};
 function favDraw(){const el=$('favList');if(!el)return;if(!FAV.length){el.innerHTML='<p class="muted" style="font-size:12.5px;margin:0">단지 카드의 ☆ 즐겨찾기를 누르면 여기에 모입니다.</p>';return}if(!aptD){el.innerHTML='<p class="muted" style="font-size:12.5px;margin:0">시세를 불러오면 표시됩니다.</p>';return}
-el.innerHTML=FAV.map((f,j)=>{const i=aptOfKey(f.k),d=i>=0?aptD.a[i]:null;if(!d)return `<div class="fv"><b>${esc(f.n)}</b> <small class="muted">이번 실거래 자료에 없음</small> <button class="sm" data-fdel="${j}">✕</button></div>`;const t=repT(d,'pm'),a=ana(d),A=askOf(d),la=A[A.length-1],g=la?askGap(d,la):null;
-return `<div class="fv"><button class="go" data-fi="${i}">${esc(d[0])}</button>${a.v?`<span class="tag" style="background:${a.v==='오름세'?'#c92a2a':a.v==='내림세'?'#1864ab':'#7d8a92'}">${a.v}</span>`:''}<button class="sm" data-fdel="${j}" title="즐겨찾기에서 빼기">✕</button><div class="muted" style="font-size:12px">${t?`${t[0]}㎡ ${eok(t[1])} (${ymdS(t[2])})`:''}${a.r3!=null?` · 3개월 ${a.r3>0?'+':''}${a.r3}%`:''}${d[8]>=0?` · 전세가율 ${d[8]}%`:''}${la?` · 호가 ${eok(la[2])}${g!=null?`(${g>0?'+':''}${g}%)`:''}`:''}</div></div>`}).join('');
-el.querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>window._goApt&&_goApt(+b.dataset.fi));el.querySelectorAll('[data-fdel]').forEach(b=>b.onclick=()=>{FAV.splice(+b.dataset.fdel,1);favSave();favDraw()})}
+let ch=false;const R=FAV.map((f,j)=>{const i=aptOfKey(f.k),d=i>=0?aptD.a[i]:null;if(!d)return {f,j,i};const lt=favLast(d);if(f.lt==null){f.lt=lt;ch=true}const a=ana(d),A=askOf(d),la=A[A.length-1];return {f,j,i,d,a,la,g:la?askGap(d,la):null,lt,nw:lt>f.lt?(d[12]||[]).filter(t=>t[2]>f.lt).length:0}});if(ch)favSave();
+R.forEach((r,k)=>r.c=FCOL[k%FCOL.length]);
+const key={add:r=>r.j,r3:r=>r.a&&r.a.r3!=null?-r.a.r3:1e9,r6:r=>r.a&&r.a.r6!=null?-r.a.r6:1e9,jr:r=>r.d&&r.d[8]>=0?-r.d[8]:1e9,ask:r=>r.g!=null?r.g:1e9,nw:r=>r.d?-r.nw*1e10-r.lt:1e12}[favSort]||(r=>r.j);const RS=R.slice().sort((x,y)=>key(x)-key(y));
+const vc=v=>v==='오름세'?'#c92a2a':v==='내림세'?'#1864ab':'#7d8a92',pc=x=>x==null?'':`<b style="color:${x>0?'#c92a2a':x<0?'#1864ab':'inherit'}">${x>0?'+':''}${x}%</b>`;
+el.innerHTML=favChart(R.filter(r=>r.d))+`<div style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin:0 0 2px"><span class="muted">정렬</span><select id="favSort" style="font:inherit">${[['add','넣은 순'],['r3','3개월 많이 오른 순'],['r6','6개월 많이 오른 순'],['jr','전세가율 높은 순'],['ask','호가가 실거래에 가까운 순'],['nw','새 거래 먼저']].map(([v,t])=>`<option value="${v}"${v===favSort?' selected':''}>${t}</option>`).join('')}</select></div>`+
+RS.map(r=>{const {f,j,i,d,a,la,g}=r;if(!d)return `<div class="fv"><b>${esc(f.n)}</b> <small class="muted">이번 실거래 자료에 없음</small> <button class="sm" data-fdel="${j}">✕</button></div>`;const t=repT(d,'pm'),tj=repT(d,'jm');
+return `<div class="fv"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${r.c};margin-right:5px"></i><button class="go" data-fi="${i}" data-fj="${j}">${esc(d[0])}</button>${a.v?`<span class="tag" style="background:${vc(a.v)}">${a.v}</span>`:''}${r.nw?`<span class="tag" style="background:#e8590c">새 거래 ${r.nw}</span>`:''}<button class="sm" data-fdel="${j}" title="즐겨찾기에서 빼기">✕</button>${favSpark(d,r.c)}
+<div class="muted" style="font-size:12px">${t?`매매 ${t[0]}㎡ <b style="color:var(--ink)">${eok(t[1])}</b> (${ymdS(t[2])})`:''}${tj?` · 전세 ${eok(tj[4])}`:''}${d[8]>=0?` · 전세가율 ${d[8]}%`:''}</div>
+<div class="muted" style="font-size:12px">${a.r3!=null?`3개월 ${pc(a.r3)}`:'3개월 —'}${a.r6!=null?` · 6개월 ${pc(a.r6)}`:''}${d.vl!=null?` · 거래량 ${d.vl>0?'+':''}${d.vl}%`:''}${la?` · 호가 ${eok(la[2])}${g!=null?`(실거래 ${g>0?'+':''}${g}%)`:''}`:''}</div></div>`}).join('')+
+`<p class="muted" style="font-size:11.5px;margin:6px 0 0">‘새 거래’는 이 목록에서 단지를 마지막으로 눌러 본 뒤 국토부 실거래에 새로 올라온 면적 수(자료를 새로 받을 때 갱신). 단지 전체 3.3㎡당 값이라 어떤 면적이 거래됐는지에 따라 흔들릴 수 있습니다.</p>`;
+const sv=$('favSort');if(sv)sv.onchange=()=>{favSort=sv.value;try{localStorage.setItem('krmap_favs',favSort)}catch(e){}favDraw()};
+el.querySelectorAll('[data-fi]').forEach(b=>b.onclick=()=>{const f=FAV[+b.dataset.fj],d=aptD.a[+b.dataset.fi];if(f&&d){f.lt=favLast(d);favSave()}window._goApt&&_goApt(+b.dataset.fi);setTimeout(favDraw,50)});el.querySelectorAll('[data-fdel]').forEach(b=>b.onclick=()=>{FAV.splice(+b.dataset.fdel,1);favSave();favDraw()})}
 window._favDraw=favDraw;
 favDraw();if(FAV.length)setTimeout(()=>aptLoad(),2500);// 즐겨찾기가 있으면 시세 자료를 미리 받아 목록을 채움
 $('favEx').onclick=async()=>{const t=JSON.stringify({fav:FAV,ask:ASK});try{await navigator.clipboard.writeText(t);alert('즐겨찾기·호가 기록을 복사했습니다. 다른 기기에서 ‘가져오기’에 붙여 넣으세요.')}catch(e){prompt('아래 내용을 복사하세요',t)}};
@@ -1335,7 +1361,7 @@ TOPT={v:2,real:sat&&d3&&!!VK,price:!!o.price,base:sat?2:0,b3:d3,dem:d3,sky:d3,sp
 const bPre=async c=>{if(!bIdx)bIdx=await fetch('bld/index.json').then(r=>r.json()).catch(()=>({z:13,t:{}}));const [x0,y0]=tileOf(c[0],c[1],bIdx.z),ks=[];for(let x=x0-1;x<=x0+1;x++)for(let y=y0-1;y<=y0+1;y++){const k=x+'_'+y;if(bIdx.t[k]&&!bCache.has(k))ks.push(k)}
 await Promise.all(ks.map(k=>{const [bk,off,len]=bIdx.t[k];return getB(bk).then(buf=>new Response(new Blob([buf.slice(off,off+len)]).stream().pipeThrough(new DecompressionStream('gzip'))).json()).then(j=>bCache.set(k,bDecode(j))).catch(()=>bCache.set(k,[]))}))};
 // 새 버전 확인: 휴대폰 브라우저가 예전 화면을 그대로 되살리는 경우가 있어, 열 때·다시 볼 때 version.json을 확인해 바뀌었으면 새로 불러옴(임장 재생 중에는 안 함)
-{const B='202611270048';const chk=()=>{if(B.startsWith('__')||document.body.classList.contains('touring'))return;fetch('version.json?'+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{if(j&&j.b&&j.b!==B){const u=new URL(location.href);if(u.searchParams.get('v')===j.b)return;/* 이미 그 버전으로 다시 불러온 뒤면 되풀이하지 않음 */u.searchParams.set('v',j.b);location.replace(u.toString())}}).catch(()=>{})};
+{const B='202611270227';const chk=()=>{if(B.startsWith('__')||document.body.classList.contains('touring'))return;fetch('version.json?'+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{if(j&&j.b&&j.b!==B){const u=new URL(location.href);if(u.searchParams.get('v')===j.b)return;/* 이미 그 버전으로 다시 불러온 뒤면 되풀이하지 않음 */u.searchParams.set('v',j.b);location.replace(u.toString())}}).catch(()=>{})};
 setTimeout(chk,1500);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chk()});addEventListener('pageshow',e=>{if(e.persisted)chk()})}
 // 실사 3D 창에 명령 보내기
 let v3Id=0;const v3Wait=new Map();addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data)return;const r=v3Wait.get(e.data.id);if(r){v3Wait.delete(e.data.id);r(e.data)}});

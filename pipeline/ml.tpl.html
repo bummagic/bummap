@@ -1553,7 +1553,9 @@ st.forEach(x=>{if(!x.multi)return;const b=new maplibregl.LngLatBounds(c,c);x.mul
 const cm=map.cameraForBounds(b,{padding:{top:150,bottom:300,left:130,right:130}});x.at=cm?[cm.center.lng,cm.center.lat]:c;x.z=cm?Math.min(16.3,Math.max(10.8,cm.zoom-.35)):15;
 x.mk=[{c,n:nm,big:1,hero:1},...x.multi.map((it,k)=>({c:it.c,n:it.n,col:it.col,big:it.route?1:0,hero:k===0||it.route?1:0}))];x.lines=x.multi.filter(it=>it.rt).map(it=>it.lc&&it.lc.length?{...it.rt,col:it.col}:it.rt)});
 // 3) 화면 준비: 실사 3D(브이월드) 또는 지도 3D
-const real=O.real&&VK;if(real){prog('실사 3D 불러오기',.4);map.jumpTo({center:c,zoom:st[0].z,pitch:st[0].p,bearing:st[0].b});vw3On();let t0=Date.now();while(TR===me&&!fig.classList.contains('v3ok')&&vw3&&Date.now()-t0<30000)await new Promise(r=>setTimeout(r,300));me.real=vw3&&fig.classList.contains('v3ok');if(!me.real&&vw3)vw3Off()}
+const real=O.real&&VK;if(real){prog('실사 3D 불러오기',.4);map.jumpTo({center:c,zoom:st[0].z,pitch:st[0].p,bearing:st[0].b});vw3On();let t0=Date.now();while(TR===me&&!fig.classList.contains('v3ok')&&vw3&&Date.now()-t0<30000)await new Promise(r=>setTimeout(r,300));me.real=vw3&&fig.classList.contains('v3ok');if(!me.real&&vw3)vw3Off();
+// 실사를 골랐는데 못 불러왔으면 첫 장면 자막에 이유를 알림(지도 3D로 대신 재생)
+if(!me.real&&st[0]){const w=window._v3why||'응답 없음';st[0].sm=(st[0].sm?st[0].sm+' · ':'')+'⚠ 실사 3D를 못 불러와 지도 3D로 보여 드립니다('+w+')'}}
 if(me.real){v3({v3c:'clean',on:1});st.forEach(x=>x.sm=(x.sm?x.sm+' · ':'')+'3D: 브이월드(국토교통부)');
 // 브이월드 실사 모델이 없는 곳(지방·신축)도 건물이 서도록 도로명주소 건물(지상층수×3.1m)을 직접 세워 보냄: 모두 베이지, 이 단지만 주황
 prog('실사 건물 확인',.41);// 브이월드 실사 건물은 10초쯤 지나야 내려오기 시작함 → 실사 모델이 보이거나(있음), 건물 타일을 다 받았는데 하나도 없을 때(없음)까지 최대 22초 기다림
@@ -2035,7 +2037,7 @@ var vw3=false,vw3Fail=false,vw3C=null;const v3f=$('v3f');
 const camNow=()=>{const c=map.getCenter();return {lon:c.lng,lat:c.lat,z:map.getZoom(),p:map.getPitch(),b:map.getBearing()}};
 const camSet=c=>c&&map.jumpTo({center:[c.lon,c.lat],zoom:Math.min(22,Math.max(3,c.z)),bearing:c.b,pitch:Math.max(0,Math.min(70,c.p))});
 addEventListener('message',e=>{if(e.source!==v3f.contentWindow||!e.data||!e.data.v3d)return;if(e.data.v3d==='ok'&&vw3){fig.classList.add('v3ok');bst.textContent='실사 3D · 끌어서 이동, 오른쪽 버튼(또는 Ctrl+끌기)으로 회전·기울이기, 휠로 확대';return}
-if(e.data.v3d==='fail'&&vw3){vw3Fail=true;vw3Off();sty();attrEl.textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');bst.textContent='⚠ 실사 3D 실패: '+(e.data.why||'')+' · 3D 버튼을 다시 누르면 재시도';vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
+if(e.data.v3d==='fail'&&vw3){vw3Fail=true;window._v3why=e.data.why||'';vw3Off();sty();attrEl.textContent='실사 3D를 못 불러와 색 블록으로 표시 — '+(e.data.why||'');bst.textContent='⚠ 실사 3D 실패: '+(e.data.why||'')+' · 3D 버튼을 다시 누르면 재시도';vkm.textContent='위성 3D의 실사 건물은 브이월드 키에 WebGL 3D 지도 API 권한이 있어야 합니다.'}});
 function vw3On(){const c=camNow();vw3=true;vw3C=c;fig.classList.remove('v3ok');fig.classList.add('vw3');$('vrot').style.display='none';
 v3f.src=`v3d.html?v=20261125c&embed=1&lat=${c.lat.toFixed(6)}&lon=${c.lon.toFixed(6)}&z=${c.z.toFixed(2)}&p=${c.p.toFixed(1)}&b=${c.b.toFixed(1)}`;attrEl.textContent='3D: 브이월드 WebGL 3D 지도(국토교통부)';bst.textContent='실사 3D 불러오는 중… (끌어서 이동, 오른쪽 버튼·Ctrl+끌기로 회전·기울이기)'}
 function vw3Off(){let c=null;try{c=v3f.contentWindow.getCam&&v3f.contentWindow.getCam()}catch(e){}vw3=false;fig.classList.remove('vw3','v3ok');v3f.src='about:blank';setBaseLayer();c=c||vw3C;camSet(c);if(mode3)$('vrot').style.display='';return c}

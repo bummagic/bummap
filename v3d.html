@@ -19,7 +19,8 @@ body.clean #naviTopPannel3d,body.clean #naviBottomPannel3d,body.clean #footer3d,
 <script>
 // 브이월드 WebGL 3D 지도 API 3.0(실사 건물·지형). 키는 지도 화면의 '배경지도 설정'에서 저장한 것(이 브라우저의 localStorage)을 쓴다.
 var VK='';try{VK=localStorage.getItem('vwkey')||''}catch(e){}if(!VK&&window.VWKEY_DEFAULT)VK=VWKEY_DEFAULT;
-if(VK)document.write('<script src="https://map.vworld.kr/js/webglMapInit.js.do?version=3.0&apiKey='+encodeURIComponent(VK)+'"><\/script>');
+// 스크립트 자체를 못 받으면(브이월드 점검·장애: 안내 페이지로 넘어감) 키 문제와 구분해 알림
+if(VK)document.write('<script src="https://map.vworld.kr/js/webglMapInit.js.do?version=3.0&apiKey='+encodeURIComponent(VK)+'" onerror="window._vwDown=1"><\/script>');
 </script>
 </head>
 <body>
@@ -108,6 +109,7 @@ addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||!e.data.v
 window.getCenter=function(){try{const C=window.ws3d&&ws3d.common,v=ws3d.viewer,cv=v.scene.canvas;const p=v.camera.pickEllipsoid(new C.Cartesian2(cv.clientWidth/2,cv.clientHeight/2));if(!p)return null;const g=C.Cartographic.fromCartesian(p);return [g.longitude*180/Math.PI,g.latitude*180/Math.PI]}catch(e){return null}};
 if(!VK)msg('<p><b>브이월드 인증키가 없습니다.</b></p><p>사이버 임장지도 화면 오른쪽 패널의 ‘배경지도 설정’에 인증키를 넣고 저장한 뒤 다시 들어와 주세요.</p>','브이월드 인증키가 없습니다');
 else if(window.vworldIsValid==='false')msg('<p><b>브이월드가 이 키를 거부했습니다.</b></p><p>'+(window.vworldErrMsg||'')+'</p>','브이월드 응답: '+(window.vworldErrMsg||'키 거부'));
+else if(window._vwDown)msg('<p><b>브이월드 서비스가 지금 응답하지 않습니다.</b></p><p>브이월드 점검·장애 중일 수 있습니다(공지: vworld.kr). 끝난 뒤 다시 열어 주세요.</p>','브이월드 점검·장애로 응답 없음');
 else if(!window.vw)msg('<p><b>브이월드 3D 지도를 불러오지 못했습니다.</b></p><p>브이월드 ‘인증키 관리’에서 이 키의 활용 API에 <b>WebGL 3D 지도 API</b>가 들어 있는지, 서비스 URL이 <b>https://bummagic.github.io</b> 인지 확인해 주세요.</p><small>활용 API를 바꾸면 반영까지 잠시 걸릴 수 있습니다.</small>','키에 WebGL 3D 지도 API 권한이 있는지 확인해 주세요');
 else{
   // 2D에서 보던 화면과 같은 위치·배율·기울기·방향에서 바로 시작(전국→근처로 날아오는 장면 없이)
